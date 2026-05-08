@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AF Home Inspection — Report Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --tan: #b5a99a;
+  --tan-light: #d4cbbf;
+  --tan-dark: #8c7e71;
+  --grey: #636363;
+  --grey-light: #9a9a9a;
+  --grey-dark: #2e2e2e;
+  --bg: #f9f7f4;
+  --bg-card: #ffffff;
+  --border: #e0d8d0;
+  --shadow: rgba(90,70,50,0.10);
+  --red: #c0392b;
+  --orange: #e67e22;
+  --yellow: #f1c40f;
+  --green-light: #27ae60;
+  --green: #1a7a45;
+  --accent: #7b6c5e;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--grey-dark);
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* ===== NAV ===== */
+.app-header {
+  background: var(--grey-dark);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  position: sticky;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  position: sticky;
+  position: relative;
+}
+.app-header { position: sticky; top: 0; z-index: 100; }
+.app-header .logo-wrap { display: flex; align-items: center; gap: 10px; }
+.app-header img { height: 36px; filter: brightness(0) invert(1); }
+.app-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; letter-spacing: 0.07em; font-weight: 500; color: var(--tan-light); }
+
+.tab-nav {
+  display: flex;
+  gap: 2px;
+  background: #1e1e1e;
+  padding: 8px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.55);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+}
+.tab-btn.active, .tab-btn:hover {
+  background: var(--tan);
+  color: white;
+  border-color: var(--tan);
+}
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 18px 16px 100px; }
+.page.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 18px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+
+/* ===== FORMS ===== */
+.form-row { margin-bottom: 12px; }
+.form-row label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--grey);
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.92rem;
+  color: var(--grey-dark);
+  background: #faf9f7;
+  transition: border-color 0.2s;
+  appearance: none;
+}
+.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+  outline: none;
+  border-color: var(--tan);
+  background: white;
+}
+.form-row textarea { resize: vertical; min-height: 70px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-grid .form-row { margin-bottom: 0; }
+
+/* ===== LOCATION CHIPS ===== */
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.loc-chip {
+  padding: 8px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.78rem;
+  cursor: pointer;
+  background: #faf9f7;
+  color: var(--grey);
+  transition: all 0.18s;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.loc-chip.selected {
+  background: var(--tan);
+  color: white;
+  border-color: var(--tan);
+}
+.loc-chip .loc-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+
+/* ===== DEFECT CARDS ===== */
+.defect-item {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 6px var(--shadow);
+  position: relative;
+}
+.defect-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.defect-location-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tan-dark);
+  background: var(--tan-light);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.defect-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--grey-dark);
+  flex: 1;
+}
+.defect-actions { display: flex; gap: 6px; }
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.icon-btn:hover { background: var(--bg); }
+.defect-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.severity-dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+}
+.defect-comment {
+  font-size: 0.84rem;
+  color: var(--grey);
+  margin-top: 6px;
+  line-height: 1.5;
+  font-style: italic;
+}
+.defect-thumb {
+  width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--border); cursor: pointer; margin-top: 8px;
+}
+
+/* ===== RATING STARS ===== */
+.rating-wrap { display: flex; gap: 4px; margin: 8px 0; }
+.star-btn {
+  background: none; border: none; font-size: 1.5rem; cursor: pointer;
+  color: var(--border); transition: color 0.15s; padding: 0;
+}
+.star-btn.active { color: #f0a500; }
+
+/* ===== SEVERITY SELECTOR ===== */
+.severity-row {
+  display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0;
+}
+.sev-btn {
+  flex: 1; min-width: 0;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #faf9f7;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.18s;
+  color: var(--grey);
+  line-height: 1.3;
+}
+.sev-btn.s1.sel { background: #27ae60; color: white; border-color: #27ae60; }
+.sev-btn.s2.sel { background: #8bc34a; color: white; border-color: #8bc34a; }
+.sev-btn.s3.sel { background: #f1c40f; color: #333; border-color: #f1c40f; }
+.sev-btn.s4.sel { background: #e67e22; color: white; border-color: #e67e22; }
+.sev-btn.s5.sel { background: #c0392b; color: white; border-color: #c0392b; }
+
+/* ===== FAB ===== */
+.fab {
+  position: fixed;
+  bottom: 24px; right: 20px;
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tan-dark), var(--grey-dark));
+  color: white;
+  font-size: 1.8rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+.fab:active { transform: scale(0.93); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 300;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  padding: 20px 18px 36px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-handle {
+  width: 40px; height: 4px; border-radius: 2px;
+  background: var(--border); margin: 0 auto 18px; display: block;
+}
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--grey-dark);
+  margin-bottom: 16px;
+  letter-spacing: 0.02em;
+}
+
+/* ===== CANVAS ANNOTATE ===== */
+#annotateCanvas {
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  width: 100%; display: block;
+  touch-action: none;
+}
+.annotate-tools {
+  display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0;
+  align-items: center;
+}
+.tool-btn {
+  padding: 7px 12px; border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #faf9f7;
+  cursor: pointer;
+  font-size: 0.82rem; font-weight: 600;
+  transition: all 0.15s;
+}
+.tool-btn.active, .tool-btn:hover {
+  background: var(--tan); color: white; border-color: var(--tan);
+}
+input[type="color"].color-pick {
+  width: 36px; height: 36px; border: 2px solid var(--border);
+  border-radius: 8px; padding: 2px; cursor: pointer; background: none;
+}
+input[type="range"].thickness {
+  width: 80px; cursor: pointer; accent-color: var(--tan);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: all 0.18s;
+}
+.btn-primary {
+  background: var(--grey-dark);
+  color: white;
+  width: 100%;
+  margin-top: 8px;
+}
+.btn-primary:hover { background: var(--accent); }
+.btn-secondary {
+  background: var(--bg);
+  color: var(--grey-dark);
+  border: 1.5px solid var(--border);
+}
+.btn-danger { background: #c0392b; color: white; }
+.btn-tan { background: var(--tan); color: white; }
+
+/* ===== SUMMARY ===== */
+.summary-header {
+  text-align: center;
+  padding: 24px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.summary-header img { height: 70px; margin-bottom: 12px; }
+.summary-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--grey-dark);
+  letter-spacing: 0.04em;
+}
+.summary-header p {
+  font-size: 0.82rem;
+  color: var(--grey);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-box .stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat-box .stat-label {
+  font-size: 0.72rem;
+  color: var(--grey);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+
+/* ===== SECTION GROUP ===== */
+.section-group {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.section-group-header {
+  background: var(--grey-dark);
+  color: white;
+  padding: 11px 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%; transform: translateX(-50%);
+  background: var(--grey-dark);
+  color: white;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--grey-light);
+}
+.empty-state .empty-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+.empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+/* ===== PHOTO GRID ===== */
+.photo-preview-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ===== LIGHTBOX ===== */
+.lightbox {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox.open { display: flex; }
+.lightbox img { max-width: 95vw; max-height: 88vh; border-radius: 10px; }
+.lightbox-close {
+  position: absolute; top: 18px; right: 18px;
+  background: rgba(255,255,255,0.15); color: white;
+  border: none; border-radius: 50%; width: 36px; height: 36px;
+  font-size: 1.2rem; cursor: pointer;
+}
+
+/* ===== COVER PAGE PREVIEW ===== */
+.cover-preview {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: white;
+  margin: 0 0 16px;
+}
+.cover-preview-inner {
+  padding: 30px 24px;
+  text-align: center;
+  background: linear-gradient(160deg, #ffffff 0%, #f5f1ed 100%);
+  color: var(--grey-dark);
+}
+.cover-preview-inner .cover-logo { height: 56px; filter: brightness(0) invert(1); margin-bottom: 20px; }
+.cover-preview-inner .cover-company {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  letter-spacing: 0.1em;
+  color: var(--tan-dark);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.cover-preview-inner .cover-divider {
+  border: none; border-top: 1px solid rgba(140,126,113,0.35);
+  margin: 14px auto; width: 60%;
+}
+.cover-preview-inner .cover-report-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--grey-dark);
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+.cover-info-row {
+  display: flex; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  text-align: left;
+}
+.cover-info-row .ci-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tan-dark);
+  font-weight: 600;
+  flex: 0 0 42%;
+}
+.cover-info-row .ci-val {
+  font-size: 0.85rem;
+  color: var(--grey-dark);
+  flex: 1;
+  text-align: right;
+}
+
+/* ===== COMPLIANCE BADGE ===== */
+.compliance-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(181,169,154,0.15);
+  border: 1px solid rgba(181,169,154,0.3);
+  color: var(--tan-light);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 14px;
+}
+
+/* ===== PHOTO BTN ===== */
+.photo-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1.5px dashed var(--tan);
+  border-radius: 10px;
+  background: rgba(181,169,154,0.06);
+  color: var(--tan-dark);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  width: 100%;
+  justify-content: center;
+}
+.photo-upload-btn:hover { background: rgba(181,169,154,0.14); }
+#photoFileInput { display: none; }
+
+/* ===== ANNOTATE MODAL ===== */
+#annotateModal { display: none; }
+#annotateModal.open { display: flex; }
+
+/* ===== PDF LOADER ===== */
+.pdf-loader {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 500;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  gap: 14px;
+}
+.pdf-loader.open { display: flex; }
+.pdf-loader .spinner {
+  width: 44px; height: 44px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top-color: var(--tan-light);
+  border-radius: 50%;
+  animation: spin 0.85s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.pdf-loader p { font-size: 0.9rem; font-family: 'DM Sans', sans-serif; }
+
+/* ===== SECTION DIVIDER ===== */
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--grey-light);
+  margin: 16px 0 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 380px) {
+  .location-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo-wrap">
+    <img id="headerLogo" src="" alt="AF Home Inspection Logo">
+    <h1 style="position:absolute;left:50%;transform:translateX(-50%);">AF HOME INSPECTION</h1>
+  </div>
+  <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.78rem;" onclick="saveProject()">💾 Save</button>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('cover')">📋 Cover</button>
+  <button class="tab-btn" onclick="switchTab('inspect')">🔍 Inspection</button>
+  <button class="tab-btn" onclick="switchTab('defects')">⚠️ Defects</button>
+  <button class="tab-btn" onclick="switchTab('summary')">📊 Summary</button>
+</nav>
+
+<!-- ======================== PAGE: COVER ======================== -->
+<div class="page active" id="page-cover">
+
+  <!-- Live preview -->
+  <div class="cover-preview">
+    <div class="cover-preview-inner">
+      <img id="coverLogoImg" class="cover-logo" src="" alt="Logo">
+      <div class="cover-company">AF Home Inspection</div>
+      <hr class="cover-divider">
+      <div class="cover-report-title" id="prevTitle">INSPECTION REPORT</div>
+      <div id="coverInfoRows"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Project Information</div>
+    <div class="form-row">
+      <label>Project / Report Title</label>
+      <input type="text" id="f_title" placeholder="e.g. Residential Property Inspection" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Property Address</label>
+      <input type="text" id="f_address" placeholder="Full address" oninput="updateCover()">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Property Type</label>
+        <select id="f_proptype" onchange="updateCover()">
+          <option value="">Select type</option>
+          <option>Single-Storey Terrace</option>
+          <option>Double-Storey Terrace</option>
+          <option>Semi-Detached</option>
+          <option>Detached Bungalow</option>
+          <option>Townhouse</option>
+          <option>Apartment / Condominium</option>
+          <option>Low-Cost Flat</option>
+          <option>Service Apartment</option>
+          <option>Shophouse</option>
+          <option>Villa / Resort Home</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Building Age (Years)</label>
+        <input type="number" id="f_age" placeholder="e.g. 5" oninput="updateCover()">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Owner / Client Name</label>
+      <input type="text" id="f_owner" placeholder="Full name" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Owner Contact / Email</label>
+      <input type="text" id="f_contact" placeholder="Phone or email" oninput="updateCover()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Inspection Details</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Inspection Date</label>
+        <input type="date" id="f_date" oninput="updateCover()">
+      </div>
+      <div class="form-row">
+        <label>Time of Inspection</label>
+        <input type="time" id="f_time" oninput="updateCover()">
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Weather Condition</label>
+        <select id="f_weather" onchange="updateCover()">
+          <option value="">Select</option>
+          <option>☀️ Clear / Sunny</option>
+          <option>⛅ Partly Cloudy</option>
+          <option>☁️ Overcast</option>
+          <option>🌦️ Light Rain</option>
+          <option>🌧️ Heavy Rain</option>
+          <option>🌫️ Hazy / Foggy</option>
+          <option>🌬️ Windy</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Temperature (°C)</label>
+        <input type="number" id="f_temp" placeholder="e.g. 31" oninput="updateCover()">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Humidity / Conditions</label>
+      <input type="text" id="f_humidity" placeholder="e.g. High humidity, post-rain" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Inspection Stage</label>
+      <select id="f_stage" onchange="updateCover()">
+        <option value="">Select</option>
+        <option>Vacant Possession (VP) Inspection</option>
+        <option>Defect Liability Period (DLP) Inspection</option>
+        <option>Pre-Purchase Inspection</option>
+        <option>Post-Renovation Inspection</option>
+        <option>Warranty Claim Inspection</option>
+        <option>Annual Maintenance Inspection</option>
+        <option>Handover Inspection</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Report Reference No.</label>
+      <input type="text" id="f_refno" placeholder="e.g. AFH-2025-001" oninput="updateCover()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Inspector Details</div>
+    <div class="form-row">
+      <label>Inspector Name</label>
+      <input type="text" id="f_inspector" placeholder="Full name" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Inspector Registration / CIS No.</label>
+      <input type="text" id="f_cis" placeholder="e.g. CIDB/CIS/XXXX" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Company</label>
+      <input type="text" id="f_company" value="AF Home Inspection" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>Inspector Contact</label>
+      <input type="text" id="f_inspcontact" placeholder="Phone / email" oninput="updateCover()">
+    </div>
+    <div class="form-row">
+      <label>General Remarks / Scope of Inspection</label>
+      <textarea id="f_scope" placeholder="Describe the scope, access conditions, limitations, and any general notes..." oninput="updateCover()"></textarea>
+    </div>
+  </div>
+
+</div><!-- /page-cover -->
+
+<!-- ======================== PAGE: INSPECTION AREAS ======================== -->
+<div class="page" id="page-inspect">
+  <div class="card">
+    <div class="card-title">Select Inspection Areas</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:12px;">Tap to include/exclude areas from this inspection. Only selected areas will appear in the report.</p>
+    <div class="location-grid" id="locationGrid"></div>
+    <div class="form-row" style="margin-top:12px;">
+      <label>Custom Area (Optional)</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="customAreaInput" placeholder="e.g. Store Room, Prayer Room" style="flex:1;">
+        <button class="btn btn-tan" onclick="addCustomArea()" style="padding:9px 14px;flex-shrink:0;">+ Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Overall Inspection Rating</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Overall quality score for this property</p>
+    <div class="rating-wrap" id="overallStars"></div>
+    <p id="ratingLabel" style="font-size:0.82rem;color:var(--tan-dark);font-style:italic;margin-top:4px;"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Inspection Checklist</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
+    <div id="checklistWrap"></div>
+  </div>
+</div>
+
+<!-- ======================== PAGE: DEFECTS ======================== -->
+<div class="page" id="page-defects">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div class="section-label" style="margin:0;">All Defects</div>
+    <div style="font-size:0.8rem;color:var(--grey);" id="defectCountLabel">0 items</div>
+  </div>
+  <div id="defectsList"></div>
+  <div id="defectsEmpty" class="empty-state">
+    <span class="empty-icon">📋</span>
+    <p>No defects recorded yet.<br>Tap the <strong>+</strong> button to add your first finding.</p>
+  </div>
+</div>
+
+<!-- ======================== PAGE: SUMMARY ======================== -->
+<div class="page" id="page-summary">
+  <div class="summary-header">
+    <img id="summaryLogo" src="" alt="Logo">
+    <h2>Inspection Summary</h2>
+    <p>AF Home Inspection · Professional Inspection Report</p>
+  </div>
+
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Defects</div></div>
+    <div class="stat-box"><div class="stat-num" id="statCritical">0</div><div class="stat-label">Critical</div></div>
+    <div class="stat-box"><div class="stat-num" id="statAreas">0</div><div class="stat-label">Areas Checked</div></div>
+  </div>
+
+  <div id="summaryGroupsWrap"></div>
+
+  <button class="btn btn-primary" style="background:linear-gradient(135deg,#2e2e2e,#7b6c5e);font-size:0.95rem;padding:14px;" onclick="generatePDF()">
+    📄 Generate PDF Report
+  </button>
+  <button class="btn btn-secondary" style="width:100%;margin-top:10px;" onclick="saveProject()">
+    💾 Save to Device
+  </button>
+  <button class="btn" style="width:100%;margin-top:8px;background:var(--bg);border:1.5px solid var(--border);color:var(--grey-dark);" onclick="loadProject()">
+    📂 Load Saved File
+  </button>
+  <input type="file" id="loadFileInput" accept=".json" style="display:none;" onchange="loadFromFile(event)">
+</div>
+
+<!-- ======================== FAB ======================== -->
+<button class="fab" id="mainFab" onclick="openAddDefectModal()">＋</button>
+
+<!-- ======================== MODAL: ADD DEFECT ======================== -->
+<div class="modal-overlay" id="defectModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <div class="modal-title" id="defectModalTitle">Add Defect Finding</div>
+
+    <div class="form-row">
+      <label>Location / Area</label>
+      <select id="m_location" onchange="filterSubArea()">
+        <option value="">— Select Location —</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Defect Type</label>
+      <select id="m_defectType">
+        <option value="">— Select Defect —</option>
+        <option>Hairline Cracks</option>
+        <option>Structural Cracks</option>
+        <option>Hollow Tiles</option>
+        <option>Loose / Debonded Tiles</option>
+        <option>Missing Parts / Components</option>
+        <option>Water Seepage / Leakage</option>
+        <option>Water Stain / Dampness</option>
+        <option>Efflorescence / Salt Deposits</option>
+        <option>Peeling / Flaking Paint</option>
+        <option>Blistering Paint</option>
+        <option>Poor Workmanship – Painting</option>
+        <option>Poor Workmanship – Plastering</option>
+        <option>Poor Workmanship – Tiling</option>
+        <option>Uneven / Lippage Tiling</option>
+        <option>Grouting Defects</option>
+        <option>Sealant Failure</option>
+        <option>Broken / Damaged Item</option>
+        <option>Rust / Corrosion</option>
+        <option>Electrical Issue</option>
+        <option>Plumbing Issue</option>
+        <option>Door / Window Not Aligned</option>
+        <option>Door / Window Cannot Close Properly</option>
+        <option>Hardware Defect (Hinges / Locks)</option>
+        <option>Ceiling Defect</option>
+        <option>Drainage / Gradient Issue</option>
+        <option>Ponding Issue</option>
+        <option>Vegetation / Biological Growth</option>
+        <option>Structural Settlement</option>
+        <option>M&E System Issue</option>
+        <option>Other (Custom)</option>
+      </select>
+    </div>
+
+    <div class="form-row" id="customDefectRow" style="display:none;">
+      <label>Custom Defect Description</label>
+      <input type="text" id="m_customDefect" placeholder="Describe the defect">
+    </div>
+
+    <div class="form-row">
+      <label>Severity Level</label>
+      <div class="severity-row" id="severityRow">
+        <button class="sev-btn s1" onclick="setSeverity(1)" data-s="1">1<br>Minor</button>
+        <button class="sev-btn s2" onclick="setSeverity(2)" data-s="2">2<br>Low</button>
+        <button class="sev-btn s3" onclick="setSeverity(3)" data-s="3">3<br>Moderate</button>
+        <button class="sev-btn s4" onclick="setSeverity(4)" data-s="4">4<br>Serious</button>
+        <button class="sev-btn s5" onclick="setSeverity(5)" data-s="5">5<br>Critical</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Quality Rating</label>
+      <div class="rating-wrap" id="defectStars"></div>
+      <p id="defectRatingLbl" style="font-size:0.78rem;color:var(--grey);margin-top:2px;"></p>
+    </div>
+
+    <div class="form-row">
+      <label>Inspector's Comment / Recommendation</label>
+      <select id="m_commentPrefix" onchange="applyPrefix()">
+        <option value="">— Prefix Template —</option>
+        <optgroup label="Observation">
+          <option data-full="Observed signs of ">Observed signs of...</option>
+          <option data-full="Evidence of ">Evidence of...</option>
+          <option data-full="Presence of ">Presence of...</option>
+          <option data-full="Noted ">Noted...</option>
+        </optgroup>
+        <optgroup label="Condition Assessment">
+          <option data-full="Condition is assessed as ">Condition assessed as...</option>
+          <option data-full="This area shows signs of deterioration. ">Area shows deterioration</option>
+          <option data-full="This defect is attributed to ">Attributed to...</option>
+        </optgroup>
+        <optgroup label="Recommendation">
+          <option data-full="Recommended to rectify by appointed contractor within ">Rectify within timeframe...</option>
+          <option data-full="Inspector recommends immediate attention as this may affect structural integrity. ">Immediate attention required</option>
+          <option data-full="Recommend monitoring periodically and rectify if condition worsens. ">Monitor condition</option>
+          <option data-full="Recommend engaging a qualified professional to assess and carry out repairs. ">Engage qualified professional</option>
+          <option data-full="Hacking and re-doing is recommended to achieve proper workmanship. ">Hack and redo required</option>
+          <option data-full="Recommend proper waterproofing treatment to be applied. ">Waterproofing treatment required</option>
+          <option data-full="Touch-up and repainting to be carried out by developer upon rectification. ">Touch-up / repaint after rectification</option>
+        </optgroup>
+        <optgroup label="Compliance">
+          <option data-full="This defect is in non-compliance with acceptable industry standards. ">Non-compliance with industry standard</option>
+          <option data-full="Workmanship does not meet acceptable industry standard. ">Below acceptable standard</option>
+        </optgroup>
+      </select>
+      <textarea id="m_comment" placeholder="Inspector's observation and recommendation..." style="margin-top:6px;"></textarea>
+    </div>
+
+    <div class="form-row">
+      <label>Photo Evidence</label>
+      <label for="photoFileInput" class="photo-upload-btn">📷 Capture / Upload Photo</label>
+      <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="handlePhotoUpload(event)">
+      <div class="photo-preview-wrap" id="photoPreviewWrap"></div>
+    </div>
+
+    <div class="form-row">
+      <label>Annotate Photo (Circle / Arrow)</label>
+      <div id="annotateSection" style="display:none;">
+        <canvas id="annotateCanvas"></canvas>
+        <div class="annotate-tools">
+          <button class="tool-btn active" id="toolCircle" onclick="setTool('circle')">⭕ Circle</button>
+          <button class="tool-btn" id="toolArrow" onclick="setTool('arrow')">➡️ Arrow</button>
+          <button class="tool-btn" id="toolPen" onclick="setTool('pen')">✏️ Freehand</button>
+          <input type="color" class="color-pick" id="annoColor" value="#e74c3c" title="Colour">
+          <input type="range" class="thickness" id="annoThickness" min="2" max="14" value="4" title="Line thickness">
+          <button class="tool-btn" onclick="undoAnnotation()" style="margin-left:auto;">↩️ Undo</button>
+          <button class="tool-btn btn-danger" onclick="clearAnnotations()">🗑️ Clear</button>
+        </div>
+        <button class="btn btn-tan" onclick="saveAnnotation()" style="width:100%;margin-top:4px;">✔ Apply Annotation</button>
+      </div>
+      <div id="annotatePrompt" style="font-size:0.82rem;color:var(--grey);margin-top:4px;display:none;">Upload a photo first to enable annotation tools.</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+      <button class="btn btn-secondary" onclick="closeDefectModal()">Cancel</button>
+      <button class="btn btn-primary" style="margin-top:0;" onclick="submitDefect()">Save Finding</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- PDF LOADER -->
+<div class="pdf-loader" id="pdfLoader">
+  <div class="spinner"></div>
+  <p>Generating PDF report…</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ======================== SCRIPT ======================== -->
+<script>
+const LOGO_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+977fOQDGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGPuHhclkUhKRKH1FviSMMcZ2K5lMyt08zoGEMcbYzgGiV01DPvnQ/ac/f/uyZx5fdu9VU6ZMqeJAwtgAVXW+BOyrjLIsEY/HARAVAMDyZYtPMQz9mmDQ/CYRAQghIJvNfZgvFGa9+vSL993W2povB5JYLObxFWQcQBj7KgaOpibEUhB4ZMn8H1aEKq4JBgL/5ikP8oWig6W/EF3TdcPQIZ/Pv5Ur2LPvuHfcA6+8Ai4CwKMcSBgHEMa+GogIW1tbRbzQf+jeu4+oqAj80gwEfiwRIVcouP7fBe74m1BEIECZuq5rug6ZbP6tQiE/K3ZOyyP+s333ydhXhcaXgH1VAsfKeFwiousA3rIFcw+sqau9EhHPNU1Dy+XyLhEBIioBAACA4H9HCEIAou04XtFxVcA0DguHgsuGaX1gYiGfvxERHwCAj4gEQBwQE4qvOOMAwth/gFp2MpkUiOgBgLtkwe17VVVXJ0TTPQ+KQAoAIYAIAAAAAA"; // (truncated for structure - will be set dynamically)
+
+// ======= DATA STORE =======
+let state = {
+  cover: {},
+  selectedLocations: [],
+  customLocations: [],
+  overallRating: 0,
+  checklist: {},
+  defects: [],
+  editingId: null
+};
+
+const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+977fOQDGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGPuHhclkUhKRKH1FviSMMcZ2K5lMyt08zoGEMcbYzgGiV01DPvnQ/ac/f/uyZx5fdu9VU6ZMqeJAwtgAVXW+BOyrjLIsEY/HARAVAMDyZYtPMQz9mmDQ/CYRAQghIJvNfZgvFGa9+vSL993W2povB5JYLObxFWQcQBj7KgaOpibEUhB4ZMn8H1aEKq4JBgL/5ikP8oWig6W/EF3TdcPQIZ/Pv5Ur2LPvuHfcA6+8Ai4CwKMcSBgHEMa+GogIW1tbRbzQf+jeu4+oqAj80gwEfiwRIVcouP7fBe74m1BEIECZuq5rug6ZbP6tQiE/K3ZOyyP+s333ydhXhcaXgH1VAsfKeFwiousA3rIFcw+sqau9EhHPNU1Dy+XyLhEBIioBAACA4H9HCEIAou04XtFxVcA0DguHgsuGaX1gYiGfvxERHwCAj4gEQBwQE4qvOOMAwth/gFp2MpkUiOgBgLtkwe17VVVXJ0TTPQ+KQAoAIYAIAAAAAA";
+
+// Will be replaced with actual b64
+const REAL_LOGO = "";
+
+// Default locations
+const DEFAULT_LOCATIONS = [
+  { id:"carPorch", icon:"🚗", name:"Car Porch", order:1 },
+  { id:"mainEntrance", icon:"🚪", name:"Main Entrance", order:2 },
+  { id:"livingRoom", icon:"🛋️", name:"Living Room", order:3 },
+  { id:"diningRoom", icon:"🍽️", name:"Dining Room", order:4 },
+  { id:"kitchen", icon:"🍳", name:"Kitchen", order:5 },
+  { id:"utility", icon:"🧺", name:"Utility Area", order:6 },
+  { id:"bedroom1", icon:"🛏️", name:"Bedroom 1", order:7 },
+  { id:"bedroom2", icon:"🛏️", name:"Bedroom 2", order:8 },
+  { id:"bedroom3", icon:"🛏️", name:"Bedroom 3", order:9 },
+  { id:"bedroom4", icon:"🛏️", name:"Bedroom 4", order:10 },
+  { id:"bathroom1", icon:"🚿", name:"Bathroom 1", order:11 },
+  { id:"bathroom2", icon:"🚿", name:"Bathroom 2", order:12 },
+  { id:"bathroom3", icon:"🚿", name:"Bathroom 3", order:13 },
+  { id:"masterBedroom", icon:"🛏️", name:"Master Bedroom", order:14 },
+  { id:"masterBath", icon:"🛁", name:"Master Bathroom", order:15 },
+  { id:"staircase", icon:"🪜", name:"Staircase", order:16 },
+  { id:"corridor", icon:"🚶", name:"Corridor / Walkway", order:17 },
+  { id:"balcony", icon:"🌿", name:"Balcony", order:18 },
+  { id:"garden", icon:"🌳", name:"Garden / Yard", order:19 },
+  { id:"roof", icon:"🏠", name:"Roof", order:20 },
+  { id:"ceiling", icon:"⬆️", name:"Ceiling", order:21 },
+  { id:"facade", icon:"🏗️", name:"External Façade", order:22 },
+  { id:"drainage", icon:"💧", name:"Drainage / Compound", order:23 },
+  { id:"electrical", icon:"⚡", name:"Electrical DB", order:24 },
+];
+
+const CIS7_CHECKLIST = [
+  "Workmanship of wall finishes (plastering, painting)",
+  "Floor finishes (tiling, screeding)",
+  "Ceiling finishes (skimming, painting)",
+  "Door and window installations",
+  "Sanitary fittings (WC, basin, shower, taps)",
+  "Electrical fittings (switches, sockets, light points)",
+  "Roof integrity (tiles, flashing, gutters)",
+  "Drainage and waterproofing",
+  "Structural elements (columns, beams, slabs)",
+  "External works (compound, car porch, boundary wall)",
+  "M&E services (water supply, electrical, sewerage)",
+  "Staircase and balustrade",
+];
+
+const SEVERITY_LABELS = ["", "Minor", "Low", "Moderate", "Serious", "Critical"];
+const SEVERITY_COLORS = ["", "#27ae60","#8bc34a","#f1c40f","#e67e22","#c0392b"];
+const RATING_LABELS = ["","Poor – Significant rework needed","Below average – Needs attention","Average – Meets basic requirements","Good – Meets acceptable standards","Excellent – Exceeds industry standards"];
+
+// ======= INIT =======
+document.addEventListener('DOMContentLoaded', () => {
+  setLogos();
+  renderLocations();
+  renderOverallStars();
+  renderDefectStars();
+  renderChecklist();
+  setDefaultDate();
+  updateCover();
+  renderDefects();
+  updateSummary();
+  document.getElementById('m_defectType').addEventListener('change', function(){
+    document.getElementById('customDefectRow').style.display = this.value === 'Other (Custom)' ? 'block' : 'none';
+  });
+});
+
+function setLogos() {
+  const logoB64 = getLogo();
+  ['headerLogo','coverLogoImg','summaryLogo'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.src = logoB64;
+  });
+}
+
+function getLogo() {
+  return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+593tXADGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGPsHxYmk0lJRKL0FfmSMMYY261kMil38zgHEsYYYzsHiF41DfnkQ/ef/vzjy555fNm9V02ZMqWKAwljA1TV+RKwrzLLskQ8HgdEVAAAy5ctPsUw9GuCQfObRARCCMhmcx/mC4VZrz794n23tbbmy4EkFot5fAUZBxDGvoqBo6kJsRQEHlky/4cVoYprgoHAv3nKg3yh6GDpL0TXdN0wdMjn86tzBXv2HfeOe+CVV8BFAHiUAwnjAMLYVwMRYWtrqygX+g/de/cRFRWBX5qBwI8lIuQKBdf/u8AdfxuKCAQoU9d1Tdchk82/VSjkZ8XOaXnEf7bvPhn7qtD4ErCvSuBYGY9LRHQBwFu2YO6BNXW1VyLiuaZpaLlc3iUiQERJQAAAhOB/RwhCAKLtOF7RcVXANA4Lh4LLnml9YGIhn78REZ8AAI+IBEAcEBOKrzjjAMLYP0EtO5lMCkT0AMBdsuD2veqqayfpmnZRIBQIpdNZyuZyrh8jSjVyREIiF1BoCERA5AGRJAQBQKJYLLqACMGAeWTADCx/OvlAWyGXn4mILwD4/SPt7e2USHAgYf/kf1x8Cdg/q94d3ZY1qfaQrzVNCAYCl0VCwdpsNg+e8lxAlAAECIIIFAKBh0KIUDAgstmcKzWpBU0Tcvk8KEUOEAgQiACACKQAAIKBoPSUgqJd/FUmk5lx+vmXvsqBhHEAYewfNHBEo1GFiHTRRRfpx48+6kLTNKaEgsG9svk8KKUcBNAAAYAAAIFK0QPD4bAs5AueY9tLU+nOW4UwBldWRH6GUh4TDoUjRccBu2i7BASIKEpbewAIoVBQKxSL4DlOsjuVuenslglvciBhHEAY+wfQf0juEw8tOlVq2rWRcPhfHNuFomM7iCAAQPjdHACAoIiIgoGA5nkKXMd5Mp3JTz/t/JY/9N73ovm37lcVrjg9EDRjuq4fahg65AtFcF3XRRSEQIIAFSKJcCgkc7mC43nu0q5M120/HXf5OwAAlEzKOAcSxgGEsf9bgaOpqQnLzVUP37/gBxWh4C+CweAYz/OgaNuOQBAEiH5HOSAQEhGpQMDQhJSQy+X/u5DLT4ue29KnH6OpqQmj0SiVgxIAyMeXLjhW6vpZUupjw6FgnecpKBSKCoBcAhAEQAJQhkIBkS8UikXbXrq9KzVr3PhJfwUAaLMsbUw87iEi8W+PcQBh7H9BeWRVcyLhAgA8uPCOf6mqqrAM0/x3KQTkCwUXgBAARbm1CvwHPE3T9KBpQjaXeydvF6efcua4R0r7FK2trdh/SK5lWWLMGBDNzf57AQAsvuPmwdV1dSfoUvsJATZHImHNsR2wHdsjIo8ICBGNSDiE2Wwu57jefZs2b5p9yaRffMiBhHEAYex/Se8O8oVzb9l3yKCGyVLTxplmwMhlcy4gEPijDAlLUzqIyBMo9Eg4BLlc7mPbLs56c8Wv704sWVIoB6OOpiYaaD5Hm2VpHU1NVK6VAAD0fl3yvnmHSCP4E93QTzZ1Y5TfxFUAz1MOALmIaAaDIZHP5buKrnP3xvVb5/zs6qs3lffdnEh4O2IcYxxAGPtSA8fMmTOrDtp70GW6rl8RDAaqM9ksEaAr/CFViABIgESkFCLKikgYc7l82nHtOzetXzu7ZXJia3mfDe3tWK7JzJ5t1V55ZWL77o6hob0dO5qaqKGhHVeuBFXu1zj88MP1n//s4v9nBLTThBRjg4HgCCkl5PJ5cD2vIBCNcCgocvnCZtt2b1+75cO7J01KdPU6N8WBhHEAYewLRGQJgDghIo0eDdrlFy063zDMq0Oh4P65XA6IlE2AGvhRo1wCKwCAcCioFQsFz/bU4m0bN918/uVT3gfwO7VboRWi7aMIEwk127JqRx36tRu6u9K1p11wyWnlYDXHsioH7T1oktSN19Z/sO73kxJ+gV+q1eDKlSvle++9hwcccAA1Nzf3NHHNnDmlar9h+x+jSe1kXYofBoLBRkSEfD6vABCDwQAWC8U1dsGe9+Jrq+6dP39+pn+QZOz/Mp5IyP5PK3eQI8Y8gAQ88sCCUyqCoV8EQ8HD7aINmWzWQb/jWgMgfwoggAIgZZqmIUBAJpddUehOXRe78LLflwMHRKMqHo9jItHqAgC0Lr33/GDAnNrY0LBPOpN7AgCgoaEBAQA22dvNvQJ7X1tdVambB2kbli9b/NuiY7+QzWVfRsQ1ANATNNra2rSOjg7R2dlJLS0t3QCwHACWz5pl1e83dK9jpNCiUuCxgUCgxvM8kJrcr6K64rbjRh910TFH/cvsG+cseCAWizkcSBgHEMY+c42jbwf5skV3fKeqsiphmuYxQAqy2ZwDQAIBpT+VAwEQFBB5mqYZpm5ALp9blUvnpscuuGR5OXDE29sJojHV2poUiUTCnX/bTV/fa8SQWeFg6MRcPg9d3SlPKZf6HotSyvM6CoXCYE3ThkbCZhQQo9lcIP/Uo/e/VbS95z23+OJv33zqrebm5mJ5u2QyKSORjVrjuoA6oqVlKwAkASB51+wbhjU0NB5nmuYpgHi0EKKquqryINcN3Ru/esL4ouPcfOpZFyZjsZjHebYYBxDG9lyf1CPLFs3fryIcmqrr+jmmYWI2n3OACBFREoE/fMnPN+IKFEYoFJKZbPZv+Vx+1vTb7lq0atUqh8gSEAfAWMyzLEsgAgHEvMeWLhgXCkVmm6ZZmcnmHABFQqCBiDs17SKCBoDC9Vw3m88TEaGUMmiaxtEVEXl0Lp+//tj/95P3jzkq1la0nec2dW99LRaLbQYArxQQxXPPPac3Nq5TRxzR8jEALAKARQ8vvmsf13F/mM/nxwohvlNTXfNNqclHftX64JVF156OiE8CgNd/jgtjHEAY66XcZBOLxbzFt91WXTekZqKmaZeHQsHqTDarsrmcBwiSABARCEGQIlICUIRDISNfKHR1d6duX/vXtbdNTCRS5X36zV879j8pGg2OPvmEedVVkQvyhSJksllXIGoE6BEAEKHwj2glAABUQgUoQEAEEAhI/rBgVEpRqT9DIYAMmoGvGabxNdd1LwqHg9ufeHjx72zbeT6fSq1AxPcAoKd28uyzc8zGxoA64oiWDwFgAQAsuO/OO0fkC/b3Aob2Yyn14wbX1z/xq/988O18sWCdeua4JxKJRE88A+5oZxxAGAMgyxLg31170WjUOPPk4y42zMCVoWBwr2w2B+lM1gE/9Yj0y28AIiIAoEg4pBXyBSeTySzc2tl503mXTPoQAMCyLC2RSHjlpp82y9KaYzH31htv3O+A/Yc9UlVR8a2udNoFAOFn4AUg8pvCCPqugZ6CNAgi2DHmhPyE71AKJuhPULQdx7UdlwAIpRS1oWBgrBBybDoQKDz16P1/dFzvJc91nv3Vy6+9NXbsxEJ5/+8kk8ZqAIjFYusAYDEALF5w6w1DspmG0eFI+PSQGbjr6dal4x3XudOVkWe4OYtxAGEcOErt+xiLeZBIwCP33XlSpKLSqohEDs8X8pBKZ1whABFRApVSqwMRAHimYeoAAJlc9lfdnZnE2S2X/qEcKMbEEx5iok/HdnNzs3vP3NlHDh066LFgIDC8O512EEGDHSO2ABH9MEE7T+xTiFA+BoDS91iKNDteLYAIAQE8V6msm1eISEJgwDCCR0U0eVQ+X/jlKccf88GPfzD6Fc91n35v/d9fPTgW6yjv4I033tADa9bgwbHYRgB4BAAesSwrcNQhB4wWhnlkauvHQ+fdZD35s6vjG0stbVwTYRxA2FeL3xeBCgC8h+69+4iKqmA8YAZOACLoTqVcgYiIIP0ymxD9ioGnSambAUPmc/lVuVQ6Hr1g/DPl5qn29nZqTiRcSOx4n3LwuH/B7OaGusFPaJqozGazjvD7UPxcin4yRfTXRKddDG6nPmtMEfZuRyIAIgUCFfSqmwABAoBQitxCoUiIRIgoDVMfGTHCI13Pu6DJ+HrH8keW/LdbLD63YXPXy0ccccTfegVY0d7eqh18cKwAACsAYMViywoUIhHJs9cZBxD21ax5ACAmEmrBrTcMGTJs+C80Tb/ENA0tl887fpLb8qJOolzEuyhQDweCIpPNrst1Zm5acduChQtLHeTxeN9Z4f2Dx6L5tx0/qGHQ4wBkFou2I4WUui6FbdsEgECKEFDQzjfzYwAgAZVQAaJ/t0Np6BcRkRRCGAFTSCH9zhkAUMoDz/OAiMDzFCil/IcVkW07RdtxFACipsk6wzBOxlDwZF3XM08+vPgPruf9JpXLPjdmzJg3XnnlFbscIKMAgLFYgT9BjAMI+0pKJqMSY62qdemCH0TCkQdN02zIZfOUyxUcRBAEUOrARgAADxFEOBTS84V8prOre/7H2zfdPGHCNdvKhWq5g3yn4GFZWnNzs7tw7q3HDBnU+DgCmLbjelIKQaQwnc7/ORgKHqw8RQoR/VqOf1dPu7m37xdG3GAwINPd6ZdzufxcRd7XDMOsBoK9AaEOAUZomgwoBbVEKmKapiE1CQJRE0ICAQEpAk8pcF0PwpFwxND1ZhSiOZQNXXflzy746+UXn/PslrVbErFYLMWfHsYBhH2lNTSMQgAgHbXR4VCoobM7lRMCAwgowS/FiYgQECkUCOhFu6jS6fT9WzdtnlGeQd6/g3znIJWUzbGYe/9ds49sbGh8AhFMx3E8AKDKSIW2YeOmGzPp1Ora2pql2WzOFX5TWe+Wqj4hJAVpUOXxwqUXlRqzSNck2q634bTzWp7cVSB72zBqqiJ6ZShSNUTqIgKS6sjFwZrUal1yhkhNrwCg4VhAIy8xQgQBBAijFCOrKionuXuphwDgDSJLICa46YpxAGFfbR5CwXYcEogaEGC5e9rvQUASAimfL6zIdKXjp100/ncAO2aQl9Y132UNJxaLeXPm3Lx/Q/2gp6WmVRSLRVcgUigY1Du2bnv1J+ddfM3Di+ZfRH663D5VDv9Hwl02vvX+ifxp7wLI8CcNRrRgMOiN6eggKKWAL02E7Cj9+9snXRfLOicQDA42K2XArG8YrOfzBSNSn9/gHxuvI8I4gDAGSimJKLBPmxACAJEXDAb1bdu2vxg7t+W4co2ivb2d8BOGr1qWJaJRoJkzZ1btO3jQY2bAaMzl8o5AEIahYy6X27Jh44YzAADI8/Qdb+n3gRApJOgdQFYCAIBZNGhHmMHSP9UnlMRiMS+ZTMLYsWP7HyMSEcTjcSxn8W1ob0cYMwbK79HR0UTlFRQTiSUFAOB+DsYBhLFdQUTCXYxAFUKAq1SqNMxXj8Vi9p7sMh73c2YtX7bokYpI5BuZbMYWiDoguprU9C3d2y762VVT1wIAuKRUn2oH9AoP/UY4FU0bew3a7R3t/GBIuLukpDTgcNtEYpfnQaVQFY/H0X8p1zwYBxDG+keRvj/6k/iA/D4GiYiUTCb3aNJcW1ubRGx2k0sW3lJTU31cOpMtIqJBBG5FOKR3dGxdeNZFP3vy2WefNceOHVsEAb2G6xIgCigX3H5irX6H2tM1UppQiAA9AeWLzWlNvTKpcH8H4wDC2M4FshA7F49En6U8Lg/XfWjxXRc21NdOzuZyNiJoROAFA6be1ZX684u/XTUpmUzKxnXrFACAILGjPoFIivyZHQOV2JU7BTzaMf8DABAIk8mkBACZTCY/1bHzrHLGAYSxT32f7fUEC9oRPnpu6RHL+ah2L5lMyubmZnfJgrnfq6uuuiufL7hKkUQAEFKA43huR/f2cffcc0/ue0OGGFtqa7GtrU1b9/47sidUqVIs8TvwAaHchDUGABKQ6lsT6RNkEAAAhV0KBBwMGAcQxr70+FGec9G7MEbsGRC1JzOtyyOuFs6acUBDbc3DRCQ85SoEgQDgRUIhfcOmTVdfeMmVvwcAiCUSPX0p9999e64nXJWHDve8Y/mblaWvFeA/W0qnUqqtIAG6SgESDV84b9aJupCah6CIXJIgwQMA2fuPTfo/CSEIAGXRKXZdcOmVr/CngXEAYexTEVBKAbIjLwhQ7wJ8twHEH3EVV9aEyyobhw5+wjCN+nyh4ACgRgBuwDT1LR1bW08/b/ysOdOnNwQrzZpQwGiQUttbAOxjmuZxdtEmABKleSelXFd+Nqw+b5ZOQ69RxqVeEAJAkPlcnkKR8OiqmqrRotwE1pPJhEpBsWcLQARQnoJwKASbt25tB4CDObUu4wDC2KeASIpKQ2LRz0DVU/sg8vNA7W7zeFMTIiI9tuzeZVVVlQdlshkbUWil3FnCdhyla/r+jy29Z7WQsl4KWaXpUjd0HaSQ4LguFItFv/cckfo0pfXLxgsVUEplsiODSakHnfxEWsqzbcfzUz0ioijlfFSlapVfwaHSeSMRKCwUpEDs8mtjHEEYBxDG9phSpT5pJChPuyg3YSHiTrPBewePtrY2ic3NbnLJPXfU1dScmMpkigiol+7zSRGQ63rKDBjfJDLAU4qQwFOk7KJtAwBqAkGU81YR7UhjUgpgOwevfvNV/KS7BEQEUkgppZCKqLwyYql2BT2ZGnvvxiMFhq5DFiDoP4Y93fKMcQBh7JNrIKLPYFWkPs1Eu8pI1dbWJpubm93kkgXXNTbUXZrJZmwE1EsFthJCarqUIPw88P4/gYgAmut6UCzaoJTbpRBzUpNDPc+fxUFAPWW/7Dc+zLRNP1Nv7wy8SP6MeUT0PC9tO3YnIug7BgIAAQKhAizlfFf+WSECkgdEhuM4m/iTwDiAMPYpEZEq9w2AX+OAHXfjoITQ+q1LTrhyZVw2Nze7jyy66+q6utpEJpt1gEBDBCBFyjQNrVAsdtqO0wlKbSKBW0GpdYpUGkCuz+fy6/OF4sZ0atu6usbBJ+49fNjCTDbnEpHWu4LRf9aeaRT75zBBQARFpCrCYW3zlq3Pv/za0+cOGbK/kculvUIhjIFstmebQriInmf32W2hUIEjPM8pnRt/IBgHEMb2vAayo8mo3OKDAkkp8kzD0AExVH7eKq1Y2JxIuA/ee9f1DYPqpxYKRYeIJAKgIuVURCJGZ1fnrzs2bz7t3df+1HVba2t+d++/9J55vYpt4fdp9HTC9H1tCsoNUuWOcEFA5C+NiAAASi1c+EwOAHPcmcE4gDD2PxNFerqmFZEnCEVlRSTQnUqvS2cyc4kAW1tBJhIJOwGAjz+46M6amqrxuXzeUUpJAERF5AYDQSOTyb677sM1p0689saOco2ltbVVNDQ09OS16uhoolHt7bIpHnceuGfejoABCqnXrHLsN0W+EipKA6uoT3wpBz6BAggAV7ZdJ8eMifeaC9JrCdwBpkciDhSuGOMAwtjuEZI/Vok8RKFFQiGtWCzYnd3dCz9Y/2Fi8uTE1kPFAj3WErOn/+IXg5q+ccAD1ZVVP8hkMzYRaAiACsgNBky9WCxs3LDpoxMnXntjRzKZlLFYzCvVcHZeZMqyEBFp6YI51L8wp/Ko4gH6X/zcXdgnNhCRPyyXFCAAJTuaaOD5K8i/b8YBhLEvigDwEABNwwx6noJ8Lvd4dypzwxnjxr9VzgV1REuL8+CC+cfX1lbdFQwH9k5nMg6iHzwIwAmaAaNo2x0fr990YssVU/9WDh578v5KYd9o0CuZYn8pSJeCXmlZ20+epsIYBxDGvixKuVIReelMJmkX7btOP3/8b/wymgQiqnnzZtQNqx9sBc3ABIECstmcAwBaqdZih0MhM58vfLRh/cYft1wx5Y+UTEr8NHmlZN/ahfIrEaXg1ncUbzkXVu/BYtQzVqzUHcIYBxDGvlx+H0EClAdPbd605ekzLrz07d7Pz5o8Obh82X3nGIYxJRQO7pXN5lyXHEQUGgB4BECVFZVmKp1+be3ataf/7Kqpay3L0jAWcz/Nccg+P1Hf77B/DaR3PYX6bEfAtRHGAYSx/xGISJZlidj5LX/u/fiiOdMbqusGn2Wa5sXhUPCAol2ETCbrIIL0p3KDaxqmLgRCd3f3PY8913bZkiVLCqVmK/fTH4fWM6uDiBCFIOoZaKt2tVGfUNIzegy5BsI4gDD2pSit8IcrV8bFmDFxDxF7SuilC+78VqQi9FND16LBUHCQYzuQzmRcIfwJIgTg6ppmBAIBmctl/5zJ5H4ZO7flKQB/eO9nTYfueV4peJRXN/ezkgBRaf3zHSpLIYV6JTvBHRPNe2URZowDCGOfq5JhWRY2NTVhQ0MDdnR0ECL6pTWAAkjAsgVzDwxGIj8UQkSlFEdHIhEsFAqQzWZtACxlcidhmqbUNQ2yudzft27pmPPKqnfunjdvXrFU61CfZ6U+RKWIiHp6xEvJD4mABqqAYOnp8usJeqodxE1YjAMIY19QhSORSPQpUSdNmhT85iEjDw6boWNRiB/oUvxrIGCGXNcF13PtTDbrIYEGKIyAYYCu65DL58G27VW5bG7xW399c2kiMS8F4K//8UUswoQoUQhRWuCcENDPxCUEIkrRLxdWBSCgFEIguf5C7igQQZFAIRBRcA2EcQBh7DNHDSKcO3euUVkpa8imhkgouK+ha4ciim+Tom9FwqGGYDAArutB0S6C63kgpQTDNAxEBMd2oFAoZvK5wjsFyL2ULxaejp17ye/L+y/XOr6oFfwUKOW4rkIgRxGQ3wGiPMdxEZTXZw12QhRE5DmO7XmechEAwc+9q2zbNlzXdfkTwDiAMPYZbuYBgO6999Ya3fO+icXQkYauHapJ2ShQNijPiwBQZzqb2ZLNZlwCFAjkohDdjqe2k1Ife679d4/wL45dWH1Oy+Uf9Sm8k0kJ0agqNYN9bs2JhAcA0Jnf1hroCr6Sy+dIqXLq+CJIKTHdpVIAAM3N/mttw+jc1tn5bdtxpK75Obo0XSPXcVFsl+jk/dfz8rSMMfa/XJNpa7M0IksAT+FmjGsg7KtTG7EsC+PxeE882NUQV8uyhN/R3o4AY6Cjo4Pa29upNELL/Z861oGeiMfjOx23ZVm7XOBqoNczxhhjjDHGGGOMMcYYY4wxxv4x8SgX9qk/M5ZllXMR7vFs8FIntNjTN2lqaqI9GRYbjUblqFGj8NNsY1lW78Eje3QO5QWq2tvbsampqU+HeXt7e8/7R2MxhXswNb18PVavXk2tra2fevgvEWE8HpcAAAPt49NebwCAhD/EmQcDMMb4JuSLYFmWSCaT8tNsk0wmJfUk2drj4MrXnPEfP/vn/awQEZx77rlVIw8YeXYkFMHtm7e/Nm3mtD9YliV2dRdffu6qq6767pDGxiMcpYr+mh9SF6WlN/xkuKAECXLJRUTEQja7fWo8vgR2kRqXiBAR6aqf/3xsY13dSNd1vUKhkH/mmWeWrlq1ytnFZ50sa3xEw8YzhdSF1KWezWb/MG3atNcGOofeaVPOOuusxv332efIcKTyXzVNO0iRNxgABRAUhRB/zxVyfykWi29ufvfdNxa2tnaXa0cD1QwSiYSaMGFC89577334tm3b/nTjjTe+uKcpWsr7PO2CCwYdst9+pwqhGdu2dfxl1qxZz5cDUSKRUNa11jGR6sg3PM8reB5pmqEFkBA98ggJEQQAEqFH6EkkIkIvvzF7f2JOogt6r7DF2G7wPBC2p3fJEhHdRCJx/fBhIyaQp6BYLK6LRqOjACC3m0JHAIAKh4P/3jhkyBXd3SmQUkCqO9XlKVUUKCQiClJELrkKAFAIEfCI/g4AD5YCyE77bm1tFQDgVUYiLY0NjT+ybRu2dGzpXrVq1cMA4PTfxl9+FiGVMqtGDK+8KxwOYzAYhDV//3AmALxWPs7eBX0sFvMmTJhw2LChQyeZAXNsTVVNXWdnJ3meetN1vQ8BlJC6PpiA/mPY0GFVjmNDTXX1R7cceWTyj3/8463Lli3bOEBgEACgqquqzxsyeMjZUkjv8ssvPy4Wi71kWZaWSCTc3dVUEomE96Mf/ajisAMOeLqmuuZbgWAAMpnU4wDwfK8mK2WEjLMbBw06N51KARFAOp3+GAgdQhAIikCBoNI1cgE0pZS3xd7yFAB0WZaF/fOZMcYBhH0m0WhUJhIJd9KkSUfW1NRenM1kXMd27Nra2hFNBx10ZTyRSHzSHTRKvTubzbm249hkK+OjTR/98I7b7vjDKAB9dTlb+o4aMR5++OFQCgSwu7thTcrufD7vOo4NiNj5SedCRAoQtxUKhWoiAqVUof+hJpNJEYvFvHg8PqW6ujpRWVFlptJdat3H669ds2bNPYsXL+7ovcHIkSPNs88++3sVofD0qpqab3ieO/nII488e/jw4ZfEYrHlA12bSDhiZ7NZR9M0GDFixCPjx48bnUgk2geqtZSDRzwepxUrVgSP/vbRj1dXVX8rl8ulATGolErtfJ6YzuVyruO6rm077iuvr/zOiidXfLgnLRKfJ8sx+2oRfAnYJxUq0WgUAEDW1dffoUmpFwqFTik1s1gsutW1tZPHjx8/MhqNqt215Qu/eNIQSCKhZgoTAYBW+0HCBQCv9NUFAGcXzVA7UUoJANCIQCvdEO1qdjkCADi6jgCoEYFERE2IvjdRlmVhLBbzrKnWrKFDh83UNUN2dXWm1rz3/klTp06dsXjx4g6ySFiWpVmWpRGR+OCDD4qWZf3qhf966d+2btv6vOcpJYRsHDpk6GNXTLziR7FYzItGoxLA72gHADAMowoRdc/zKBgI1e2779efPfvss/dqbW31+l/HUoc5HIGonXzyya1Dhgz5XqGQdwnIACBtoL9jREIE1BBRIoLcf9j+GiJ+Un8L1zoY10DYF6d8Nz5lypRLhg8f8a0tmzauXPvRRzMOOvCgF1zPLYZC4ciwYcNuRsT/SCaTuyycELG0HhMSIIGu68KyLG379u2ytra2/x23KjWhfGKBhojU60U0atQoEY1GtY0bN+KQIUN6by8sy1KdhYIGQAiAQETgeTs2LzchTZky5YwhQ4dcWcjns4Zhhju2dsyeO3/+s3PmzDEvu+wyu5RuRZXu1gEA8KKLLtIWLlyYSqVSsVNOOeVt0zCHa7omBg0dtPjMM888eNmyBzdZVlxEo1EFAOA4zj5Fu5giIttTXnVFpGKvgw486Jljjz22+frrr9/Wq08GW1tbRSwW86bfMP2BYcOGnbB27do/hUKh/YQQQf/Mdr7sos9jCEoped1112nl61B+ZsyYMTB//nxqbW1VHEAYBxD2hbEsS0SjUXXmmWcOaWwcFM9ls2pLR8eNd95554szZsx4rq6u7vhsNlusqa4++eqrrz4+Fos9t6umLCIqJYtCBCBQSnWV2vs/Z94r0buQ9FavXp0pFeoDOvTQQ7edc865BAhI/nFRr1qKt3r1alldXT1FkSJPqUAqm8muXbt2iWVZYvv27c4ucl7RwoULnQULFugtLS3p73//2LuGD9vrpnQ2k6upqandf//9xwHgNABLCiH88xVYWywWN3/08cdXj9x3v+V20S7WNzQc0tzcvPyDDz74QTwetwFANDU1YSwW8xKWNX/vffY5c/36db9+8803L//20Uf/Wgjpl/lK4a4vjL9m4sqVK7e+++67O13r3V0rxjiAsM+sqakJEVHF4/GZgwcPaXzvvb8+vXbt2v9KJpPGq6++elUoFDpWk0KikKquru6W0aNHt0WjURsG6PQmRH/JplKhHQ5XHJ9IJEZKKTXPA5ASQAjhmboeSmUybyYSiffKI60+KYL4+1VK0/WKGTNmjNc0DfuWo6ocxEgpVSGEMAjIQ0QpNNF7P+5PfvKTfTSpHVgs2srQdZnP5dY89NBD6xBREe3+UF566SUFALh9e+bXtTU5QEBdeUSBQKAZAKbF43FVKrCFFAJc162fc+utT0ybNu2yxsZBc3O5XHbwoMHfvfCCC+9DxDMWLFigx2IxJ5FI3Lzffvtd8vHH699ZtWrVyUOHDg0BkUGkCABBCEE7Rw+hAAGU55EmNe288857mIhs5V8RUgoQkTxNaEZXqqtt+vTpN+9uNB1jHEDYHotGozIWi3lXXHHVsfX1jWdv3rxp0wsvrBj32muveaVO3vapU6daQ4cMvdG2i/mampqm0c2jr0TE6QPWQpQqdU4oEEJQRSQ82/O8nqYWAgBQBIYZgNyWLZcCwHuliXKfUENRgAjgecoLmGaN63p3lpbEBX+NQYLeXQSldjRCABcBJPabr1FfXx8CQB0AvNIB73ENadSoUQQAlM+nt7uuW5Saprueh1Jq9X6rklAAACeeeGItANYrpVKHHnpoeOrUqfNmzJjx9YaGxkszmUyucXDj6ddff/3alpaWX0ybNu2GESNGXLVly5a///n993/U2tq6feLESwaRv/CuLAVGsfNV8eMACiQiQE1qgwDRUUohkQKJKAjJM0zDNApGI3/iGQcQ9kXBUaNG0ejRowMNDXW3G4YOmXRqy0knnfTTsWPHCiJCUKBJKYO2Y9sIqNu27dZU1Vx1xRVXPBCNRtf3v5st1yQQEEmR2Lh+3Qkbtmx52zRNKYpFL196neu6qOv69lLzyh4V3kQAUkgtX8htWL58+Xfq6uoKtm0LKSV5noeGYSjTM7Eoi1RfX1932GGH/RoAa/zaEPYJINlstgBEHgIIUgRCirpRo0aFVq9enYE9nB9Bui4BUQKAEojoeV4KANSjjz4qY7GYR0SVBFSJQut4++23PX9eDF5208ybhtfU1Py4kCsUqyqrfj592rRD6urrT+jq7Nr23nvvnfzgvff+nYjwiiuucBD71Dp2asJSSgkgAIEobNcpvLBixfdffPHFLbs7bq59MA4g7HMrd5xPSySuqK+rPziV7nZ0Q9+XCG4hf4q1vww4gWfbTtrQ9WrHcYqhUKiqob7+ZkQ8faAOdSICICRFHpGU65ctW7b+8x4rkd85jwhIBOr1119fv7taw4QJEzwikEIggD8UywMA2LhxI5UCyHpPeR8HteAIT3lKSK3+yCOPrIlGo7lSIbu7ACKIiKZOjR8UCoa0QrGQ13RNc4r22wAA7e3tEgC8UCgkpJSglGuDPwqNiAhOOumIM777ndhL1dXV387n8/mGxsYTCoVi/sO1H8YWLFjwJ8uyDES0r7rsMhQCewYm0ACTLSUi9Qp34sADD6w4+uijtwKAiMfjfWqH6MdQ7kBnHEDY51PuOG+ZOHGfioqqqzzlwbZt2ya//vrry4LBINq23VNYGYYhamtrzYObDn4uEokcXCgUChUVFT+ZPHnyolgs9lJ56Grfuo3/HxGZvfI1qX53wns0AgsAAKU/qgvQ76gfNGiQefHFF6vVq1djqUkJAPz+nPb2dtq+fbtZbswCRCD0m7CGDBlCpVFY+YMOOmhZfUPDNelUKlNZUREZOnToaYlE4pY5c+aYAFDc1aEMHToUEZFuvPHG8wCBpBQik0l72zq33d07SA0fPjxo6DoUi4UiAChEpGg0Kp95ZlWuuvqgfz/sXw7776qqyq/lsjl7y9aO026//faXS/m73FItjfx6V7lONPD8zdKlBiw14SUSCWVZFvDiV4wDCPtSlDvOr79+2qyqmurqjz9e/5sZM2bM3d0211xzzdSKysonAICkpkN9Q/2ckSNHfjOZTDoLFy4UpTYVUbrThdIXVS7QPk/TiV9MIqBfXNLmzZvLyRH7z0THWCxGl156qQIgAiptiTuasBKJhGdZlli3bt3MSDhyfE1N9WFF287X1dZeM27cuN9MnDjxd72TGDY1NVE5kWI8HvcQ0fnFL355ViQSGes4jh0IBMwPP/zwmrlz574djUbl9zo71UIACIVCDbphAJVqH4gIra2tXqnvaEttbe1/7L/vvo9v29o5/YbpNzxVHl5cnsMhQ5JKTXfoNwriQBemXL0AIRDDYV2WglCfYbz9fvfE67ozDiDsszZdyVgs5l1zzTWn1NfXnZxOpezUttTVpZqJlkgkvN4jkTCOaIElEonEkzfNnPlCdU3tD/K5XLamqmbUqaeeeiki3jpnzhy9VFPwAMhDBA8APNM0v6CCComIPCICIfAT9xkMBpU/lBa90iiv3tsQAOB9992XvuCCC44fdeCBSyMVld83K43g1w/4+jNXXnnlxYj42EBNZIlEQk6fPm1cOFx5m2kGRD6XM9evX3/djBkzbixf12gyKaG1FYgoLKXwECjnx1aFiEil/hFExHcA4BAAKJb6kvq+XxEAATwAEkSeoAGGhyEiEYGnlPIIyPnLX1ZtefLJV1z+lDMOIOxLabqKxWJq8uTJ+9fX1y+uqqoSa9aseejm227+XakAdEsFE/QpcC3/m4+3br0qGAwdGw5HwogAQ4cOnT158uSXL7vssj9NnDgRhNACoVBYuq4KmSaClFJ+IQdOqiIcDktH1yCXz9XA7meiU7FY1BCxNhQMCjMQANyCwX6BQJUK7c0A8MPrr49fFgmGx1dUVhxQX1/XOmvWrDW2bT/nFIurddPsdl230TTNQzRN/35Dfd3wVDoNXV2dbR0dHYlbbrnllXJOLYAdad8Rsb66qlpu27ZNH6jgL71/cVfDapWuS03XK3Rdh0ikAnRdD/d/jeu6VeFIWCpSUillfvvoEx486qjjMoBSESgij6Sf1UUoAFC6qZv5fP5P1tSpN+zh8GnGOIAw3+rVqxEAlETZbNvO62vWrMl0dnZeV2qy2WVh0qvAffvaa6/9ZXV1dXOhUMgaphGRUn4XEf8IAJDp3v7+xg36Csd18p7nmdlsNv15jre9vZ0AANKp9B82ig0BpZRKpbq2wScPuy2mU6knMrmcIQD0bD7bXjp/6n1ORIRCCLruuvico44avvDYMWeNDkci39N1/WghZDQUDkcECs00DAcA0+Sp1R+tXXdvJpd5fubMma/3rtH1usYEAJDP5zesX79uRVfX9rd2dU0BAPsHj3g8TolEAjTHyaW6u58SQqhsNh0s5HK/738Oqa6uP20yjAbbLhQBhIaIFQBQRcrPEEN+2x0ikiIARQpMpdQ2ABhwXgljjH1pPs36F/9ozXoDPX7iiSeGJk6cWD169OjAQNdiwAEEjP2T4fVA2E6fifIQ3Gg0qj5NU4ZlWaKpqannM9V7+/KKfuXnvqjO2t7vGY1GqZSnao+Dwh6eIyaTSVFqghpwBUMiEvF4fI9WGOy1uiF91gEEvc9hoP30/13saa2O54IwxtiXf+OFpVoX8o0Y+6ridO7sf5xlWaJ/k5dlWaJfqnGkAVKPExEmk0mZTCalNeDzliAi0et5HOC9BZWWqt1FenMk8p8v3en3HTlgWUhkIUAc/e8Je++n/8/9tu3Z70DNfv2vze72xRhjrG+AELt5Dj/jPvHLeO2nPYaB9r2r8yXioMH+7+NRWGx3Pm9hSgPsjxbOm3cAeV6h5fLLPyoPGV0wd9aBqWI+j4hrk8mkLBTWBgwnMvIvH236SyKRsHtet+DWIUNrGo5yFQkF8MHbf/lbeyKR8ACAFi9eHAiSPQqErJISdNCMTPT0n77aux/m4XvuHGWEAo2oSFNCaOS5ufY1G36bSCRcf9Vb/7XLWx842kB9HwK15eNtmVdaWlqcUg3BOHDk8KN11NEuuGnTlJrURSSVyW766bjx7wAALFhw65AKM1J7xrkXtfeceGm/rQ/fd3TYCAwtOk7uo81r/hsRU72HzSYXLRr1/qZN2xCv3ZxMJmV397qqoIwMO+v8lj9/ib+ngX5XjH0ivsthn1SofJ5/fZQ75+vrKu+uqq24HgDgueeeM/zH6qYecfDB77Xev+j4WCzmBWTtYeHKyteH1dUNK2/f+uCi44fXD35VoDzc0I3DAoZx5T77NNSXnw+gPSxcWfE7KbFFSPlDQ5e/fCr5YNvixXcMBgAYM2aMGaqsfElq2kQScIQQ8ijdNI8BAM2vHRAsnDt33+eXJ3+voZhDAo7WpJjSWGU+MmHCBBMAoBYgoAn5YynxlEhV8AXNNG7UNO0UqcnvlmsY9ZW1PzUN85lyDYOI8KGH7hn03PJHXw4Y5o1FxxmjS63loH2a3kkuvfcERKQ33ligAwCEa0Kzjz784Pcfuf/uf4vFYl5NpP6E6srKZz8hWNAX/btijGsg7DNbvHhxoLoaAl1dANWlx7oAwDDyGLKDlOv5aiBAN4TsIOXyeYQqgJAdJCfsis5OVWhpacntdLuM4Gqy772L0ITrut7qQMRc8vSjD177wYZ1L44cvhdVmH4TDyLS8oeX1EghB9vkOE4u99Zf12257Zprrimv3kdd+ZwXDITEhu2dN02cOPmtO2+/5VvfOuwbv+/8a9e/AsCTxWIRCcAFEBvNYOjvutRCGzs7nk0kEoUxY8Zozc3N7vJHH1joKtc+6dSz/g1KOboevu/OEfPmzbMBACYmEikAmAQA8NR/PjjGc93Hfhw79w4AgKF7b9DATxNfICQHAGDlypWiubnZffyR++d4SjWedMqZB5fP+enWBxPhUPihSbMnDT788IsKAC0ARMq1nT9XRCqeeHjJwvPItdfpofCAI6P8kVZDK7JZA6sBIJfP7wgupd8DlB+vAoBuADsYJCOfx27/JWAH/dd43hZv3LgpGQ4mjAMI+8zKs5+D6H3bUJEfVJoFWyAKQqRaRJRYSaADRNBAlJ4IgwdCREBJ8CKhMCoAEDqqkNTCjp55GQCe7T+jmogQqG8CRQQRSafTK/JF+/66mqrnvr73Pv/huF5XxnGxfFwnn37OQ3fccctv9x8y9DgwjO9948B9735s6f2XnnL2uU8AAIgiKkDMjhjUcMvyh5dkNV0OWvfx+ulv/PmvzyMimKbpCCFtQhWWiCFFXqXp9e2D0BCDnut2Q68Ej6eff+m6Prf7RBJaW+EpsiWiCLW1tWkdHSsFrPS3ISJXyr5/WqQgoMjL9n7Mcey1phkIig1C7Ghmg8qt27bfp+vi/apIxTNCky95nrMdeiWdLDd57bPPPpUBoV0WCKMGSkEkGBF+tnxCgX6qYRACImEdlOcJqAEIAXgQDGGIkBQAGOQpcpUEvb5z8WLrzvPOSxRgD9PWM8YBhPVRLuhPO3dcGwC0fZH77AkWQlQCuH1SiCjlhaWmjTjzjPPefWD+/H+tH1S9Qtfk4HxeeeV9PNm65Me60P891d31G8MMvCs0LQTCDZULO71SJ9PUK7dtS91ea1T8+vV337cTiUSh/B6vvPIKXTH+wirluZFUNksStaxuBM+4+WbrwZUrV26xLEts694+saG24bEnH136sPLUq0LCYU7RCb/yhz/9dO7cuTYighDCIyJ46j+XVXueF2hubnbb2iwNxgBAAsBTVCkkVZaazRQR4dI7b51cN3ToM88+vuwF5XnPFGz7gEAgcFI6m71w9uzZ2TcWLNCPaGlxBGLAMI29Tjnj3EX33zO/edighv9yXJXuXaCXg815553XBQDXf0lNl4xxAGGfGX7SEq6fvAcE7FUYRaNR5dc27J/bjpsGADj++OMdAAC74EwLBWXesizx0/Hjt0yYMOGoY4/8xg+LAD2LIElb+zUEQATDkf0BUeUzueboOePeKt+RO86Wba5dGTWU/urYs89OAfSkE1EAQNFoFDzlnmFKY5gWQCmlBkpBdzBoOldffY2yLEuce+HEVTOnTPnGwd865EekYC+J4nVHipdra2ud8roZ5eviOu6F3anUGj9QlNfYSIDneU+A8t4qFfaKiPCnP7vyg+OOO+4bl55/5kmeRyN1ob297qOPbm65/OcfERECogsA4Cm4wnacraVFplbdd+esQ2qqaw/pVahTv9rQFzZqjPNfMcb+4X1Bw24/U8H6Zc252NVx7m7YMs//YIyxfgaawEdEov9kvAHyUGEymZRtlqW1tVnaQBMNdzVBr/fz/f/1Dzbl925ra9PaLEvb1f52NRHRKk0WHCio+fu1tF1t2//x3eyLMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4yxL8L/B3Za1XgN96AIAAAAAElFTkSuQmCC";
+}
+
+function setDefaultDate() {
+  const now = new Date();
+  document.getElementById('f_date').value = now.toISOString().split('T')[0];
+  document.getElementById('f_time').value = now.toTimeString().slice(0,5);
+}
+
+// ======= TABS =======
+function switchTab(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if(name === 'defects') { renderDefects(); updateFab(true); }
+  else if(name === 'summary') { updateSummary(); updateFab(false); }
+  else { updateFab(name === 'inspect' ? false : false); }
+  // Show FAB only on inspect and defects
+  document.getElementById('mainFab').style.display = (name === 'defects' || name === 'inspect') ? 'flex' : 'none';
+}
+function updateFab(show) {}
+
+// ======= COVER =======
+function updateCover() {
+  const g = id => document.getElementById(id)?.value || '';
+  const rows = [
+    ['Property Address', g('f_address')],
+    ['Property Type', g('f_proptype')],
+    ['Building Age', g('f_age') ? g('f_age') + ' years' : ''],
+    ['Owner / Client', g('f_owner')],
+    ['Inspection Date', g('f_date')],
+    ['Inspection Time', g('f_time')],
+    ['Weather', g('f_weather')],
+    ['Temperature', g('f_temp') ? g('f_temp') + ' °C' : ''],
+    ['Inspection Stage', g('f_stage')],
+    ['Report Ref. No.', g('f_refno')],
+    ['Inspector', g('f_inspector')],
+    ['CIS Registration', g('f_cis')],
+  ].filter(r => r[1]);
+  const rowsHtml = rows.map(r => `<div class="cover-info-row"><span class="ci-label">${r[0]}</span><span class="ci-val">${r[1]}</span></div>`).join('');
+  document.getElementById('coverInfoRows').innerHTML = rowsHtml;
+  const title = g('f_title') || 'INSPECTION REPORT';
+  document.getElementById('prevTitle').textContent = title;
+  state.cover = { title:g('f_title'), address:g('f_address'), proptype:g('f_proptype'), age:g('f_age'), owner:g('f_owner'), contact:g('f_contact'), date:g('f_date'), time:g('f_time'), weather:g('f_weather'), temp:g('f_temp'), humidity:g('f_humidity'), stage:g('f_stage'), refno:g('f_refno'), inspector:g('f_inspector'), cis:g('f_cis'), company:g('f_company'), inspcontact:g('f_inspcontact'), scope:g('f_scope') };
+}
+
+// ======= LOCATIONS =======
+function renderLocations() {
+  const grid = document.getElementById('locationGrid');
+  const allLocs = [...DEFAULT_LOCATIONS, ...state.customLocations.map((c,i) => ({id:'custom_'+i, icon:'📍', name:c, order:100+i}))];
+  grid.innerHTML = allLocs.map(l => `
+    <div class="loc-chip ${state.selectedLocations.includes(l.id) ? 'selected' : ''}" onclick="toggleLocation('${l.id}')">
+      <span class="loc-icon">${l.icon}</span>${l.name}
+    </div>`).join('');
+}
+function toggleLocation(id) {
+  const idx = state.selectedLocations.indexOf(id);
+  if(idx > -1) state.selectedLocations.splice(idx,1);
+  else state.selectedLocations.push(id);
+  renderLocations();
+  populateLocationDropdown();
+}
+function addCustomArea() {
+  const input = document.getElementById('customAreaInput');
+  const val = input.value.trim();
+  if(!val) return;
+  state.customLocations.push(val);
+  const id = 'custom_' + (state.customLocations.length - 1);
+  state.selectedLocations.push(id);
+  input.value = '';
+  renderLocations();
+  populateLocationDropdown();
+  toast('Area added: ' + val);
+}
+function getLocationName(id) {
+  const def = DEFAULT_LOCATIONS.find(l => l.id === id);
+  if(def) return def.name;
+  if(id.startsWith('custom_')) {
+    const i = parseInt(id.replace('custom_',''));
+    return state.customLocations[i] || id;
+  }
+  return id;
+}
+function getLocationOrder(id) {
+  const def = DEFAULT_LOCATIONS.find(l => l.id === id);
+  if(def) return def.order;
+  if(id.startsWith('custom_')) return 100 + parseInt(id.replace('custom_',''));
+  return 999;
+}
+function populateLocationDropdown() {
+  const sel = document.getElementById('m_location');
+  const prev = sel.value;
+  const allLocs = [...DEFAULT_LOCATIONS, ...state.customLocations.map((c,i) => ({id:'custom_'+i, name:c}))];
+  const active = state.selectedLocations.length ? state.selectedLocations : allLocs.map(l=>l.id);
+  sel.innerHTML = '<option value="">— Select Location —</option>' + active.map(id => {
+    const n = getLocationName(id);
+    return `<option value="${id}" ${prev===id?'selected':''}>${n}</option>`;
+  }).join('');
+}
+
+// ======= CHECKLIST =======
+function renderChecklist() {
+  const wrap = document.getElementById('checklistWrap');
+  wrap.innerHTML = CIS7_CHECKLIST.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <input type="checkbox" id="chk${i}" style="width:18px;height:18px;accent-color:var(--tan);cursor:pointer;" ${state.checklist[i] ? 'checked' : ''} onchange="state.checklist[${i}]=this.checked">
+      <label for="chk${i}" style="font-size:0.85rem;color:var(--grey-dark);cursor:pointer;flex:1;">${item}</label>
+    </div>`).join('');
+}
+
+// ======= STARS =======
+function renderOverallStars() {
+  const wrap = document.getElementById('overallStars');
+  wrap.innerHTML = [1,2,3,4,5].map(i => `<button class="star-btn ${state.overallRating >= i ? 'active' : ''}" onclick="setOverallRating(${i})">★</button>`).join('');
+}
+function setOverallRating(n) {
+  state.overallRating = n;
+  renderOverallStars();
+  document.getElementById('ratingLabel').textContent = RATING_LABELS[n];
+}
+
+let currentDefectRating = 0;
+function renderDefectStars() {
+  const wrap = document.getElementById('defectStars');
+  wrap.innerHTML = [1,2,3,4,5].map(i => `<button class="star-btn ${currentDefectRating >= i ? 'active' : ''}" onclick="setDefectRating(${i})">★</button>`).join('');
+}
+function setDefectRating(n) {
+  currentDefectRating = n;
+  renderDefectStars();
+  document.getElementById('defectRatingLbl').textContent = RATING_LABELS[n];
+}
+
+// ======= SEVERITY =======
+let currentSeverity = 0;
+function setSeverity(n) {
+  currentSeverity = n;
+  document.querySelectorAll('.sev-btn').forEach(b => {
+    b.classList.remove('sel');
+    if(parseInt(b.dataset.s) === n) b.classList.add('sel');
+  });
+}
+
+// ======= PHOTO & ANNOTATION =======
+let currentPhotoDataURL = null;
+let pendingPhotoDataURL = null;
+let annotationHistory = [];
+let currentTool = 'circle';
+let isDrawing = false;
+let startX, startY;
+let annotateCtx, annotateCanvas, annotateImg;
+
+function handlePhotoUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingPhotoDataURL = e.target.result;
+    // Show thumb preview
+    const wrap = document.getElementById('photoPreviewWrap');
+    wrap.innerHTML = `<img src="${e.target.result}" class="defect-thumb" onclick="openLightbox('${e.target.result}')">`;
+    // Setup canvas
+    setupAnnotateCanvas(e.target.result);
+    document.getElementById('annotateSection').style.display = 'block';
+    document.getElementById('annotatePrompt').style.display = 'none';
+    currentPhotoDataURL = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function setupAnnotateCanvas(imgSrc) {
+  annotateCanvas = document.getElementById('annotateCanvas');
+  annotateCtx = annotateCanvas.getContext('2d');
+  const image = new Image();
+  image.onload = () => {
+    const maxW = annotateCanvas.parentElement.clientWidth;
+    const ratio = image.height / image.width;
+    annotateCanvas.width = maxW;
+    annotateCanvas.height = maxW * ratio;
+    annotateCtx.drawImage(image, 0, 0, annotateCanvas.width, annotateCanvas.height);
+    annotateImg = annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height);
+    annotationHistory = [annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height)];
+    setupCanvasEvents();
+  };
+  image.src = imgSrc;
+}
+
+function setupCanvasEvents() {
+  annotateCanvas.removeEventListener('mousedown', canvasMouseDown);
+  annotateCanvas.removeEventListener('mousemove', canvasMouseMove);
+  annotateCanvas.removeEventListener('mouseup', canvasMouseUp);
+  annotateCanvas.removeEventListener('touchstart', canvasTouchStart);
+  annotateCanvas.removeEventListener('touchmove', canvasTouchMove);
+  annotateCanvas.removeEventListener('touchend', canvasTouchEnd);
+  annotateCanvas.addEventListener('mousedown', canvasMouseDown);
+  annotateCanvas.addEventListener('mousemove', canvasMouseMove);
+  annotateCanvas.addEventListener('mouseup', canvasMouseUp);
+  annotateCanvas.addEventListener('touchstart', canvasTouchStart, {passive:false});
+  annotateCanvas.addEventListener('touchmove', canvasTouchMove, {passive:false});
+  annotateCanvas.addEventListener('touchend', canvasTouchEnd);
+}
+
+function getPos(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+}
+
+function canvasMouseDown(e) { isDrawing = true; const p = getPos(e, annotateCanvas); startX=p.x; startY=p.y; if(currentTool==='pen') annotateCtx.beginPath(); }
+function canvasTouchStart(e) { e.preventDefault(); isDrawing = true; const p = getPos(e, annotateCanvas); startX=p.x; startY=p.y; if(currentTool==='pen') annotateCtx.beginPath(); }
+function canvasMouseMove(e) { if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
+function canvasTouchMove(e) { e.preventDefault(); if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
+function canvasMouseUp(e) { if(!isDrawing) return; isDrawing=false; const p = getPos(e, annotateCanvas); finalizeShape(p.x, p.y); }
+function canvasTouchEnd(e) { if(!isDrawing) return; isDrawing=false; if(e.changedTouches.length){ const p = getPos({clientX:e.changedTouches[0].clientX,clientY:e.changedTouches[0].clientY}, annotateCanvas); finalizeShape(p.x,p.y); } }
+
+function drawPreview(x, y) {
+  const saved = annotationHistory[annotationHistory.length-1];
+  if(!saved) return;
+  annotateCtx.putImageData(saved, 0, 0);
+  const color = document.getElementById('annoColor').value;
+  const thickness = parseInt(document.getElementById('annoThickness').value);
+  annotateCtx.strokeStyle = color;
+  annotateCtx.lineWidth = thickness;
+  annotateCtx.lineCap = 'round';
+  if(currentTool === 'circle') {
+    const rx = Math.abs(x - startX)/2, ry = Math.abs(y - startY)/2;
+    const cx = (startX + x)/2, cy = (startY + y)/2;
+    annotateCtx.beginPath();
+    annotateCtx.ellipse(cx, cy, rx||4, ry||4, 0, 0, 2*Math.PI);
+    annotateCtx.stroke();
+  } else if(currentTool === 'arrow') {
+    drawArrow(annotateCtx, startX, startY, x, y, thickness);
+  } else if(currentTool === 'pen') {
+    annotateCtx.lineTo(x, y);
+    annotateCtx.stroke();
+  }
+}
+function finalizeShape(x, y) {
+  drawPreview(x, y);
+  annotationHistory.push(annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height));
+}
+function drawArrow(ctx, x1, y1, x2, y2, lw) {
+  const hLen = Math.max(10, lw*3);
+  const angle = Math.atan2(y2-y1, x2-x1);
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hLen*Math.cos(angle-0.4), y2 - hLen*Math.sin(angle-0.4));
+  ctx.lineTo(x2 - hLen*Math.cos(angle+0.4), y2 - hLen*Math.sin(angle+0.4));
+  ctx.closePath();
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.fill();
+}
+function setTool(t) {
+  currentTool = t;
+  ['toolCircle','toolArrow','toolPen'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = {circle:'toolCircle', arrow:'toolArrow', pen:'toolPen'};
+  document.getElementById(map[t])?.classList.add('active');
+}
+function undoAnnotation() {
+  if(annotationHistory.length > 1) {
+    annotationHistory.pop();
+    annotateCtx.putImageData(annotationHistory[annotationHistory.length-1], 0, 0);
+  }
+}
+function clearAnnotations() {
+  if(annotateImg) { annotateCtx.putImageData(annotateImg, 0, 0); annotationHistory = [annotateCtx.getImageData(0,0,annotateCanvas.width,annotateCanvas.height)]; }
+}
+function saveAnnotation() {
+  if(!annotateCanvas) return;
+  currentPhotoDataURL = annotateCanvas.toDataURL('image/jpeg', 0.85);
+  document.getElementById('photoPreviewWrap').innerHTML = `<img src="${currentPhotoDataURL}" class="defect-thumb" onclick="openLightbox('${currentPhotoDataURL}')">`;
+  toast('Annotation saved ✔');
+}
+
+// ======= DEFECT MODAL =======
+function openAddDefectModal(editId) {
+  state.editingId = editId || null;
+  populateLocationDropdown();
+  if(editId) {
+    const d = state.defects.find(x=>x.id===editId);
+    if(d) {
+      document.getElementById('defectModalTitle').textContent = 'Edit Defect Finding';
+      document.getElementById('m_location').value = d.location;
+      document.getElementById('m_defectType').value = d.defectType;
+      if(d.defectType==='Other (Custom)') { document.getElementById('customDefectRow').style.display='block'; document.getElementById('m_customDefect').value=d.customDefect||''; }
+      setSeverity(d.severity||0);
+      currentDefectRating = d.rating||0; renderDefectStars();
+      document.getElementById('m_comment').value = d.comment||'';
+      currentPhotoDataURL = d.photo||null;
+      document.getElementById('photoPreviewWrap').innerHTML = d.photo ? `<img src="${d.photo}" class="defect-thumb" onclick="openLightbox('${d.photo}')">` : '';
+      if(d.photo) { document.getElementById('annotateSection').style.display='block'; setupAnnotateCanvas(d.photo); }
+    }
+  } else {
+    document.getElementById('defectModalTitle').textContent = 'Add Defect Finding';
+    document.getElementById('m_location').value = '';
+    document.getElementById('m_defectType').value = '';
+    document.getElementById('customDefectRow').style.display = 'none';
+    document.getElementById('m_customDefect').value = '';
+    setSeverity(0); document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
+    currentDefectRating = 0; renderDefectStars();
+    document.getElementById('m_comment').value = '';
+    document.getElementById('m_commentPrefix').value = '';
+    currentPhotoDataURL = null;
+    document.getElementById('photoPreviewWrap').innerHTML = '';
+    document.getElementById('annotateSection').style.display = 'none';
+  }
+  document.getElementById('defectModal').classList.add('open');
+}
+function closeDefectModal() {
+  document.getElementById('defectModal').classList.remove('open');
+  state.editingId = null;
+}
+function applyPrefix() {
+  const sel = document.getElementById('m_commentPrefix');
+  const opt = sel.options[sel.selectedIndex];
+  const full = opt?.getAttribute('data-full');
+  if(full) {
+    const txt = document.getElementById('m_comment');
+    txt.value = full;
+    txt.focus();
+    txt.setSelectionRange(full.length, full.length);
+  }
+}
+function submitDefect() {
+  const loc = document.getElementById('m_location').value;
+  const dtype = document.getElementById('m_defectType').value;
+  if(!loc || !dtype) { toast('Please select location and defect type'); return; }
+  const defect = {
+    id: state.editingId || Date.now().toString(),
+    location: loc,
+    locationName: getLocationName(loc),
+    locationOrder: getLocationOrder(loc),
+    defectType: dtype,
+    customDefect: document.getElementById('m_customDefect').value,
+    severity: currentSeverity,
+    rating: currentDefectRating,
+    comment: document.getElementById('m_comment').value,
+    photo: currentPhotoDataURL,
+    ts: Date.now()
+  };
+  if(state.editingId) {
+    const idx = state.defects.findIndex(x=>x.id===state.editingId);
+    if(idx > -1) state.defects[idx] = defect;
+  } else {
+    state.defects.push(defect);
+  }
+  closeDefectModal();
+  renderDefects();
+  updateSummary();
+  toast(state.editingId ? 'Defect updated ✔' : 'Defect recorded ✔');
+}
+
+// ======= RENDER DEFECTS =======
+function renderDefects() {
+  const list = document.getElementById('defectsList');
+  const empty = document.getElementById('defectsEmpty');
+  const countLbl = document.getElementById('defectCountLabel');
+  const sorted = [...state.defects].sort((a,b) => a.locationOrder - b.locationOrder || a.ts - b.ts);
+  countLbl.textContent = sorted.length + ' item' + (sorted.length!==1?'s':'');
+  if(!sorted.length) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = sorted.map(d => `
+    <div class="defect-item">
+      <div class="defect-header">
+        <div style="flex:1;">
+          <span class="defect-location-badge">${d.locationName}</span>
+          <div class="defect-name" style="margin-top:5px;">${d.defectType === 'Other (Custom)' ? d.customDefect : d.defectType}</div>
+        </div>
+        <div class="defect-actions">
+          <button class="icon-btn" onclick="openAddDefectModal('${d.id}')" title="Edit">✏️</button>
+          <button class="icon-btn" onclick="deleteDefect('${d.id}')" title="Delete">🗑️</button>
+        </div>
+      </div>
+      <div class="defect-meta">
+        ${d.severity ? `<span style="display:flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:600;color:${SEVERITY_COLORS[d.severity]};"><span class="severity-dot" style="background:${SEVERITY_COLORS[d.severity]};"></span>Severity ${d.severity} – ${SEVERITY_LABELS[d.severity]}</span>` : ''}
+        ${d.rating ? `<span style="font-size:0.78rem;color:var(--grey);">⭐ ${d.rating}/5</span>` : ''}
+      </div>
+      ${d.comment ? `<div class="defect-comment">${d.comment}</div>` : ''}
+      ${d.photo ? `<div class="photo-preview-wrap"><img src="${d.photo}" class="defect-thumb" onclick="openLightbox('${d.photo}')"></div>` : ''}
+    </div>`).join('');
+}
+function deleteDefect(id) {
+  if(!confirm('Delete this defect record?')) return;
+  state.defects = state.defects.filter(d=>d.id!==id);
+  renderDefects();
+  updateSummary();
+  toast('Defect removed');
+}
+
+// ======= SUMMARY =======
+function updateSummary() {
+  const total = state.defects.length;
+  const critical = state.defects.filter(d=>d.severity >= 4).length;
+  const areas = new Set(state.defects.map(d=>d.location)).size;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statCritical').textContent = critical;
+  document.getElementById('statAreas').textContent = areas || state.selectedLocations.length;
+
+  const sorted = [...state.defects].sort((a,b)=>a.locationOrder-b.locationOrder||a.ts-b.ts);
+  const grouped = {};
+  sorted.forEach(d => { if(!grouped[d.location]) grouped[d.location]={name:d.locationName,order:d.locationOrder,items:[]}; grouped[d.location].items.push(d); });
+  const groupKeys = Object.keys(grouped).sort((a,b)=>grouped[a].order-grouped[b].order);
+
+  const wrap = document.getElementById('summaryGroupsWrap');
+  if(!groupKeys.length) { wrap.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>No defects recorded yet.</p></div>'; return; }
+  wrap.innerHTML = groupKeys.map(k => {
+    const g = grouped[k];
+    return `<div class="section-group">
+      <div class="section-group-header">📍 ${g.name} <span style="margin-left:auto;opacity:0.6;">${g.items.length} item${g.items.length!==1?'s':''}</span></div>
+      ${g.items.map(d => `
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+            <div style="font-weight:600;font-size:0.9rem;color:var(--grey-dark);flex:1;">${d.defectType==='Other (Custom)'?d.customDefect:d.defectType}</div>
+            ${d.severity ? `<span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${SEVERITY_COLORS[d.severity]};color:white;">${SEVERITY_LABELS[d.severity]}</span>` : ''}
+          </div>
+          ${d.comment ? `<div style="font-size:0.82rem;color:var(--grey);margin-top:5px;font-style:italic;">${d.comment}</div>` : ''}
+          ${d.rating ? `<div style="font-size:0.78rem;color:var(--grey);margin-top:3px;">Rating: [' + d.rating + '/5]</div>` : ''}
+          ${d.photo ? `<img src="${d.photo}" class="defect-thumb">` : ''}
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ======= LIGHTBOX =======
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+
+// ======= SAVE / LOAD =======
+function saveProject() {
+  updateCover();
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const name = state.cover.refno || 'AFH-' + new Date().toISOString().split('T')[0];
+  a.href = url; a.download = name + '.json'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Project saved as ' + name + '.json');
+}
+function loadProject() { document.getElementById('loadFileInput').click(); }
+function loadFromFile(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const loaded = JSON.parse(e.target.result);
+      state = { ...state, ...loaded };
+      // Re-populate form
+      if(state.cover) {
+        const c = state.cover;
+        const fields = ['title','address','proptype','age','owner','contact','date','time','weather','temp','humidity','stage','refno','inspector','cis','company','inspcontact','scope'];
+        fields.forEach(f => { const el = document.getElementById('f_'+f); if(el && c[f]) el.value = c[f]; });
+      }
+      renderLocations();
+      renderOverallStars();
+      renderChecklist();
+      renderDefects();
+      updateSummary();
+      updateCover();
+      toast('Project loaded ✔');
+    } catch(err) { toast('Error loading file'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ======= PDF GENERATION =======
+async function generatePDF() {
+  document.getElementById('pdfLoader').classList.add('open');
+  await new Promise(r => setTimeout(r, 100));
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+    const W = 210, H = 297;
+    const margin = 20;
+
+    // ---- COVER PAGE ----
+    // White background
+    doc.setFillColor(255,255,255);
+    doc.rect(0, 0, W, H, 'F');
+
+    // Tan accent bar at top
+    doc.setFillColor(181,169,154);
+    doc.rect(0, 0, W, 6, 'F');
+    // Tan accent bar at bottom
+    doc.setFillColor(181,169,154);
+    doc.rect(0, H-6, W, 6, 'F');
+
+    // Logo
+    const logoImg = new Image();
+    logoImg.src = document.getElementById('summaryLogo').src;
+    await new Promise(r => { logoImg.onload = r; logoImg.onerror = r; });
+    if(logoImg.complete) {
+      try { doc.addImage(logoImg, 'PNG', W/2-30, 24, 60, 30); } catch(e){}
+    }
+
+    // Company name
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(140,126,113);
+    doc.setCharSpace(3);
+    doc.text('AF HOME INSPECTION', W/2, 62, {align:'center'});
+    doc.setCharSpace(0);
+
+    // Divider
+    doc.setDrawColor(181,169,154,0.5);
+    doc.setLineWidth(0.3);
+    doc.line(W/2-30, 67, W/2+30, 67);
+
+    // Report title — centered, wraps if long
+    doc.setFont('times','bold');
+    doc.setFontSize(15);
+    doc.setTextColor(46,46,46);
+    const titleText = (state.cover.title || 'INSPECTION REPORT').toUpperCase();
+    const titleLines = doc.splitTextToSize(titleText, W - margin*2);
+    let titleY = 78;
+    titleLines.forEach(line => { doc.text(line, W/2, titleY, {align:'center'}); titleY += 7; });
+
+    // Cover info table
+    const infoItems = [
+      ['Property Address', state.cover.address],
+      ['Property Type', state.cover.proptype],
+      ['Building Age', state.cover.age ? state.cover.age + ' years' : null],
+      ['Owner / Client', state.cover.owner],
+      ['Owner Contact', state.cover.contact],
+      ['Inspection Date', state.cover.date],
+      ['Inspection Time', state.cover.time],
+      ['Weather Condition', state.cover.weather],
+      ['Temperature', state.cover.temp ? state.cover.temp + ' °C' : null],
+      ['Inspection Stage', state.cover.stage],
+      ['Report Reference No.', state.cover.refno],
+      ['Inspector Name', state.cover.inspector],
+      ['Inspector Contact', state.cover.inspcontact],
+    ].filter(r => r[1]);
+
+    let yy = 92;
+    // Draw table border
+    const tableTop = yy - 6;
+    const rowH = 9;
+    const tableH = infoItems.length * rowH + 2;
+    doc.setDrawColor(220,212,204);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin-2, tableTop, W-margin*2+4, tableH, 2, 2, 'D');
+    infoItems.forEach((row, i) => {
+      // Alternating light fills — very subtle
+      if(i % 2 === 0) {
+        doc.setFillColor(250, 247, 244);
+      } else {
+        doc.setFillColor(255, 255, 255);
+      }
+      doc.rect(margin-2, yy-6, W-margin*2+4, rowH, 'F');
+      // Label
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140,126,113);
+      doc.text(row[0].toUpperCase(), margin+2, yy);
+      // Value — right-aligned
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(46,46,46);
+      doc.text(String(row[1]), W-margin-2, yy, {align:'right'});
+      // Thin row divider
+      if(i < infoItems.length-1) {
+        doc.setDrawColor(235,228,220);
+        doc.setLineWidth(0.2);
+        doc.line(margin-2, yy+3, W-margin+2, yy+3);
+      }
+      yy += rowH;
+    });
+
+    // Scope of inspection
+    if(state.cover.scope) {
+      yy += 4;
+      doc.setDrawColor(181,169,154);
+      doc.setLineWidth(0.2);
+      doc.line(margin, yy, W-margin, yy);
+      yy += 7;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(140,126,113);
+      doc.text('SCOPE OF INSPECTION', margin, yy);
+      yy += 6;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(8);
+      doc.setTextColor(80,80,80);
+      const scopeLines = doc.splitTextToSize(state.cover.scope, W-margin*2);
+      scopeLines.slice(0,6).forEach(line => { doc.text(line, margin, yy); yy += 5; });
+    }
+
+    // Professional badge
+    doc.setFillColor(181,169,154,0.15);
+    doc.roundedRect(margin, H-42, W-margin*2, 16, 3, 3, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(181,169,154);
+    doc.text('PROFESSIONAL HOME INSPECTION REPORT', W/2, H-31, {align:'center'});
+
+    // Bottom tan bar
+    doc.setFillColor(181,169,154);
+    doc.rect(0, H-6, W, 6, 'F');
+
+    // Page footer
+    doc.setFillColor(245,241,237);
+    doc.rect(0, H-14, W, 8, 'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(120,120,120);
+    doc.text('Generated by AF Home Inspection Report System  -  ' + new Date().toLocaleDateString('en-MY'), W/2, H-9, {align:'center'});
+
+    // ---- DEFECT PAGES ----
+    const sorted = [...state.defects].sort((a,b)=>a.locationOrder-b.locationOrder||a.ts-b.ts);
+    const grouped = {};
+    sorted.forEach(d => { if(!grouped[d.location]) grouped[d.location]={name:d.locationName,items:[]}; grouped[d.location].items.push(d); });
+    const groupKeys = Object.keys(grouped).sort((a,b)=>(grouped[a].items[0]?.locationOrder||0)-(grouped[b].items[0]?.locationOrder||0));
+
+    if(groupKeys.length > 0) {
+      for(const k of groupKeys) {
+        const g = grouped[k];
+        doc.addPage();
+
+        // Page header
+        doc.setFillColor(46,46,46);
+        doc.rect(0,0,W,16,'F');
+        doc.setFillColor(181,169,154);
+        doc.rect(0,0,4,16,'F');
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(8);
+        doc.setTextColor(181,169,154);
+        doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
+        doc.setTextColor(150,140,130);
+        doc.text(state.cover.date||'', W-margin, 10, {align:'right'});
+
+        // Section header
+        doc.setFillColor(62,53,48);
+        doc.rect(margin-2, 22, W-margin*2+4, 12, 'F');
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(10);
+        doc.setTextColor(181,169,154);
+        doc.text('>> ' + g.name.toUpperCase(), margin+2, 31);
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(8);
+        doc.setTextColor(150,140,130);
+        doc.text(g.items.length + ' defect' + (g.items.length!==1?'s':'') + ' recorded', W-margin, 31, {align:'right'});
+
+        let y = 42;
+        let itemNum = 0;
+
+        for(const d of g.items) {
+          itemNum++;
+          // Check if we need a new page
+          const photoHeight = d.photo ? 55 : 0;
+          const commentLines = d.comment ? doc.splitTextToSize(d.comment, W-margin*2-10).length : 0;
+          const neededHeight = 30 + commentLines * 5 + photoHeight + 10;
+          if(y + neededHeight > H - 22) {
+            // Footer
+            addPageFooter(doc, W, H, margin, state.cover.refno);
+            doc.addPage();
+            // Page header continued
+            doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+            doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(181,169,154);
+            doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
+            doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(181,169,154);
+            doc.text(g.name.toUpperCase() + ' (continued)', margin+2, 26);
+            y = 35;
+          }
+
+          // Defect box
+          doc.setDrawColor(220,212,204);
+          doc.setLineWidth(0.3);
+          doc.setFillColor(250,249,247);
+          const boxH = 12 + commentLines*5 + photoHeight + 4;
+          doc.roundedRect(margin-2, y-2, W-margin*2+4, boxH, 2, 2, 'FD');
+
+          // Item number circle
+          const sCol = SEVERITY_COLORS[d.severity||0] || '#888';
+          const rgb = hexToRgb(sCol);
+          if(rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b);
+          else doc.setFillColor(140,140,140);
+          doc.circle(margin+4, y+5, 4, 'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+          doc.text(itemNum.toString(), margin+4, y+7.5, {align:'center'});
+
+          // Defect name
+          doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
+          const dname = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
+          doc.text(dname, margin+11, y+6);
+
+          // Severity badge
+          if(d.severity) {
+            if(rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b);
+            doc.roundedRect(W-margin-32, y+0.5, 32, 8, 2, 2, 'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+            doc.text(SEVERITY_LABELS[d.severity].toUpperCase(), W-margin-16, y+6.5, {align:'center'});
+          }
+
+          // Rating stars
+          if(d.rating) {
+            doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+            doc.text('Rating: [' + d.rating + '/5]', margin+11, y+13);
+          }
+
+          y += 15;
+
+          // Comment
+          if(d.comment) {
+            doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
+            const lines = doc.splitTextToSize(d.comment, W-margin*2-10);
+            lines.forEach(line => { doc.text(line, margin+4, y); y += 5; });
+            y += 2;
+          }
+
+          // Photo
+          if(d.photo) {
+            try {
+              const img = new Image(); img.src = d.photo;
+              await new Promise(r => { img.onload = r; img.onerror = r; });
+              if(img.complete && img.naturalWidth > 0) {
+                const maxW = 70, maxH = 50;
+                let iw = img.naturalWidth, ih = img.naturalHeight;
+                const ratio = Math.min(maxW/iw, maxH/ih);
+                doc.addImage(img, 'JPEG', margin+4, y, iw*ratio, ih*ratio);
+                y += ih*ratio + 4;
+              }
+            } catch(e){}
+          }
+
+          y += 8;
+        }
+
+        addPageFooter(doc, W, H, margin, state.cover.refno);
+      }
+    }
+
+    // Summary page
+    doc.addPage();
+    doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+    doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(181,169,154);
+    doc.text('AF HOME INSPECTION  -  SUMMARY', 10, 10);
+    doc.setFont('times','bold'); doc.setFontSize(14); doc.setTextColor(46,46,46);
+    doc.text('Inspection Summary & Statistics', margin, 30);
+    doc.setDrawColor(181,169,154); doc.setLineWidth(0.5); doc.line(margin,33,W-margin,33);
+
+    const totalD = state.defects.length;
+    const critD = state.defects.filter(d=>d.severity>=4).length;
+    const modD = state.defects.filter(d=>d.severity===3).length;
+    const minD = state.defects.filter(d=>d.severity<=2 && d.severity>0).length;
+
+    const statCols = [
+      ['Total Defects', totalD, '#636363'],
+      ['Critical / Serious', critD, '#c0392b'],
+      ['Moderate', modD, '#e67e22'],
+      ['Minor / Low', minD, '#27ae60'],
+    ];
+    let sx = margin;
+    statCols.forEach(col => {
+      const cw = (W-margin*2)/4;
+      const rgb = hexToRgb(col[2]);
+      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b,0.08); else doc.setFillColor(240,240,240);
+      doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
+      doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
+      doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
+      if(rgb) doc.setTextColor(rgb.r,rgb.g,rgb.b); else doc.setTextColor(100,100,100);
+      doc.setFont('helvetica','bold'); doc.setFontSize(16);
+      doc.text(col[1].toString(), sx + (cw-4)/2, 55, {align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(100,100,100);
+      doc.text(col[0], sx + (cw-4)/2, 59.5, {align:'center'});
+      sx += cw;
+    });
+
+    // Breakdown by location
+    let sy = 76;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(46,46,46);
+    doc.text('DEFECTS BY AREA', margin, sy); sy+=6;
+    doc.setDrawColor(210,200,190); doc.setLineWidth(0.2); doc.line(margin,sy,W-margin,sy); sy+=5;
+
+    const locCounts = {};
+    state.defects.forEach(d => { locCounts[d.locationName] = (locCounts[d.locationName]||0) + 1; });
+    const locEntries = Object.entries(locCounts).sort((a,b)=>b[1]-a[1]);
+    locEntries.forEach(([loc, cnt]) => {
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
+      doc.text(loc, margin, sy);
+      // Bar
+      const barW = (cnt / (totalD||1)) * (W-margin*2-50);
+      doc.setFillColor(181,169,154);
+      doc.rect(W-margin-50, sy-5, barW, 5, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+      doc.text(cnt.toString(), W-margin, sy, {align:'right'});
+      sy += 8;
+    });
+
+    // Overall rating
+    if(state.overallRating) {
+      sy += 6;
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(46,46,46);
+      doc.text('OVERALL QUALITY RATING', margin, sy); sy+=7;
+      doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(240,165,0);
+      doc.text('[' + state.overallRating + ' / 5]', margin, sy);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(100,100,100);
+      doc.text(RATING_LABELS[state.overallRating], margin + 28, sy);
+    }
+
+    // Inspector signature block
+    sy = H - 65;
+    doc.setDrawColor(200,190,180); doc.setLineWidth(0.3); doc.line(margin, sy, W-margin, sy); sy+=6;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+    doc.text('INSPECTOR\'S DECLARATION', margin, sy); sy+=6;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(120,120,120);
+    doc.text('This report has been prepared based on a visual inspection conducted on the above-mentioned property in accordance with', margin, sy); sy+=5;
+    doc.text('accepted industry standards and best practices. This report reflects the condition of the property at the time of', margin, sy); sy+=5;
+    doc.text('inspection only. The inspector does not assume liability for defects that were not visible or accessible.', margin, sy); sy+=10;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(46,46,46);
+    doc.text('Inspector: ' + (state.cover.inspector||'_______________________'), margin, sy);
+    doc.text('Signature: ___________________________', W/2+10, sy);
+    sy += 8;
+    doc.text('Date: ' + (state.cover.date||'__________'), margin, sy);
+    doc.text('Company: ' + (state.cover.company||'AF Home Inspection'), W/2+10, sy);
+
+    addPageFooter(doc, W, H, margin, state.cover.refno);
+
+    // Save
+    const filename = (state.cover.refno||'AFH-Report') + '_' + (state.cover.date||new Date().toISOString().split('T')[0]) + '.pdf';
+    doc.save(filename);
+    toast('PDF saved: ' + filename);
+  } catch(err) {
+    console.error(err);
+    toast('PDF generation error: ' + err.message);
+  }
+  document.getElementById('pdfLoader').classList.remove('open');
+}
+
+function addPageFooter(doc, W, H, margin, refno) {
+  doc.setFillColor(46,46,46);
+  doc.rect(0, H-10, W, 10, 'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(120,120,120);
+  doc.text('AF Home Inspection  ·  Professional Inspection Report  ·  ' + (refno||''), W/2, H-4, {align:'center'});
+}
+
+function hexToRgb(hex) {
+  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r ? { r:parseInt(r[1],16), g:parseInt(r[2],16), b:parseInt(r[3],16) } : null;
+}
+
+// ======= TOAST =======
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ======= FAB visibility control by tab =======
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('mainFab').style.display = 'flex';
+});
+</script>
+</body>
+</html>
