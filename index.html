@@ -1879,7 +1879,8 @@ doc.text(valLines[0], W-margin-2, yy, {align:'right'});
     statCols.forEach(col => {
       const cw = (W-margin*2)/4;
       const rgb = hexToRgb(col[2]);
-      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b,0.08); else doc.setFillColor(240,240,240);
+      if(rgb) doc.setFillColor(Math.round(rgb.r*0.12+255*0.88), Math.round(rgb.g*0.12+255*0.88), Math.round(rgb.b*0.12+255*0.88));
+else doc.setFillColor(248,248,248);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
       doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
