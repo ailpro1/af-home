@@ -1615,9 +1615,11 @@ async function generatePDF() {
     doc.setFont('helvetica','bold');
     doc.setFontSize(9);
     doc.setTextColor(140,126,113);
-    doc.setCharSpace(3);
-    doc.text('AF HOME INSPECTION', W/2, 62, {align:'center'});
-    doc.setCharSpace(0);
+doc.setFont('helvetica','bold');
+doc.setFontSize(8);
+const companyStr = 'A F   H O M E   I N S P E C T I O N';
+const companyW = doc.getTextWidth(companyStr);
+doc.text(companyStr, (W - companyW) / 2, 62);
 
     // Divider
     doc.setDrawColor(181,169,154,0.5);
@@ -1674,7 +1676,10 @@ async function generatePDF() {
       // Value — right-aligned
       doc.setFont('helvetica','normal');
       doc.setTextColor(46,46,46);
-      doc.text(String(row[1]), W-margin-2, yy, {align:'right'});
+      const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
+const maxValW = W/2 - 4;
+const valLines = doc.splitTextToSize(safeVal, maxValW);
+doc.text(valLines[0], W-margin-2, yy, {align:'right'});
       // Thin row divider
       if(i < infoItems.length-1) {
         doc.setDrawColor(235,228,220);
