@@ -654,6 +654,7 @@ input[type="range"].thickness {
   <button class="tab-btn active" onclick="switchTab('cover')">📋 Cover</button>
   <button class="tab-btn" onclick="switchTab('inspect')">🔍 Inspection</button>
   <button class="tab-btn" onclick="switchTab('defects')">⚠️ Defects</button>
+  <button class="tab-btn" onclick="switchTab('standards')">📖 Standards</button>
   <button class="tab-btn" onclick="switchTab('summary')">📊 Summary</button>
 </nav>
 
@@ -837,6 +838,17 @@ input[type="range"].thickness {
 
 <!-- ======================== PAGE: SUMMARY ======================== -->
 <div class="page" id="page-summary">
+
+  <!-- ACTION BUTTONS AT TOP -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+    <button class="btn btn-primary" style="background:linear-gradient(135deg,#2e2e2e,#7b6c5e);font-size:0.85rem;padding:12px;grid-column:1/-1;" onclick="generatePDF()">
+      📄 Generate PDF Report
+    </button>
+    <button class="btn btn-secondary" style="font-size:0.82rem;" onclick="saveProject()">💾 Save</button>
+    <button class="btn" style="background:var(--bg);border:1.5px solid var(--border);color:var(--grey-dark);font-size:0.82rem;" onclick="loadProject()">📂 Load</button>
+  </div>
+  <input type="file" id="loadFileInput" accept=".json" style="display:none;" onchange="loadFromFile(event)">
+
   <div class="summary-header">
     <img id="summaryLogo" src="" alt="Logo">
     <h2>Inspection Summary</h2>
@@ -850,17 +862,15 @@ input[type="range"].thickness {
   </div>
 
   <div id="summaryGroupsWrap"></div>
+</div>
 
-  <button class="btn btn-primary" style="background:linear-gradient(135deg,#2e2e2e,#7b6c5e);font-size:0.95rem;padding:14px;" onclick="generatePDF()">
-    📄 Generate PDF Report
-  </button>
-  <button class="btn btn-secondary" style="width:100%;margin-top:10px;" onclick="saveProject()">
-    💾 Save to Device
-  </button>
-  <button class="btn" style="width:100%;margin-top:8px;background:var(--bg);border:1.5px solid var(--border);color:var(--grey-dark);" onclick="loadProject()">
-    📂 Load Saved File
-  </button>
-  <input type="file" id="loadFileInput" accept=".json" style="display:none;" onchange="loadFromFile(event)">
+<!-- ======================== PAGE: STANDARDS ======================== -->
+<div class="page" id="page-standards">
+  <div class="card">
+    <div class="card-title">Quick Reference — Inspection Standards</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:14px;">Accepted industry standards and best practices for each category. Use as a quick field reference.</p>
+    <div id="standardsContent"></div>
+  </div>
 </div>
 
 <!-- ======================== FAB ======================== -->
@@ -873,8 +883,23 @@ input[type="range"].thickness {
     <div class="modal-title" id="defectModalTitle">Add Defect Finding</div>
 
     <div class="form-row">
+      <label>Category</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="sev-btn" id="catInterior" onclick="setCategory('Interior')" style="padding:10px;">🏠 Interior</button>
+        <button class="sev-btn" id="catExterior" onclick="setCategory('Exterior')" style="padding:10px;">🌿 Exterior</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Group</label>
+      <select id="m_group" onchange="updateDefectTypes()">
+        <option value="">— Select Category First —</option>
+      </select>
+    </div>
+
+    <div class="form-row">
       <label>Location / Area</label>
-      <select id="m_location" onchange="filterSubArea()">
+      <select id="m_location">
         <option value="">— Select Location —</option>
       </select>
     </div>
@@ -882,37 +907,7 @@ input[type="range"].thickness {
     <div class="form-row">
       <label>Defect Type</label>
       <select id="m_defectType">
-        <option value="">— Select Defect —</option>
-        <option>Hairline Cracks</option>
-        <option>Structural Cracks</option>
-        <option>Hollow Tiles</option>
-        <option>Loose / Debonded Tiles</option>
-        <option>Missing Parts / Components</option>
-        <option>Water Seepage / Leakage</option>
-        <option>Water Stain / Dampness</option>
-        <option>Efflorescence / Salt Deposits</option>
-        <option>Peeling / Flaking Paint</option>
-        <option>Blistering Paint</option>
-        <option>Poor Workmanship – Painting</option>
-        <option>Poor Workmanship – Plastering</option>
-        <option>Poor Workmanship – Tiling</option>
-        <option>Uneven / Lippage Tiling</option>
-        <option>Grouting Defects</option>
-        <option>Sealant Failure</option>
-        <option>Broken / Damaged Item</option>
-        <option>Rust / Corrosion</option>
-        <option>Electrical Issue</option>
-        <option>Plumbing Issue</option>
-        <option>Door / Window Not Aligned</option>
-        <option>Door / Window Cannot Close Properly</option>
-        <option>Hardware Defect (Hinges / Locks)</option>
-        <option>Ceiling Defect</option>
-        <option>Drainage / Gradient Issue</option>
-        <option>Ponding Issue</option>
-        <option>Vegetation / Biological Growth</option>
-        <option>Structural Settlement</option>
-        <option>M&E System Issue</option>
-        <option>Other (Custom)</option>
+        <option value="">— Select Group First —</option>
       </select>
     </div>
 
@@ -972,8 +967,8 @@ input[type="range"].thickness {
 
     <div class="form-row">
       <label>Photo Evidence</label>
-      <label for="photoFileInput" class="photo-upload-btn">📷 Camera · Gallery · Files</label>
-      <input type="file" id="photoFileInput" accept="image/*,image/jpeg,image/png,image/tiff,image/heic" onchange="handlePhotoUpload(event)">
+      <label for="photoFileInput" class="photo-upload-btn">📷 Capture / Upload Photo</label>
+      <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="handlePhotoUpload(event)">
       <div class="photo-preview-wrap" id="photoPreviewWrap"></div>
     </div>
 
@@ -1041,28 +1036,139 @@ const REAL_LOGO = "";
 const DEFAULT_LOCATIONS = [
   { id:"carPorch", icon:"🚗", name:"Car Porch", order:1 },
   { id:"mainEntrance", icon:"🚪", name:"Main Entrance", order:2 },
-  { id:"livingRoom", icon:"🛋️", name:"Living Room", order:3 },
-  { id:"diningRoom", icon:"🍽️", name:"Dining Room", order:4 },
+  { id:"livingRoom", icon:"🛋", name:"Living Room", order:3 },
+  { id:"diningRoom", icon:"🍽", name:"Dining Room", order:4 },
   { id:"kitchen", icon:"🍳", name:"Kitchen", order:5 },
   { id:"utility", icon:"🧺", name:"Utility Area", order:6 },
-  { id:"bedroom1", icon:"🛏️", name:"Bedroom 1", order:7 },
-  { id:"bedroom2", icon:"🛏️", name:"Bedroom 2", order:8 },
-  { id:"bedroom3", icon:"🛏️", name:"Bedroom 3", order:9 },
-  { id:"bedroom4", icon:"🛏️", name:"Bedroom 4", order:10 },
+  { id:"bedroom1", icon:"🛏", name:"Bedroom 1", order:7 },
+  { id:"bedroom2", icon:"🛏", name:"Bedroom 2", order:8 },
+  { id:"bedroom3", icon:"🛏", name:"Bedroom 3", order:9 },
+  { id:"bedroom4", icon:"🛏", name:"Bedroom 4", order:10 },
   { id:"bathroom1", icon:"🚿", name:"Bathroom 1", order:11 },
   { id:"bathroom2", icon:"🚿", name:"Bathroom 2", order:12 },
   { id:"bathroom3", icon:"🚿", name:"Bathroom 3", order:13 },
-  { id:"masterBedroom", icon:"🛏️", name:"Master Bedroom", order:14 },
+  { id:"masterBedroom", icon:"🛏", name:"Master Bedroom", order:14 },
   { id:"masterBath", icon:"🛁", name:"Master Bathroom", order:15 },
   { id:"staircase", icon:"🪜", name:"Staircase", order:16 },
   { id:"corridor", icon:"🚶", name:"Corridor / Walkway", order:17 },
   { id:"balcony", icon:"🌿", name:"Balcony", order:18 },
   { id:"garden", icon:"🌳", name:"Garden / Yard", order:19 },
   { id:"roof", icon:"🏠", name:"Roof", order:20 },
-  { id:"ceiling", icon:"⬆️", name:"Ceiling", order:21 },
-  { id:"facade", icon:"🏗️", name:"External Façade", order:22 },
+  { id:"ceiling", icon:"⬆", name:"Ceiling", order:21 },
+  { id:"facade", icon:"🏗", name:"External Facade", order:22 },
   { id:"drainage", icon:"💧", name:"Drainage / Compound", order:23 },
   { id:"electrical", icon:"⚡", name:"Electrical DB", order:24 },
+];
+
+// Category → Group → Defect Types mapping
+const INSPECTION_GROUPS = {
+  Interior: {
+    order: 1,
+    groups: [
+      { id:'floor',    name:'Floor',    icon:'🟫', order:1,
+        defects:['Hollow Tiles','Loose / Debonded Tiles','Hairline Cracks','Structural Cracks','Uneven / Lippage Tiling','Grouting Defects','Screeding Defects','Ponding / Poor Gradient','Missing / Damaged Tiles','Other (Custom)'] },
+      { id:'wall',     name:'Wall',     icon:'🧱', order:2,
+        defects:['Hairline Cracks','Structural Cracks','Water Seepage / Leakage','Water Stain / Dampness','Peeling / Flaking Paint','Blistering Paint','Poor Workmanship – Plastering','Poor Workmanship – Painting','Efflorescence / Salt Deposits','Sealant Failure','Missing / Damaged Tiles','Other (Custom)'] },
+      { id:'ceiling',  name:'Ceiling',  icon:'⬆', order:3,
+        defects:['Hairline Cracks','Water Stain / Dampness','Peeling / Flaking Paint','Sagging Ceiling','Poor Workmanship – Skimming','Water Seepage / Leakage','Biological Growth','Other (Custom)'] },
+      { id:'windows',  name:'Windows',  icon:'🪟', order:4,
+        defects:['Window Not Aligned','Window Cannot Close Properly','Hardware Defect (Hinges / Locks)','Sealant Failure','Broken / Cracked Glass','Rust / Corrosion','Missing Parts / Components','Other (Custom)'] },
+      { id:'doors',    name:'Doors',    icon:'🚪', order:5,
+        defects:['Door Not Aligned','Door Cannot Close Properly','Hardware Defect (Hinges / Locks)','Missing Parts / Components','Damaged Door Panel','Rust / Corrosion','Other (Custom)'] },
+      { id:'fixtures', name:'Fixtures', icon:'🔧', order:6,
+        defects:['Broken / Damaged Sanitary Fitting','Missing Parts / Components','Rust / Corrosion','Plumbing Leak','Water Pressure Issue','Loose Fitting','Stain / Discolouration','Other (Custom)'] },
+      { id:'me_int',   name:'M&E',      icon:'⚡', order:7,
+        defects:['Electrical Issue – Socket / Switch','Electrical Issue – Light Point','Plumbing Issue – Pipe','Drainage Blockage','Insufficient Power Points','Circuit Breaker Issue','Conduit Defect','Other (Custom)'] },
+    ]
+  },
+  Exterior: {
+    order: 2,
+    groups: [
+      { id:'ext_floor',   name:'Floor / Paving',    icon:'🟫', order:1,
+        defects:['Hollow Tiles','Loose / Debonded Tiles','Hairline Cracks','Structural Cracks','Ponding / Poor Gradient','Vegetation / Biological Growth','Missing / Damaged Tiles','Other (Custom)'] },
+      { id:'ext_wall',    name:'Wall / Facade',     icon:'🧱', order:2,
+        defects:['Hairline Cracks','Structural Cracks','Peeling / Flaking Paint','Efflorescence / Salt Deposits','Water Seepage / Leakage','Poor Workmanship – Painting','Biological Growth / Algae','Spalling Concrete','Other (Custom)'] },
+      { id:'ext_ceiling', name:'Ceiling / Soffit',  icon:'⬆', order:3,
+        defects:['Hairline Cracks','Water Stain / Dampness','Peeling / Flaking Paint','Biological Growth','Spalling Concrete','Other (Custom)'] },
+      { id:'ext_windows', name:'Windows',            icon:'🪟', order:4,
+        defects:['Window Not Aligned','Window Cannot Close Properly','Hardware Defect','Sealant Failure','Rust / Corrosion','Other (Custom)'] },
+      { id:'ext_doors',   name:'Doors / Gate',      icon:'🚪', order:5,
+        defects:['Door / Gate Not Aligned','Door / Gate Cannot Close Properly','Hardware Defect (Hinges / Locks)','Rust / Corrosion','Missing Parts / Components','Damaged Panel','Other (Custom)'] },
+      { id:'roof',        name:'Roof',               icon:'🏠', order:6,
+        defects:['Missing / Cracked Roof Tiles','Roof Flashing Defect','Gutter / Downpipe Defect','Water Ponding on Roof','Vegetation on Roof','Ridge Capping Defect','Roof Leak','Other (Custom)'] },
+      { id:'drainage',    name:'Drainage',           icon:'💧', order:7,
+        defects:['Drainage / Gradient Issue','Ponding','Drain Blockage','Vegetation / Debris','Broken / Missing Drain Cover','Other (Custom)'] },
+      { id:'fencing',     name:'Fencing / Boundary', icon:'🔲', order:8,
+        defects:['Cracks','Rust / Corrosion','Missing Parts','Structural Settlement','Paint Defect','Other (Custom)'] },
+      { id:'me_ext',      name:'M&E External',       icon:'⚡', order:9,
+        defects:['External Electrical Issue','External Drainage Issue','Sewerage Issue','Water Meter / Pipe Issue','External Conduit Defect','Other (Custom)'] },
+    ]
+  }
+};
+
+// Standards reference content
+const STANDARDS_DATA = [
+  { category:'Interior', group:'Floor', icon:'🟫', items:[
+    { std:'Tiling — Lippage', desc:'Max permissible lippage between tiles: 1mm for joints <6mm, 2mm for joints 6mm and above (MS ISO 13006).' },
+    { std:'Hollow Tiles', desc:'No more than 3 hollow tiles per 10 sqm. Single hollow tile adjacent to fixture junction is acceptable if stable.' },
+    { std:'Gradient (Wet Areas)', desc:'Minimum 1:100 slope toward floor trap. For bathrooms and balconies, ensure no water ponding after 5 minutes.' },
+    { std:'Screeding', desc:'Must be level to ±3mm under a 2m straight edge. No cracks wider than 0.3mm permitted in finished screed.' },
+  ]},
+  { category:'Interior', group:'Wall', icon:'🧱', items:[
+    { std:'Crack Width', desc:'Hairline cracks up to 0.1mm are considered cosmetic. Cracks >0.3mm require investigation for structural cause.' },
+    { std:'Plastering', desc:'Surface flatness: ±3mm under a 2m straight edge. No hollow sound when tapped. No pop-outs or exposed aggregate.' },
+    { std:'Painting', desc:'Uniform colour and sheen, no brush marks, runs, or sags visible at 1m under natural light. Min 2 coats finish coat.' },
+    { std:'Tiling', desc:'Grout must be fully filled, consistent width, and free of voids. Sealant at all movement joints and junctions.' },
+  ]},
+  { category:'Interior', group:'Ceiling', icon:'⬆', items:[
+    { std:'Skimming', desc:'Surface flatness ±3mm under 2m straight edge. No cracking, hollow, or delamination. Smooth finish with no tooling marks.' },
+    { std:'Painting', desc:'Min 2 finish coats. No staining, patches, or visible brush marks at 1m under uniform lighting.' },
+    { std:'Water Stain', desc:'Any staining indicates active or past leakage. Source must be traced before rectification.' },
+  ]},
+  { category:'Interior', group:'Windows', icon:'🪟', items:[
+    { std:'Alignment', desc:'Frame must be plumb and level to ±2mm. Gap between frame and wall must be sealed with sealant continuously.' },
+    { std:'Operation', desc:'Window must open, close, and lock smoothly without binding. Hardware must engage fully on first attempt.' },
+    { std:'Sealant', desc:'Sealant must be continuous, fully adhered, with no voids or tears. Re-sealant required if cracked or debonded.' },
+  ]},
+  { category:'Interior', group:'Doors', icon:'🚪', items:[
+    { std:'Alignment', desc:'Door leaf gap at top and sides: 2–3mm uniform. Gap at floor: 6–10mm (or as required for ventilation).' },
+    { std:'Operation', desc:'Door must swing fully without catching floor or frame. Latch must engage with single push/pull.' },
+    { std:'Hardware', desc:'All screws must be driven flush. Hinges must be recessed cleanly. No wobble in handle sets.' },
+  ]},
+  { category:'Interior', group:'Fixtures', icon:'🔧', items:[
+    { std:'Sanitary Fittings', desc:'WC pan must be firmly fixed, no movement. Basin and shower tray must be fully sealed at junctions. No leaks on test.' },
+    { std:'Taps / Showers', desc:'No drips at rest. Flow rate adequate. Hot/cold function correct. Mixer cartridges must not stick.' },
+    { std:'Accessories', desc:'All towel rails, soap holders, and toilet roll holders to be level, plumb, and firmly fixed to wall.' },
+  ]},
+  { category:'Interior', group:'M&E', icon:'⚡', items:[
+    { std:'Electrical', desc:'All socket outlets at uniform height. Plates flush to wall. Switches operate correctly. No exposed wiring.' },
+    { std:'Plumbing', desc:'No leaks under pressure test. All pipes secured with clips at max 1.5m centres. No vibration or water hammer.' },
+    { std:'DB / Consumer Unit', desc:'All circuits labelled. RCD and MCB must trip within spec. Earth bonding in place. No exposed conductors.' },
+  ]},
+  { category:'Exterior', group:'Floor / Paving', icon:'🟫', items:[
+    { std:'Gradient', desc:'Min 1:80 slope away from building. Ponding not acceptable within 10 minutes of simulated rainfall.' },
+    { std:'Tiling / Paving', desc:'No hollow, loose, or cracked units. Joints fully grouted. Anti-slip finish required for all external wet areas.' },
+  ]},
+  { category:'Exterior', group:'Wall / Facade', icon:'🧱', items:[
+    { std:'Rendering', desc:'No hollow, cracks >0.3mm, or delamination. Surface to be uniform texture and colour.' },
+    { std:'Painting', desc:'External paint must be weatherproof grade. Peeling or chalking indicates undercoat failure — full repaint required.' },
+    { std:'Cracks', desc:'Cracks >0.5mm on structural elements require engineer assessment. Step cracks at brick joints indicate movement.' },
+  ]},
+  { category:'Exterior', group:'Roof', icon:'🏠', items:[
+    { std:'Tiles', desc:'No cracked, chipped, or missing tiles. All tiles must be firmly bedded with no rocking.' },
+    { std:'Flashing', desc:'Continuous, no gaps. Minimum 150mm upstand at all abutments. All joints lapped and sealed.' },
+    { std:'Gutters / Downpipes', desc:'Properly fixed, fall min 1:200. No blockages, leaks at joints, or overflow marks on walls.' },
+    { std:'Ridge / Hip', desc:'Mortar bedding intact, no cracks. Pointing fully filled.' },
+  ]},
+  { category:'Exterior', group:'Drainage', icon:'💧', items:[
+    { std:'Gradient', desc:'Min 1:100 fall to all surface drains. No ponding within compound 10 min after rain ceases.' },
+    { std:'Drain Covers', desc:'All covers present, secured, and flush to surrounding surface. No cracked or missing covers.' },
+    { std:'Blockage', desc:'Drains must be clear and flow freely. Silt traps to be cleaned before handover.' },
+  ]},
+  { category:'Exterior', group:'Fencing / Boundary', icon:'🔲', items:[
+    { std:'Structural', desc:'Boundary wall must be plumb to ±5mm per 1m height. No cracks exceeding 0.5mm width.' },
+    { std:'Gate', desc:'Gate must swing clear of ground, latch securely, and lock fully. No excessive rust on metalwork.' },
+  ]},
 ];
 
 const CIS7_CHECKLIST = [
@@ -1095,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCover();
   renderDefects();
   updateSummary();
+  renderStandards();
   document.getElementById('m_defectType').addEventListener('change', function(){
     document.getElementById('customDefectRow').style.display = this.value === 'Other (Custom)' ? 'block' : 'none';
   });
@@ -1124,10 +1231,8 @@ function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   event.target.classList.add('active');
-  if(name === 'defects') { renderDefects(); updateFab(true); }
-  else if(name === 'summary') { updateSummary(); updateFab(false); }
-  else { updateFab(name === 'inspect' ? false : false); }
-  // Show FAB only on inspect and defects
+  if(name === 'defects') { renderDefects(); }
+  else if(name === 'summary') { updateSummary(); }
   document.getElementById('mainFab').style.display = (name === 'defects' || name === 'inspect') ? 'flex' : 'none';
 }
 function updateFab(show) {}
@@ -1203,10 +1308,61 @@ function populateLocationDropdown() {
   const sel = document.getElementById('m_location');
   const prev = sel.value;
   const allLocs = [...DEFAULT_LOCATIONS, ...state.customLocations.map((c,i) => ({id:'custom_'+i, name:c}))];
-  const active = state.selectedLocations.length ? state.selectedLocations : allLocs.map(l=>l.id);
-  sel.innerHTML = '<option value="">— Select Location —</option>' + active.map(id => {
-    const n = getLocationName(id);
-    return `<option value="${id}" ${prev===id?'selected':''}>${n}</option>`;
+  sel.innerHTML = '<option value="">— Select Location —</option>' + allLocs.map(l => {
+    return `<option value="${l.id}" ${prev===l.id?'selected':''}>${l.name}</option>`;
+  }).join('');
+}
+
+// ======= CATEGORY / GROUP =======
+let currentCategory = '';
+function setCategory(cat) {
+  currentCategory = cat;
+  document.getElementById('catInterior').classList.toggle('sel', cat === 'Interior');
+  document.getElementById('catExterior').classList.toggle('sel', cat === 'Exterior');
+  // Populate group dropdown
+  const grpSel = document.getElementById('m_group');
+  const groups = INSPECTION_GROUPS[cat]?.groups || [];
+  grpSel.innerHTML = '<option value="">— Select Group —</option>' + groups.map(g =>
+    `<option value="${g.id}">${g.icon} ${g.name}</option>`
+  ).join('');
+  // Reset defect dropdown
+  document.getElementById('m_defectType').innerHTML = '<option value="">— Select Group First —</option>';
+  document.getElementById('customDefectRow').style.display = 'none';
+}
+function updateDefectTypes() {
+  const grpId = document.getElementById('m_group').value;
+  const catGroups = INSPECTION_GROUPS[currentCategory]?.groups || [];
+  const grp = catGroups.find(g => g.id === grpId);
+  const defSel = document.getElementById('m_defectType');
+  if(!grp) { defSel.innerHTML = '<option value="">— Select Group First —</option>'; return; }
+  defSel.innerHTML = '<option value="">— Select Defect —</option>' + grp.defects.map(d =>
+    `<option>${d}</option>`
+  ).join('');
+}
+
+// ======= STANDARDS =======
+function renderStandards() {
+  const wrap = document.getElementById('standardsContent');
+  if(!wrap) return;
+  const cats = ['Interior','Exterior'];
+  wrap.innerHTML = cats.map(cat => {
+    const catData = STANDARDS_DATA.filter(s => s.category === cat);
+    return `
+      <div style="margin-bottom:18px;">
+        <div style="background:var(--grey-dark);color:white;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:700;font-size:0.88rem;letter-spacing:0.05em;">
+          ${cat === 'Interior' ? '🏠' : '🌿'} ${cat.toUpperCase()}
+        </div>
+        ${catData.map(g => `
+          <div style="border:1px solid var(--border);border-top:none;padding:12px 14px;">
+            <div style="font-size:0.82rem;font-weight:700;color:var(--tan-dark);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${g.icon} ${g.group}</div>
+            ${g.items.map(item => `
+              <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                <div style="font-size:0.82rem;font-weight:600;color:var(--grey-dark);">${item.std}</div>
+                <div style="font-size:0.8rem;color:var(--grey);margin-top:3px;line-height:1.5;">${item.desc}</div>
+              </div>`).join('')}
+          </div>`).join('')}
+        <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;height:4px;background:var(--tan-light);"></div>
+      </div>`;
   }).join('');
 }
 
@@ -1399,9 +1555,16 @@ function openAddDefectModal(editId) {
     const d = state.defects.find(x=>x.id===editId);
     if(d) {
       document.getElementById('defectModalTitle').textContent = 'Edit Defect Finding';
-      document.getElementById('m_location').value = d.location;
-      document.getElementById('m_defectType').value = d.defectType;
-      if(d.defectType==='Other (Custom)') { document.getElementById('customDefectRow').style.display='block'; document.getElementById('m_customDefect').value=d.customDefect||''; }
+      if(d.category) { setCategory(d.category); }
+      setTimeout(() => {
+        document.getElementById('m_group').value = d.group||'';
+        updateDefectTypes();
+        setTimeout(() => {
+          document.getElementById('m_defectType').value = d.defectType||'';
+          document.getElementById('m_location').value = d.location||'';
+          if(d.defectType==='Other (Custom)') { document.getElementById('customDefectRow').style.display='block'; document.getElementById('m_customDefect').value=d.customDefect||''; }
+        }, 10);
+      }, 10);
       setSeverity(d.severity||0);
       currentDefectRating = d.rating||0; renderDefectStars();
       document.getElementById('m_comment').value = d.comment||'';
@@ -1411,8 +1574,12 @@ function openAddDefectModal(editId) {
     }
   } else {
     document.getElementById('defectModalTitle').textContent = 'Add Defect Finding';
+    currentCategory = '';
+    document.getElementById('catInterior').classList.remove('sel');
+    document.getElementById('catExterior').classList.remove('sel');
+    document.getElementById('m_group').innerHTML = '<option value="">— Select Category First —</option>';
     document.getElementById('m_location').value = '';
-    document.getElementById('m_defectType').value = '';
+    document.getElementById('m_defectType').innerHTML = '<option value="">— Select Group First —</option>';
     document.getElementById('customDefectRow').style.display = 'none';
     document.getElementById('m_customDefect').value = '';
     setSeverity(0); document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
@@ -1443,12 +1610,23 @@ function applyPrefix() {
 function submitDefect() {
   const loc = document.getElementById('m_location').value;
   const dtype = document.getElementById('m_defectType').value;
-  if(!loc || !dtype) { toast('Please select location and defect type'); return; }
+  const grpId = document.getElementById('m_group').value;
+  if(!currentCategory) { toast('Please select Interior or Exterior'); return; }
+  if(!grpId) { toast('Please select a group'); return; }
+  if(!dtype) { toast('Please select a defect type'); return; }
+  // Resolve group name
+  const catGroups = INSPECTION_GROUPS[currentCategory]?.groups || [];
+  const grpObj = catGroups.find(g => g.id === grpId);
   const defect = {
     id: state.editingId || Date.now().toString(),
+    category: currentCategory,
+    categoryOrder: INSPECTION_GROUPS[currentCategory]?.order || 99,
+    group: grpId,
+    groupName: grpObj ? grpObj.name : grpId,
+    groupOrder: grpObj ? grpObj.order : 99,
     location: loc,
-    locationName: getLocationName(loc),
-    locationOrder: getLocationOrder(loc),
+    locationName: loc ? getLocationName(loc) : '',
+    locationOrder: loc ? getLocationOrder(loc) : 99,
     defectType: dtype,
     customDefect: document.getElementById('m_customDefect').value,
     severity: currentSeverity,
@@ -1474,7 +1652,12 @@ function renderDefects() {
   const list = document.getElementById('defectsList');
   const empty = document.getElementById('defectsEmpty');
   const countLbl = document.getElementById('defectCountLabel');
-  const sorted = [...state.defects].sort((a,b) => a.locationOrder - b.locationOrder || a.ts - b.ts);
+  const sorted = [...state.defects].sort((a,b) =>
+    (a.categoryOrder||99) - (b.categoryOrder||99) ||
+    (a.groupOrder||99) - (b.groupOrder||99) ||
+    (a.locationOrder||99) - (b.locationOrder||99) ||
+    a.ts - b.ts
+  );
   countLbl.textContent = sorted.length + ' item' + (sorted.length!==1?'s':'');
   if(!sorted.length) { list.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display = 'none';
@@ -1482,8 +1665,12 @@ function renderDefects() {
     <div class="defect-item">
       <div class="defect-header">
         <div style="flex:1;">
-          <span class="defect-location-badge">${d.locationName}</span>
-          <div class="defect-name" style="margin-top:5px;">${d.defectType === 'Other (Custom)' ? d.customDefect : d.defectType}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
+            ${d.category ? `<span style="font-size:0.68rem;font-weight:700;background:var(--grey-dark);color:white;padding:2px 7px;border-radius:5px;text-transform:uppercase;">${d.category}</span>` : ''}
+            ${d.groupName ? `<span style="font-size:0.68rem;font-weight:700;background:var(--tan);color:white;padding:2px 7px;border-radius:5px;">${d.groupName}</span>` : ''}
+            ${d.locationName ? `<span class="defect-location-badge">${d.locationName}</span>` : ''}
+          </div>
+          <div class="defect-name">${d.defectType === 'Other (Custom)' ? d.customDefect : d.defectType}</div>
         </div>
         <div class="defect-actions">
           <button class="icon-btn" onclick="openAddDefectModal('${d.id}')" title="Edit">✏️</button>
@@ -1492,7 +1679,7 @@ function renderDefects() {
       </div>
       <div class="defect-meta">
         ${d.severity ? `<span style="display:flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:600;color:${SEVERITY_COLORS[d.severity]};"><span class="severity-dot" style="background:${SEVERITY_COLORS[d.severity]};"></span>Severity ${d.severity} – ${SEVERITY_LABELS[d.severity]}</span>` : ''}
-        ${d.rating ? `<span style="font-size:0.78rem;color:var(--grey);">⭐ ${d.rating}/5</span>` : ''}
+        ${d.rating ? `<span style="font-size:0.78rem;color:var(--grey);">${d.rating}/5</span>` : ''}
       </div>
       ${d.comment ? `<div class="defect-comment">${d.comment}</div>` : ''}
       ${d.photo ? `<div class="photo-preview-wrap"><img src="${d.photo}" class="defect-thumb" onclick="openLightbox('${d.photo}')"></div>` : ''}
@@ -1510,32 +1697,64 @@ function deleteDefect(id) {
 function updateSummary() {
   const total = state.defects.length;
   const critical = state.defects.filter(d=>d.severity >= 4).length;
-  const areas = new Set(state.defects.map(d=>d.location)).size;
+  const groups = new Set(state.defects.map(d=>d.group)).size;
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statCritical').textContent = critical;
-  document.getElementById('statAreas').textContent = areas || state.selectedLocations.length;
+  document.getElementById('statAreas').textContent = groups || state.selectedLocations.length;
 
-  const sorted = [...state.defects].sort((a,b)=>a.locationOrder-b.locationOrder||a.ts-b.ts);
-  const grouped = {};
-  sorted.forEach(d => { if(!grouped[d.location]) grouped[d.location]={name:d.locationName,order:d.locationOrder,items:[]}; grouped[d.location].items.push(d); });
-  const groupKeys = Object.keys(grouped).sort((a,b)=>grouped[a].order-grouped[b].order);
+  // Sort: Category → Group → Location → timestamp
+  const sorted = [...state.defects].sort((a,b)=>
+    (a.categoryOrder||99)-(b.categoryOrder||99) ||
+    (a.groupOrder||99)-(b.groupOrder||99) ||
+    (a.locationOrder||99)-(b.locationOrder||99) ||
+    a.ts-b.ts
+  );
+
+  // Build 3-level hierarchy: category → group → items
+  const catMap = {};
+  sorted.forEach(d => {
+    const cat = d.category || 'Uncategorised';
+    const catOrd = d.categoryOrder || 99;
+    const grp = d.groupName || d.group || 'General';
+    const grpOrd = d.groupOrder || 99;
+    if(!catMap[cat]) catMap[cat] = { order:catOrd, groups:{} };
+    if(!catMap[cat].groups[grp]) catMap[cat].groups[grp] = { order:grpOrd, items:[] };
+    catMap[cat].groups[grp].items.push(d);
+  });
 
   const wrap = document.getElementById('summaryGroupsWrap');
-  if(!groupKeys.length) { wrap.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>No defects recorded yet.</p></div>'; return; }
-  wrap.innerHTML = groupKeys.map(k => {
-    const g = grouped[k];
-    return `<div class="section-group">
-      <div class="section-group-header">📍 ${g.name} <span style="margin-left:auto;opacity:0.6;">${g.items.length} item${g.items.length!==1?'s':''}</span></div>
-      ${g.items.map(d => `
-        <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-            <div style="font-weight:600;font-size:0.9rem;color:var(--grey-dark);flex:1;">${d.defectType==='Other (Custom)'?d.customDefect:d.defectType}</div>
-            ${d.severity ? `<span style="font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${SEVERITY_COLORS[d.severity]};color:white;">${SEVERITY_LABELS[d.severity]}</span>` : ''}
+  if(!sorted.length) { wrap.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>No defects recorded yet.</p></div>'; return; }
+
+  const catKeys = Object.keys(catMap).sort((a,b)=>catMap[a].order-catMap[b].order);
+  wrap.innerHTML = catKeys.map(cat => {
+    const catData = catMap[cat];
+    const grpKeys = Object.keys(catData.groups).sort((a,b)=>catData.groups[a].order-catData.groups[b].order);
+    return `<div style="margin-bottom:16px;">
+      <div style="background:var(--grey-dark);color:white;padding:10px 16px;border-radius:12px 12px 0 0;font-weight:700;font-size:0.85rem;letter-spacing:0.05em;">
+        ${cat === 'Interior' ? '🏠' : '🌿'} ${cat.toUpperCase()}
+      </div>
+      ${grpKeys.map(grp => {
+        const grpData = catData.groups[grp];
+        return `<div class="section-group" style="border-radius:0;margin-bottom:0;">
+          <div class="section-group-header" style="background:#3e3530;">
+            ${grp} <span style="margin-left:auto;opacity:0.6;">${grpData.items.length} item${grpData.items.length!==1?'s':''}</span>
           </div>
-          ${d.comment ? `<div style="font-size:0.82rem;color:var(--grey);margin-top:5px;font-style:italic;">${d.comment}</div>` : ''}
-          ${d.rating ? `<div style="font-size:0.78rem;color:var(--grey);margin-top:3px;">Rating: [' + d.rating + '/5]</div>` : ''}
-          ${d.photo ? `<img src="${d.photo}" class="defect-thumb">` : ''}
-        </div>`).join('')}
+          ${grpData.items.map(d => `
+            <div style="padding:11px 14px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                <div style="flex:1;">
+                  ${d.locationName ? `<div style="font-size:0.7rem;color:var(--tan-dark);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">${d.locationName}</div>` : ''}
+                  <div style="font-weight:600;font-size:0.88rem;color:var(--grey-dark);">${d.defectType==='Other (Custom)'?d.customDefect:d.defectType}</div>
+                </div>
+                ${d.severity ? `<span style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${SEVERITY_COLORS[d.severity]};color:white;white-space:nowrap;">${SEVERITY_LABELS[d.severity]}</span>` : ''}
+              </div>
+              ${d.comment ? `<div style="font-size:0.8rem;color:var(--grey);margin-top:5px;font-style:italic;">${d.comment}</div>` : ''}
+              ${d.rating ? `<div style="font-size:0.76rem;color:var(--grey);margin-top:3px;">Rating: ${d.rating}/5</div>` : ''}
+              ${d.photo ? `<img src="${d.photo}" class="defect-thumb">` : ''}
+            </div>`).join('')}
+        </div>`;
+      }).join('')}
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;height:4px;background:var(--tan-light);"></div>
     </div>`;
   }).join('');
 }
@@ -1621,11 +1840,9 @@ async function generatePDF() {
     doc.setFont('helvetica','bold');
     doc.setFontSize(9);
     doc.setTextColor(140,126,113);
-doc.setFont('helvetica','bold');
-doc.setFontSize(8);
-const companyStr = 'A F   H O M E   I N S P E C T I O N';
-const companyW = doc.getTextWidth(companyStr);
-doc.text(companyStr, (W - companyW) / 2, 62);
+    doc.setCharSpace(3);
+    doc.text('AF HOME INSPECTION', W/2, 62, {align:'center'});
+    doc.setCharSpace(0);
 
     // Divider
     doc.setDrawColor(181,169,154,0.5);
@@ -1682,10 +1899,7 @@ doc.text(companyStr, (W - companyW) / 2, 62);
       // Value — right-aligned
       doc.setFont('helvetica','normal');
       doc.setTextColor(46,46,46);
-      const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
-const maxValW = W/2 - 4;
-const valLines = doc.splitTextToSize(safeVal, maxValW);
-doc.text(valLines[0], W-margin-2, yy, {align:'right'});
+      doc.text(String(row[1]), W-margin-2, yy, {align:'right'});
       // Thin row divider
       if(i < infoItems.length-1) {
         doc.setDrawColor(235,228,220);
@@ -1734,129 +1948,154 @@ doc.text(valLines[0], W-margin-2, yy, {align:'right'});
     doc.setTextColor(120,120,120);
     doc.text('Generated by AF Home Inspection Report System  -  ' + new Date().toLocaleDateString('en-MY'), W/2, H-9, {align:'center'});
 
-    // ---- DEFECT PAGES ----
-    const sorted = [...state.defects].sort((a,b)=>a.locationOrder-b.locationOrder||a.ts-b.ts);
-    const grouped = {};
-    sorted.forEach(d => { if(!grouped[d.location]) grouped[d.location]={name:d.locationName,items:[]}; grouped[d.location].items.push(d); });
-    const groupKeys = Object.keys(grouped).sort((a,b)=>(grouped[a].items[0]?.locationOrder||0)-(grouped[b].items[0]?.locationOrder||0));
+    // ---- DEFECT PAGES: Category → Group → Location → Items ----
+    const pdfSorted = [...state.defects].sort((a,b)=>
+      (a.categoryOrder||99)-(b.categoryOrder||99)||
+      (a.groupOrder||99)-(b.groupOrder||99)||
+      (a.locationOrder||99)-(b.locationOrder||99)||
+      a.ts-b.ts
+    );
+    const pdfCatMap = {};
+    pdfSorted.forEach(d => {
+      const cat = d.category||'General';
+      const catOrd = d.categoryOrder||99;
+      const grp = d.groupName||d.group||'General';
+      const grpOrd = d.groupOrder||99;
+      if(!pdfCatMap[cat]) pdfCatMap[cat]={order:catOrd,groups:{}};
+      if(!pdfCatMap[cat].groups[grp]) pdfCatMap[cat].groups[grp]={order:grpOrd,items:[]};
+      pdfCatMap[cat].groups[grp].items.push(d);
+    });
+    const pdfCatKeys = Object.keys(pdfCatMap).sort((a,b)=>pdfCatMap[a].order-pdfCatMap[b].order);
 
-    if(groupKeys.length > 0) {
-      for(const k of groupKeys) {
-        const g = grouped[k];
-        doc.addPage();
+    if(pdfCatKeys.length > 0) {
+      let globalItemNum = 0;
+      for(const cat of pdfCatKeys) {
+        const catData = pdfCatMap[cat];
+        const grpKeys = Object.keys(catData.groups).sort((a,b)=>catData.groups[a].order-catData.groups[b].order);
 
-        // Page header
-        doc.setFillColor(46,46,46);
-        doc.rect(0,0,W,16,'F');
-        doc.setFillColor(181,169,154);
-        doc.rect(0,0,4,16,'F');
-        doc.setFont('helvetica','bold');
-        doc.setFontSize(8);
-        doc.setTextColor(181,169,154);
-        doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
-        doc.setTextColor(150,140,130);
-        doc.text(state.cover.date||'', W-margin, 10, {align:'right'});
+        for(const grp of grpKeys) {
+          const grpData = catData.groups[grp];
+          doc.addPage();
 
-        // Section header
-        doc.setFillColor(62,53,48);
-        doc.rect(margin-2, 22, W-margin*2+4, 12, 'F');
-        doc.setFont('helvetica','bold');
-        doc.setFontSize(10);
-        doc.setTextColor(181,169,154);
-        doc.text('>> ' + g.name.toUpperCase(), margin+2, 31);
-        doc.setFont('helvetica','normal');
-        doc.setFontSize(8);
-        doc.setTextColor(150,140,130);
-        doc.text(g.items.length + ' defect' + (g.items.length!==1?'s':'') + ' recorded', W-margin, 31, {align:'right'});
+          // Page header
+          doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+          doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(8);
+          doc.setTextColor(181,169,154);
+          doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
+          doc.setTextColor(150,140,130);
+          doc.text(state.cover.date||'', W-margin, 10, {align:'right'});
 
-        let y = 42;
-        let itemNum = 0;
+          // Category banner
+          doc.setFillColor(46,46,46);
+          doc.rect(margin-2, 20, W-margin*2+4, 8, 'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
+          doc.setTextColor(181,169,154);
+          doc.text(cat.toUpperCase(), margin+2, 26);
 
-        for(const d of g.items) {
-          itemNum++;
-          // Check if we need a new page
-          const photoHeight = d.photo ? 55 : 0;
-          const commentLines = d.comment ? doc.splitTextToSize(d.comment, W-margin*2-10).length : 0;
-          const neededHeight = 30 + commentLines * 5 + photoHeight + 10;
-          if(y + neededHeight > H - 22) {
-            // Footer
-            addPageFooter(doc, W, H, margin, state.cover.refno);
-            doc.addPage();
-            // Page header continued
-            doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-            doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(181,169,154);
-            doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
-            doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(181,169,154);
-            doc.text(g.name.toUpperCase() + ' (continued)', margin+2, 26);
-            y = 35;
+          // Group header
+          doc.setFillColor(62,53,48);
+          doc.rect(margin-2, 28, W-margin*2+4, 11, 'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(10);
+          doc.setTextColor(255,255,255);
+          doc.text(grp.toUpperCase(), margin+2, 36);
+          doc.setFont('helvetica','normal'); doc.setFontSize(8);
+          doc.setTextColor(181,169,154);
+          doc.text(grpData.items.length + ' defect' + (grpData.items.length!==1?'s':''), W-margin, 36, {align:'right'});
+
+          let y = 46;
+
+          for(const d of grpData.items) {
+            globalItemNum++;
+            const photoHeight = d.photo ? 55 : 0;
+            const locLine = d.locationName ? 1 : 0;
+            const commentLines = d.comment ? doc.splitTextToSize(d.comment, W-margin*2-14).length : 0;
+            const boxH = 14 + locLine*6 + commentLines*5 + photoHeight + 4;
+
+            if(y + boxH > H - 22) {
+              addPageFooter(doc, W, H, margin, state.cover.refno);
+              doc.addPage();
+              doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+              doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
+              doc.setFont('helvetica','bold'); doc.setFontSize(8);
+              doc.setTextColor(181,169,154);
+              doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
+              doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
+              doc.setFont('helvetica','bold'); doc.setFontSize(9);
+              doc.setTextColor(255,255,255);
+              doc.text(cat.toUpperCase() + ' / ' + grp.toUpperCase() + ' (continued)', margin+2, 26);
+              y = 35;
+            }
+
+            // Defect box
+            doc.setDrawColor(220,212,204); doc.setLineWidth(0.3);
+            doc.setFillColor(250,249,247);
+            doc.roundedRect(margin-2, y-2, W-margin*2+4, boxH, 2, 2, 'FD');
+
+            // Severity circle with number
+            const sCol = SEVERITY_COLORS[d.severity||0] || '#888888';
+            const rgb = hexToRgb(sCol);
+            if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b); else doc.setFillColor(140,140,140);
+            doc.circle(margin+4, y+5, 4, 'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+            doc.text(globalItemNum.toString(), margin+4, y+7.5, {align:'center'});
+
+            // Location tag
+            let dY = y+2;
+            if(d.locationName) {
+              doc.setFont('helvetica','bold'); doc.setFontSize(7);
+              doc.setTextColor(140,126,113);
+              doc.text(d.locationName.toUpperCase(), margin+11, dY+4);
+              dY += 6;
+            }
+
+            // Defect name
+            doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(46,46,46);
+            const dname = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
+            const dnameLines = doc.splitTextToSize(dname, W-margin*2-45);
+            dnameLines.forEach(ln => { doc.text(ln, margin+11, dY+4); dY+=5; });
+
+            // Severity badge
+            if(d.severity) {
+              if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b);
+              doc.roundedRect(W-margin-32, y+0.5, 32, 8, 2, 2, 'F');
+              doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
+              doc.text(SEVERITY_LABELS[d.severity].toUpperCase(), W-margin-16, y+6.5, {align:'center'});
+            }
+
+            // Rating
+            if(d.rating) {
+              doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(100,100,100);
+              doc.text('Rating: [' + d.rating + '/5]', margin+11, dY+4);
+              dY += 6;
+            }
+
+            // Comment
+            if(d.comment) {
+              doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
+              const lines = doc.splitTextToSize(d.comment, W-margin*2-14);
+              lines.forEach(line => { doc.text(line, margin+4, dY+5); dY += 5; });
+              dY += 2;
+            }
+
+            // Photo
+            if(d.photo) {
+              try {
+                const img = new Image(); img.src = d.photo;
+                await new Promise(r => { img.onload = r; img.onerror = r; });
+                if(img.complete && img.naturalWidth > 0) {
+                  const maxW = 70, maxH = 50;
+                  const ratio = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
+                  doc.addImage(img, 'JPEG', margin+4, dY+4, img.naturalWidth*ratio, img.naturalHeight*ratio);
+                  dY += img.naturalHeight*ratio + 6;
+                }
+              } catch(e){}
+            }
+
+            y += boxH + 6;
           }
-
-          // Defect box
-          doc.setDrawColor(220,212,204);
-          doc.setLineWidth(0.3);
-          doc.setFillColor(250,249,247);
-          const boxH = 12 + commentLines*5 + photoHeight + 4;
-          doc.roundedRect(margin-2, y-2, W-margin*2+4, boxH, 2, 2, 'FD');
-
-          // Item number circle
-          const sCol = SEVERITY_COLORS[d.severity||0] || '#888';
-          const rgb = hexToRgb(sCol);
-          if(rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b);
-          else doc.setFillColor(140,140,140);
-          doc.circle(margin+4, y+5, 4, 'F');
-          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-          doc.text(itemNum.toString(), margin+4, y+7.5, {align:'center'});
-
-          // Defect name
-          doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
-          const dname = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
-          doc.text(dname, margin+11, y+6);
-
-          // Severity badge
-          if(d.severity) {
-            if(rgb) doc.setFillColor(rgb.r, rgb.g, rgb.b);
-            doc.roundedRect(W-margin-32, y+0.5, 32, 8, 2, 2, 'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
-            doc.text(SEVERITY_LABELS[d.severity].toUpperCase(), W-margin-16, y+6.5, {align:'center'});
-          }
-
-          // Rating stars
-          if(d.rating) {
-            doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-            doc.text('Rating: [' + d.rating + '/5]', margin+11, y+13);
-          }
-
-          y += 15;
-
-          // Comment
-          if(d.comment) {
-            doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
-            const lines = doc.splitTextToSize(d.comment, W-margin*2-10);
-            lines.forEach(line => { doc.text(line, margin+4, y); y += 5; });
-            y += 2;
-          }
-
-          // Photo
-          if(d.photo) {
-            try {
-              const img = new Image(); img.src = d.photo;
-              await new Promise(r => { img.onload = r; img.onerror = r; });
-              if(img.complete && img.naturalWidth > 0) {
-                const maxW = 70, maxH = 50;
-                let iw = img.naturalWidth, ih = img.naturalHeight;
-                const ratio = Math.min(maxW/iw, maxH/ih);
-                doc.addImage(img, 'JPEG', margin+4, y, iw*ratio, ih*ratio);
-                y += ih*ratio + 4;
-              }
-            } catch(e){}
-          }
-
-          y += 8;
+          addPageFooter(doc, W, H, margin, state.cover.refno);
         }
-
-        addPageFooter(doc, W, H, margin, state.cover.refno);
       }
     }
 
@@ -1875,18 +2114,19 @@ doc.text(valLines[0], W-margin-2, yy, {align:'right'});
     const modD = state.defects.filter(d=>d.severity===3).length;
     const minD = state.defects.filter(d=>d.severity<=2 && d.severity>0).length;
 
+    const intD = state.defects.filter(d=>d.category==='Interior').length;
+    const extD = state.defects.filter(d=>d.category==='Exterior').length;
     const statCols = [
       ['Total Defects', totalD, '#636363'],
       ['Critical / Serious', critD, '#c0392b'],
-      ['Moderate', modD, '#e67e22'],
-      ['Minor / Low', minD, '#27ae60'],
+      ['Interior', intD, '#7b6c5e'],
+      ['Exterior', extD, '#27ae60'],
     ];
     let sx = margin;
     statCols.forEach(col => {
       const cw = (W-margin*2)/4;
       const rgb = hexToRgb(col[2]);
-      if(rgb) doc.setFillColor(Math.round(rgb.r*0.12+255*0.88), Math.round(rgb.g*0.12+255*0.88), Math.round(rgb.b*0.12+255*0.88));
-else doc.setFillColor(248,248,248);
+      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b,0.08); else doc.setFillColor(240,240,240);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
       doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
@@ -1904,19 +2144,22 @@ else doc.setFillColor(248,248,248);
     doc.text('DEFECTS BY AREA', margin, sy); sy+=6;
     doc.setDrawColor(210,200,190); doc.setLineWidth(0.2); doc.line(margin,sy,W-margin,sy); sy+=5;
 
-    const locCounts = {};
-    state.defects.forEach(d => { locCounts[d.locationName] = (locCounts[d.locationName]||0) + 1; });
-    const locEntries = Object.entries(locCounts).sort((a,b)=>b[1]-a[1]);
-    locEntries.forEach(([loc, cnt]) => {
+    const grpCounts = {};
+    state.defects.forEach(d => {
+      const key = (d.category||'') + ' / ' + (d.groupName||d.group||'General');
+      grpCounts[key] = (grpCounts[key]||0) + 1;
+    });
+    const grpEntries = Object.entries(grpCounts).sort((a,b)=>b[1]-a[1]);
+    grpEntries.forEach(([grp, cnt]) => {
       doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
-      doc.text(loc, margin, sy);
-      // Bar
+      doc.text(grp, margin, sy);
       const barW = (cnt / (totalD||1)) * (W-margin*2-50);
       doc.setFillColor(181,169,154);
       doc.rect(W-margin-50, sy-5, barW, 5, 'F');
       doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(80,80,80);
       doc.text(cnt.toString(), W-margin, sy, {align:'right'});
       sy += 8;
+      if(sy > H-70) { sy = H-70; } // guard
     });
 
     // Overall rating
@@ -1984,6 +2227,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('mainFab').style.display = 'flex';
 });
 </script>
- 
+
 </body>
 </html>
