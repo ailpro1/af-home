@@ -1,6 +1,7 @@
 {
   "name": "AF Home Inspection",
   "short_name": "AF Inspect",
+  "description": "Professional home inspection report generator by AF Home Inspection",
   "start_url": "/AFH/af_home_inspection_app.html",
   "scope": "/AFH/",
   "display": "standalone",
@@ -8,6 +9,11 @@
   "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
-    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }
+    {
+      "src": "/AFH/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
