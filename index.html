@@ -1899,7 +1899,10 @@ async function generatePDF() {
       // Value — right-aligned
       doc.setFont('helvetica','normal');
       doc.setTextColor(46,46,46);
-      doc.text(String(row[1]), W-margin-2, yy, {align:'right'});
+      const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
+      const maxValW = W/2 - 4;
+      const valLines = doc.splitTextToSize(safeVal, maxValW);
+      doc.text(valLines[0], W-margin-2, yy, {align:'right'});
       // Thin row divider
       if(i < infoItems.length-1) {
         doc.setDrawColor(235,228,220);
