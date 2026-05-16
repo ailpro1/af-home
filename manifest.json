@@ -1,7 +1,8 @@
 {
   "name": "AF Home Inspection",
   "short_name": "AF Inspect",
-  "start_url": "./af_home_inspection_app.html",
+  "start_url": "AFH/af_home_inspection_app.html",
+  "scope": "AFH",
   "display": "standalone",
   "background_color": "#f9f7f4",
   "theme_color": "#000000",
