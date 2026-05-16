@@ -8,7 +8,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
-<link rel="manifest" href="/AFH/manifest.json">
 <link rel="apple-touch-icon" href="/AFH/icon-180.png">
 <link rel="icon" type="image/png" href="/AFH/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1985,14 +1984,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('mainFab').style.display = 'flex';
 });
 </script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/AFH/sw.js', { scope: '/AFH/' })
-      .then(reg => console.log('AF Inspection: offline ready ✔', reg.scope))
-      .catch(err => console.log('Service worker failed:', err));
-  });
-}
-</script>
+ 
 </body>
 </html>
