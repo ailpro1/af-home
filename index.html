@@ -1837,12 +1837,12 @@ async function generatePDF() {
     }
 
     // Company name
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(9);
     doc.setTextColor(140,126,113);
-    doc.setCharSpace(3);
-    doc.text('AF HOME INSPECTION', W/2, 62, {align:'center'});
-    doc.setCharSpace(0);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    const companyStr = 'A F   H O M E   I N S P E C T I O N';
+    const companyW = doc.getTextWidth(companyStr);
+    doc.text(companyStr, (W - companyW) / 2, 62);
 
     // Divider
     doc.setDrawColor(181,169,154,0.5);
@@ -2126,7 +2126,8 @@ async function generatePDF() {
     statCols.forEach(col => {
       const cw = (W-margin*2)/4;
       const rgb = hexToRgb(col[2]);
-      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b,0.08); else doc.setFillColor(240,240,240);
+      if(rgb) doc.setFillColor(Math.round(rgb.r*0.12+255*0.88), Math.round(rgb.g*0.12+255*0.88), Math.round(rgb.b*0.12+255*0.88));
+      else doc.setFillColor(248,248,248);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
       doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
