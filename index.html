@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="manifest" href="manifest.json">
 <title>AF Home Inspection — Report Generator</title>
-<meta name="apple-mobile-web-app-title" content="AF Home Inspection">
+<meta name="apple-mobile-web-app-title" content="AF Inspect">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/png" href="icon-180.png">
+<link rel="manifest" href="/AFH/manifest.json">
+<link rel="apple-touch-icon" href="/AFH/icon-180.png">
+<link rel="icon" type="image/png" href="/AFH/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1987,9 +1987,11 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Offline ready'))
-    .catch(err => console.log('SW failed:', err));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/AFH/sw.js', { scope: '/AFH/' })
+      .then(reg => console.log('AF Inspection: offline ready ✔', reg.scope))
+      .catch(err => console.log('Service worker failed:', err));
+  });
 }
 </script>
 </body>
