@@ -868,7 +868,36 @@ input[type="range"].thickness {
 <div class="page" id="page-standards">
   <div class="card">
     <div class="card-title">Quick Reference — Inspection Standards</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:14px;">Accepted industry standards and best practices for each category. Use as a quick field reference.</p>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:14px;">Extracted directly from <strong>CIS 7:2021</strong> (CIDB Malaysia) and the QLASSIC Quality Guidebook for Homeowners. Use as a quick field reference — assessment is <strong>70% visual</strong>.</p>
+
+    <!-- CIS7 6+1 method banner -->
+    <div style="background:linear-gradient(135deg,#2e2e2e,#3e3530);color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.06em;color:var(--tan-light);margin-bottom:8px;">CIS 7 ASSESSMENT METHOD 6+1</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Floor</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Wall</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Ceiling</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Door</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Window</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Fixture</div>
+        <div style="background:rgba(181,169,154,0.25);border:1px solid rgba(181,169,154,0.4);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:700;color:var(--tan-light);grid-column:span 2;">+1 M&amp;E</div>
+      </div>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:8px;">Each room: assess all 6 finishes + M&E fittings. 5 defect groups per element: Finishing · Alignment · Cracks · Hollowness · Jointing</div>
+    </div>
+
+    <!-- Key tolerances quick card -->
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--tan-dark);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Key Tolerances at a Glance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Floor/Wall evenness</span><br>Max 3mm per 1.2m</div>
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Wall squareness</span><br>Max 4mm per 300mm</div>
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Tile lippage</span><br>Max 1mm (floor &amp; wall)</div>
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Door/window gap</span><br>Max 5mm</div>
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Staircase tread/riser</span><br>Max 5mm variance</div>
+        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Drain cover gap</span><br>5–10mm</div>
+      </div>
+    </div>
+
     <div id="standardsContent"></div>
   </div>
 </div>
@@ -968,7 +997,7 @@ input[type="range"].thickness {
     <div class="form-row">
       <label>Photo Evidence</label>
       <label for="photoFileInput" class="photo-upload-btn">📷 Capture / Upload Photo</label>
-      <input type="file" id="photoFileInput" accept="image/*,image/jpeg,image/png,image/tiff,image/heic" onchange="handlePhotoUpload(event)">
+      <input type="file" id="photoFileInput" accept="image/*" capture="environment" onchange="handlePhotoUpload(event)">
       <div class="photo-preview-wrap" id="photoPreviewWrap"></div>
     </div>
 
@@ -1106,69 +1135,193 @@ const INSPECTION_GROUPS = {
   }
 };
 
-// Standards reference content
+// Standards reference content — sourced from CIS 7:2021 & QLASSIC Quality Guidebook for Homeowners (CIDB Malaysia)
 const STANDARDS_DATA = [
+
+  // ============================================================
+  // INTERIOR — CIS 7:2021 Annex A, Internal Finishes
+  // Assessment framework: 6+1 method (Floor · Wall · Ceiling · Door · Window · Fixture + M&E)
+  // ============================================================
+
   { category:'Interior', group:'Floor', icon:'🟫', items:[
-    { std:'Tiling — Lippage', desc:'Max permissible lippage between tiles: 1mm for joints <6mm, 2mm for joints 6mm and above (MS ISO 13006).' },
-    { std:'Hollow Tiles', desc:'No more than 3 hollow tiles per 10 sqm. Single hollow tile adjacent to fixture junction is acceptable if stable.' },
-    { std:'Gradient (Wet Areas)', desc:'Minimum 1:100 slope toward floor trap. For bathrooms and balconies, ensure no water ponding after 5 minutes.' },
-    { std:'Screeding', desc:'Must be level to ±3mm under a 2m straight edge. No cracks wider than 0.3mm permitted in finished screed.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No construction stain marks. Consistent colour tonality/shading (manufactured products). No permanent foreign material visible. Surface must not be unduly rough or patchy. Painted screeds: no brush marks, pin holes, blistering, or peeling.' },
+    { std:'Evenness of Surface', tool:'Spirit level 1.2m + steel wedge',
+      desc:'Max 3mm deviation over 1.2m straight edge. Falls in wet areas (bathroom, balcony, utility) must slope correctly toward floor trap. No water ponding acceptable.' },
+    { std:'Staircase Treads & Risers', tool:'Spirit level 1.2m + steel wedge',
+      desc:'Variance in tread/riser lengths must not exceed 5mm from dimensions in approved drawings. Measure each step individually.' },
+    { std:'Tile Lippage', tool:'L-square (200x300mm) + steel wedge',
+      desc:'Lippage between two adjacent tiles: max 1mm. Tile joints must be aligned with skirting tiles and aligned between all tile rows.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No chipping, broken tiles, cracked tiles, or scratches. No warpage or sagging (engineered/timber floors). No loose or rocking panels. Carpet: no visible joints, stretched firm and even.' },
+    { std:'Hollowness / Delamination', tool:'Tapping rod + auditory (hearing)',
+      desc:'Swipe then tap with tapping rod — no hollow or drumming sound on tiles/screed. No delamination (carpet peeling, screed debonding). Timber strips must rest firmly on joists/screeds.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Skirting: consistent thickness and height, neat joints, no visible gaps to wall. Grout: consistent colour, size, properly filled — no holes, over-grout, under-grout, or stains. Edges of carpet/timber properly sealed and anchored. No visible joints for carpet or engineered timber.' },
   ]},
+
   { category:'Interior', group:'Wall', icon:'🧱', items:[
-    { std:'Crack Width', desc:'Hairline cracks up to 0.1mm are considered cosmetic. Cracks >0.3mm require investigation for structural cause.' },
-    { std:'Plastering', desc:'Surface flatness: ±3mm under a 2m straight edge. No hollow sound when tapped. No pop-outs or exposed aggregate.' },
-    { std:'Painting', desc:'Uniform colour and sheen, no brush marks, runs, or sags visible at 1m under natural light. Min 2 coats finish coat.' },
-    { std:'Tiling', desc:'Grout must be fully filled, consistent width, and free of voids. Sealant at all movement joints and junctions.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks. Good paintwork — no paint drips, brush marks, pin holes, blistering, peeling, or trowel marks. Consistent colour tone. No rough or patchy surface from touch-up. Painted plaster must not be chalky. Textured finish must be consistent.' },
+    { std:'Evenness of Surface', tool:'Spirit level 1.2m + steel wedge',
+      desc:'Wall surface flatness: max 3mm per 1.2m. Verticality (plumb): max 3mm per 1.2m. Check all four walls in each room.' },
+    { std:'Wall Squareness', tool:'L-square (200x300mm) + steel wedge',
+      desc:'Walls must meet at right angle — max 4mm deviation per 300mm. Tile lippage between adjacent tiles: max 1mm. Tile joints must be aligned.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No visible cracks, dents, scratches, or corrosion. No warpage on tiles or wood/timber panels. Any crack visible to naked eye at 1m distance must be recorded.' },
+    { std:'Hollowness / Delamination', tool:'Tapping rod + auditory (hearing)',
+      desc:'Swipe then tap plaster, tiles, or textured surfaces — no hollow or drumming sound. No wallpaper or timber panel delamination. Timber panels must rest firmly on backing/joists.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Edges to be straight, aligned, and consistent. Tile grout: consistent size, properly filled — no voids or stains. Wallpaper/timber edges neatly laid and properly anchored. No visible joint lines. Consistent spacing for cladding panels.' },
   ]},
+
   { category:'Interior', group:'Ceiling', icon:'⬆', items:[
-    { std:'Skimming', desc:'Surface flatness ±3mm under 2m straight edge. No cracking, hollow, or delamination. Smooth finish with no tooling marks.' },
-    { std:'Painting', desc:'Min 2 finish coats. No staining, patches, or visible brush marks at 1m under uniform lighting.' },
-    { std:'Water Stain', desc:'Any staining indicates active or past leakage. Source must be traced before rectification.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks including leakage marks, excess paint, or fingerprints. Consistent colour tone. Good paintwork — good opacity, no brush marks, pin holes, blistering, or trowel marks.' },
+    { std:'Alignment & Evenness', tool:'Visual',
+      desc:'Surface must be smooth, even, not wavy, and not sagging. False ceiling panels must be level with each other. Edges must be straight and aligned. Ceiling grid must be straight and aligned. Panels must not warp and must sit neatly in grids.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No concrete spalling, chipped panels, or cracks. No sign of corrosion on metal ceiling grids or panels. Any stain mark must be investigated — it may indicate active leakage above.' },
+    { std:'Roughness & Patchiness', tool:'Visual',
+      desc:'Skim-coated or painted concrete must not show rough surface or formwork joint lines. Cold joints must be ground smooth. Touch-up must not leave patchy or rough surface.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Joints between ceiling and wall: neat, consistent, and properly sealed. Joints between ceiling tee and panel (false ceiling): neat and consistent width. Access panel/manhole joints: neat, consistent, and flush with surrounding ceiling.' },
   ]},
-  { category:'Interior', group:'Windows', icon:'🪟', items:[
-    { std:'Alignment', desc:'Frame must be plumb and level to ±2mm. Gap between frame and wall must be sealed with sealant continuously.' },
-    { std:'Operation', desc:'Window must open, close, and lock smoothly without binding. Hardware must engage fully on first attempt.' },
-    { std:'Sealant', desc:'Sealant must be continuous, fully adhered, with no voids or tears. Re-sealant required if cracked or debonded.' },
-  ]},
+
   { category:'Interior', group:'Doors', icon:'🚪', items:[
-    { std:'Alignment', desc:'Door leaf gap at top and sides: 2–3mm uniform. Gap at floor: 6–10mm (or as required for ventilation).' },
-    { std:'Operation', desc:'Door must swing fully without catching floor or frame. Latch must engage with single push/pull.' },
-    { std:'Hardware', desc:'All screws must be driven flush. Hinges must be recessed cleanly. No wobble in handle sets.' },
+    { std:'Joints & Gaps', tool:'Steel gauge + steel wedge',
+      desc:'Gap at bottom of door panel to finished floor: max 5mm (or per project specification). Gap between door panel and frame (all sides): max 5mm, consistent. No visible gaps between door frame and wall. Door frame joints internally and externally must be neat.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m + L-square',
+      desc:'Door frame aligned and level with wall opening. Double doors must flush with each other and with the frame. Frame and panel corners must be at right angles. No rattling sound when door fully closed.' },
+    { std:'Materials & Damages', tool:'Visual + angle mirror',
+      desc:'No stain marks or visible damages. Door panel must not sag or warp. Nail holes and joints must be filled, sanded smooth, and given good paintwork — check top and bottom of door panel using angle mirror. Glazing clean and evenly sealed. No corrosion anywhere. No additional timber strips added for site adjustment.' },
+    { std:'Functionality', tool:'Physical + auditory (test min 3×, pass at least 2×)',
+      desc:'Door must open, close, and lock with ease and smoothly. No squeaky sound. Lockset must engage and release properly. Test door stopper — door must stay open at intended position. Door must not creep or swing on its own.' },
+    { std:'Accessories', tool:'Visual',
+      desc:'All accessories (hinges, knob, lockset, door closer, guard, stopper, flush bolt, alarm sensor) in good condition — no stains or corrosion. No missing accessories. Screws must be flush — no over-tightened or defective screw heads.' },
   ]},
+
+  { category:'Interior', group:'Windows', icon:'🪟', items:[
+    { std:'Joints & Gaps', tool:'Visual',
+      desc:'No visible gaps between window frame and wall — check both inside and outside. Joints must be neat internally and externally. No visible gaps at joints between window panel and frame. Sealant around frame must be neat and continuous — no voids or tears.' },
+    { std:'Alignment & Evenness', tool:'Visual',
+      desc:'Window frame aligned and level with wall opening. Window panel and frame corners must be at right angles. Frame must be plumb and square — no twist or bow.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No stain marks or visible damages on frame or glazing. Louvered window glass panels must be of correct length. Glazing clean and evenly sealed with sealant or gasket (aluminium windows). No sign of corrosion. No patchy paintwork from touch-up.' },
+    { std:'Functionality', tool:'Physical + auditory (test min 3×, pass at least 2×)',
+      desc:'Window must open, close, and lock smoothly. No squeaky sound during operation. No sign of water leakage or staining at frame junction — check for water marks inside near frame.' },
+    { std:'Accessories', tool:'Visual',
+      desc:'All accessories (handles, stays, hinges, security bars for louvre windows, alarm sensor) in good condition — no stains or corrosion. No missing accessories. Screws must be flush and properly fastened.' },
+  ]},
+
   { category:'Interior', group:'Fixtures', icon:'🔧', items:[
-    { std:'Sanitary Fittings', desc:'WC pan must be firmly fixed, no movement. Basin and shower tray must be fully sealed at junctions. No leaks on test.' },
-    { std:'Taps / Showers', desc:'No drips at rest. Flow rate adequate. Hot/cold function correct. Mixer cartridges must not stick.' },
-    { std:'Accessories', desc:'All towel rails, soap holders, and toilet roll holders to be level, plumb, and firmly fixed to wall.' },
+    { std:'Joints & Gaps', tool:'Visual',
+      desc:'All joints surrounding fixtures (basin, WC, sink, shower tray, kitchen cabinet, wardrobe, mirror, railing) must be neat and consistent. No visible gaps. Welding joints must be ground smooth and flush. Fixtures scope: WC, basin, sink, bathtub, shower screen, wardrobe, kitchen cabinet, railing, vanity top, mirror, grill door, unit number plate.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m',
+      desc:'All fixtures must be level and in proper alignment. Cabinet doors must be at uniform reveal gap. Sanitary fittings at correct height. Railing must be continuous and at correct height.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No stain marks, dents, scratches, chips, or cracks on any fixture. Consistent and uniform colour. Good paintwork on painted parts. Check inside cabinet interiors too.' },
+    { std:'Functionality', tool:'Visual + physical',
+      desc:'All fixtures securely fixed, functional, and safe. Cabinet doors and drawers open/close smoothly without squeaking. Flush WC and run taps — run each fitting for 5 min, check for leaks at base and joints. Check stopper: fill basin, wait 2-3 min, ensure no leak. Railing must be firm — no wobble.' },
+    { std:'Accessories', tool:'Visual',
+      desc:'No missing or defective accessories (hinges, handles, bottle trap, hose, piping). Accessories fit well — no stains. No corrosion on metal accessories. Screw heads flush and intact.' },
   ]},
+
   { category:'Interior', group:'M&E', icon:'⚡', items:[
-    { std:'Electrical', desc:'All socket outlets at uniform height. Plates flush to wall. Switches operate correctly. No exposed wiring.' },
-    { std:'Plumbing', desc:'No leaks under pressure test. All pipes secured with clips at max 1.5m centres. No vibration or water hammer.' },
-    { std:'DB / Consumer Unit', desc:'All circuits labelled. RCD and MCB must trip within spec. Earth bonding in place. No exposed conductors.' },
+    { std:'Joints & Gaps', tool:'Visual',
+      desc:'Joints surrounding all M&E fittings (switches, sockets, floor traps, pipe outlets, shower mixer) must be neat and consistent. No visible gaps. Joints must be properly sealed and marked.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level',
+      desc:'All M&E fittings must be aligned, levelled, and straight. Switch plates and socket covers flush to wall. Light fittings hung level. Floor traps flush with finished floor. Spacing between fittings must be consistent.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No stain marks or visible damages on fittings. Consistent and uniform colour. No chipping, cracks, paint stains, or mortar drippings. Covers must sit flush and tight — no loose capping.' },
+    { std:'Functionality & Safety', tool:'Visual + physical',
+      desc:'All fittings securely fixed, functional, and safe. Test each switch, socket (plug in radio/device), and light fixture. Run every tap and shower for min 5 min — check for leaks. Flush every toilet — check for base leaks. Test doorbell. Run A/C. No leakage at any pipe joint.' },
+    { std:'Accessories', tool:'Visual',
+      desc:'No missing accessories (screw caps, floor trap filter/covers, SMATV point covers). All accessories fit well — no stains. Screws flush — no defective or missing screw heads. No loose conduit capping at outlets.' },
   ]},
-  { category:'Exterior', group:'Floor / Paving', icon:'🟫', items:[
-    { std:'Gradient', desc:'Min 1:80 slope away from building. Ponding not acceptable within 10 minutes of simulated rainfall.' },
-    { std:'Tiling / Paving', desc:'No hollow, loose, or cracked units. Joints fully grouted. Anti-slip finish required for all external wet areas.' },
-  ]},
-  { category:'Exterior', group:'Wall / Facade', icon:'🧱', items:[
-    { std:'Rendering', desc:'No hollow, cracks >0.3mm, or delamination. Surface to be uniform texture and colour.' },
-    { std:'Painting', desc:'External paint must be weatherproof grade. Peeling or chalking indicates undercoat failure — full repaint required.' },
-    { std:'Cracks', desc:'Cracks >0.5mm on structural elements require engineer assessment. Step cracks at brick joints indicate movement.' },
-  ]},
+
+  // ============================================================
+  // EXTERIOR — CIS 7:2021 Annex A Part 2 (External Finishes) + Annex C (External Works)
+  // ============================================================
+
   { category:'Exterior', group:'Roof', icon:'🏠', items:[
-    { std:'Tiles', desc:'No cracked, chipped, or missing tiles. All tiles must be firmly bedded with no rocking.' },
-    { std:'Flashing', desc:'Continuous, no gaps. Minimum 150mm upstand at all abutments. All joints lapped and sealed.' },
-    { std:'Gutters / Downpipes', desc:'Properly fixed, fall min 1:200. No blockages, leaks at joints, or overflow marks on walls.' },
-    { std:'Ridge / Hip', desc:'Mortar bedding intact, no cracks. Pointing fully filled.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No construction stain marks or rust on any roof surface. No rough surface (flat roof membranes). Good paintwork. Consistent colour tone throughout.' },
+    { std:'Alignment & Evenness', tool:'Visual',
+      desc:'Even and level — no tripping hazard. Falls must be in correct direction toward gutters/RWDP outlets. Pitched roof tiles must be in alignment — no displaced, raised, or rocking tiles. Ridge must be straight and level.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No visible damages — cracks, chipping, stripping, or sharp protrusions. Missing or broken tiles must be recorded. Ridge capping mortar must be intact — no cracking or voids. Gutters must have no rust or loose sections.' },
+    { std:'Construction & Waterproofing', tool:'Visual',
+      desc:'No sign of leakage or active water ingress. Proper flashing/dressing for all protrusions (pipes, A/C supports, solar panels). No clogging or ponding on flat roofs. All openings sealed against pest invasion. RWDP inlet must be lower than surrounding gutter invert. Gutters and RWDP inlets covered where practical. Min gutter fall 1:200.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Consistent joint width — neat at all tile/sheet junctions. Good lap at joints and proper vertical abutment details. No open joints at ridge, hip, or valley.' },
   ]},
+
+  { category:'Exterior', group:'Wall / Facade', icon:'🧱', items:[
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks (mortar, paint drips). Consistent colour tone, good paintwork, no efflorescence, no discolouration or fading. No rough or patchy surface (plaster/paint). No sign of corrosion (cladding). Surface must not be peeling, blistered, or chalky.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level',
+      desc:'Wall must be aligned and not wavy. Edges must be straight and aligned. Surface evenness consistent. No obvious bulging or bowing of cladding panels.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No visible damages, dents, or scratches. Any crack visible to naked eye must be recorded. Step cracks at brick joints or corners indicate movement — record as Serious or Critical.' },
+    { std:'Construction', tool:'Visual',
+      desc:'Weep holes provided as specified for masonry walls. All external fixtures (aluminium strips, glass holders, cladding anchors) neatly and securely installed. Gaps around all openings properly sealed.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Consistent and neat expansion/movement joints. External tile joints aligned and consistent in size. Cladding sealant compatible with cladding material. Joints of regular width as specified.' },
+  ]},
+
+  { category:'Exterior', group:'Floor / Paving', icon:'🟫', items:[
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks on apron, car porch, or car park floor. No rough or patchy surface. Consistent colour and good paintwork (bay markings). No sign of corrosion on metalwork or fixtures.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m',
+      desc:'Even surface — check for lips, raised edges, or tripping hazards. Falls must be in correct direction — water must drain freely away from building. No water ponding within compound. Car park: falls in correct direction to floor drains.' },
+    { std:'Cracks & Damages', tool:'Visual',
+      desc:'No visible cracks, chipping, or damaged tiles/paving. No loose or hollow tiles. No missing or damaged accessories. Check driveway and patio for cracks.' },
+    { std:'Functionality', tool:'Visual + physical',
+      desc:'Apron and car porch must drain freely — no ponding. Car porch/car park ceiling, wall, column, and M&E fittings securely fixed, functional, and safe. No visible gaps around M&E fittings. Check that drain gradient is adequate.' },
+    { std:'Jointing', tool:'Visual + steel measuring tape',
+      desc:'Consistent joint width and neat on all paving. Perimeter drain joints consistent and neat. Drain covers flush with surrounding surface — max 20mm protrusion tolerance. Gap between drain covers 5-10mm.' },
+  ]},
+
   { category:'Exterior', group:'Drainage', icon:'💧', items:[
-    { std:'Gradient', desc:'Min 1:100 fall to all surface drains. No ponding within compound 10 min after rain ceases.' },
-    { std:'Drain Covers', desc:'All covers present, secured, and flush to surrounding surface. No cracked or missing covers.' },
-    { std:'Blockage', desc:'Drains must be clear and flow freely. Silt traps to be cleaned before handover.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks on drain walls and base. No rough or patchy surface. No sign of corrosion on drain grating. Drain grating properly painted if specified.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level',
+      desc:'Drain finishes even, level, aligned, and consistent. Drain covers level with frame — no rocking. Inspection chamber covers level with surroundings — max 20mm protrusion tolerance.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No visible cracks or damages to drain body or walls. Drain cover frame must be intact — no broken sections. Inspection chamber covers present, intact, and safe to step on.' },
+    { std:'Functionality & Gradient', tool:'Visual',
+      desc:'Free-flowing — no water ponding or siltation inside drain. Drain grating safely and securely fixed and functional. All silt traps clear before handover. Gap between drain covers: 5-10mm. Gap between sides of drain: 5-10mm.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Consistent joint width and neat throughout drain length. All drain covers present and secured. Inspection chambers accessible — no debris blocking.' },
   ]},
+
   { category:'Exterior', group:'Fencing / Boundary', icon:'🔲', items:[
-    { std:'Structural', desc:'Boundary wall must be plumb to ±5mm per 1m height. No cracks exceeding 0.5mm width.' },
-    { std:'Gate', desc:'Gate must swing clear of ground, latch securely, and lock fully. No excessive rust on metalwork.' },
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks on fence or gate. Consistent colour and good paintwork. No rough or patchy surface. Surface must not be peeling or blistered.' },
+    { std:'Alignment & Evenness', tool:'Visual + spirit level',
+      desc:'Fence piers and gate posts must be vertical, perpendicular, and straight. Gate leaf must be parallel and aligned with posts when closed. Fence panels even and consistent in height.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No visible damages or defects. No missing accessories (hinges, locks, bolts, handles, intercoms). No sign of corrosion on metalwork — especially at base of posts and weld points.' },
+    { std:'Functionality', tool:'Physical',
+      desc:'Gate must open, close, and lock smoothly — swing must clear ground. Lockset must engage properly. Fence panels securely fixed — no wobble. Automatic gate: test from wall switch and remote control.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Consistent joint width and neat between fence sections. No visible gaps at post connections. All M&E fittings on gate (intercom, sensor, lights) neatly installed — no gaps around fittings.' },
   ]},
+
+  { category:'Exterior', group:'Roadwork / Footpath', icon:'🛣', items:[
+    { std:'Finishing', tool:'Visual',
+      desc:'No stain marks on road surface, kerbs, or footpath. Consistent colour and good paintwork on road markings and signs. No rough or patchy surface. Turfing done evenly — no dead grass, weeds, or bald patches.' },
+    { std:'Alignment & Evenness', tool:'Visual',
+      desc:'Even road/footpath surface — no water ponding. Edges of kerbs and footpath straight and aligned. No tripping hazards. Footpath lighting aligned and at consistent height.' },
+    { std:'Materials & Damages', tool:'Visual',
+      desc:'No visible damages or defects on road, kerbs, or footpath. No missing or defective accessories (signage, lights, benches, railings). No sign of corrosion on street furniture or lamp posts.' },
+    { std:'Functionality', tool:'Visual + physical',
+      desc:'All fixtures securely fixed, functional, and safe. Road lights and footpath lights operational. Fixed benches, railings, and signage stable without wobble. Road markings clear and correctly applied.' },
+    { std:'Jointing', tool:'Visual',
+      desc:'Consistent joint width and neat throughout road surface and paving. Kerb joints neatly finished. Expansion joints present and filled. No visible gaps around M&E fittings (lamp post conduit, signage). ' },
+  ]},
+
 ];
 
 const CIS7_CHECKLIST = [
@@ -1356,9 +1509,12 @@ function renderStandards() {
           <div style="border:1px solid var(--border);border-top:none;padding:12px 14px;">
             <div style="font-size:0.82rem;font-weight:700;color:var(--tan-dark);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${g.icon} ${g.group}</div>
             ${g.items.map(item => `
-              <div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                <div style="font-size:0.82rem;font-weight:600;color:var(--grey-dark);">${item.std}</div>
-                <div style="font-size:0.8rem;color:var(--grey);margin-top:3px;line-height:1.5;">${item.desc}</div>
+              <div style="margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid var(--border);">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                  <div style="font-size:0.82rem;font-weight:700;color:var(--grey-dark);flex:1;">${item.std}</div>
+                  ${item.tool ? `<span style="font-size:0.67rem;font-weight:600;background:#eef2f0;color:#3a6b4a;border:1px solid #c0d8c8;padding:2px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;">🔧 ${item.tool}</span>` : ''}
+                </div>
+                <div style="font-size:0.79rem;color:var(--grey);margin-top:4px;line-height:1.6;">${item.desc}</div>
               </div>`).join('')}
           </div>`).join('')}
         <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;height:4px;background:var(--tan-light);"></div>
@@ -1837,12 +1993,12 @@ async function generatePDF() {
     }
 
     // Company name
-    doc.setTextColor(140,126,113);
     doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    const companyStr = 'A F   H O M E   I N S P E C T I O N';
-    const companyW = doc.getTextWidth(companyStr);
-    doc.text(companyStr, (W - companyW) / 2, 62);
+    doc.setFontSize(9);
+    doc.setTextColor(140,126,113);
+    doc.setCharSpace(3);
+    doc.text('AF HOME INSPECTION', W/2, 62, {align:'center'});
+    doc.setCharSpace(0);
 
     // Divider
     doc.setDrawColor(181,169,154,0.5);
@@ -1899,10 +2055,7 @@ async function generatePDF() {
       // Value — right-aligned
       doc.setFont('helvetica','normal');
       doc.setTextColor(46,46,46);
-      const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
-      const maxValW = W/2 - 4;
-      const valLines = doc.splitTextToSize(safeVal, maxValW);
-      doc.text(valLines[0], W-margin-2, yy, {align:'right'});
+      doc.text(String(row[1]), W-margin-2, yy, {align:'right'});
       // Thin row divider
       if(i < infoItems.length-1) {
         doc.setDrawColor(235,228,220);
@@ -2129,8 +2282,7 @@ async function generatePDF() {
     statCols.forEach(col => {
       const cw = (W-margin*2)/4;
       const rgb = hexToRgb(col[2]);
-      if(rgb) doc.setFillColor(Math.round(rgb.r*0.12+255*0.88), Math.round(rgb.g*0.12+255*0.88), Math.round(rgb.b*0.12+255*0.88));
-      else doc.setFillColor(248,248,248);
+      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b,0.08); else doc.setFillColor(240,240,240);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
       doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
       doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
