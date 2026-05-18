@@ -1011,7 +1011,14 @@ input[type="range"].thickness {
           <button class="tool-btn active" id="toolCircle" onclick="setTool('circle')">⭕ Circle</button>
           <button class="tool-btn" id="toolArrow" onclick="setTool('arrow')">➡️ Arrow</button>
           <button class="tool-btn" id="toolPen" onclick="setTool('pen')">✏️ Freehand</button>
+          <button class="tool-btn" id="toolText" onclick="setTool('text')">T&nbsp;Text</button>
           <input type="color" class="color-pick" id="annoColor" value="#e74c3c" title="Colour">
+          <div style="display:flex;gap:4px;align-items:center;margin-left:2px;">
+            <span style="font-size:0.72rem;color:var(--grey);font-weight:600;">Text:</span>
+            <button onclick="setTextColor('#000000')" id="tc_black" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#000;cursor:pointer;" title="Black"></button>
+            <button onclick="setTextColor('#ffffff')" id="tc_white" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#fff;cursor:pointer;" title="White"></button>
+            <button onclick="setTextColor('#f1c40f')" id="tc_yellow" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#f1c40f;cursor:pointer;" title="Yellow"></button>
+          </div>
           <input type="range" class="thickness" id="annoThickness" min="2" max="14" value="4" title="Line thickness">
           <button class="tool-btn" onclick="undoAnnotation()" style="margin-left:auto;">↩️ Undo</button>
           <button class="tool-btn btn-danger" onclick="clearAnnotations()">🗑️ Clear</button>
@@ -1643,8 +1650,35 @@ function canvasMouseDown(e) { isDrawing = true; const p = getPos(e, annotateCanv
 function canvasTouchStart(e) { e.preventDefault(); isDrawing = true; const p = getPos(e, annotateCanvas); startX=p.x; startY=p.y; if(currentTool==='pen') annotateCtx.beginPath(); }
 function canvasMouseMove(e) { if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
 function canvasTouchMove(e) { e.preventDefault(); if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
-function canvasMouseUp(e) { if(!isDrawing) return; isDrawing=false; const p = getPos(e, annotateCanvas); finalizeShape(p.x, p.y); }
-function canvasTouchEnd(e) { if(!isDrawing) return; isDrawing=false; if(e.changedTouches.length){ const p = getPos({clientX:e.changedTouches[0].clientX,clientY:e.changedTouches[0].clientY}, annotateCanvas); finalizeShape(p.x,p.y); } }
+function canvasMouseUp(e) {
+  if(!isDrawing) return; isDrawing=false;
+  const p = getPos(e, annotateCanvas);
+  if(currentTool === 'text') { placeTextOnCanvas(p.x, p.y); return; }
+  finalizeShape(p.x, p.y);
+}
+function canvasTouchEnd(e) {
+  if(!isDrawing) return; isDrawing=false;
+  if(e.changedTouches.length){
+    const p = getPos({clientX:e.changedTouches[0].clientX,clientY:e.changedTouches[0].clientY}, annotateCanvas);
+    if(currentTool === 'text') { placeTextOnCanvas(p.x, p.y); return; }
+    finalizeShape(p.x,p.y);
+  }
+}
+function placeTextOnCanvas(x, y) {
+  const txt = prompt('Enter annotation text:');
+  if(!txt) return;
+  const thickness = parseInt(document.getElementById('annoThickness').value);
+  const fontSize = Math.max(14, thickness * 5);
+  annotateCtx.save();
+  annotateCtx.font = `bold ${fontSize}px sans-serif`;
+  annotateCtx.fillStyle = currentTextColor;
+  annotateCtx.strokeStyle = currentTextColor === '#ffffff' ? '#000' : currentTextColor === '#000000' ? '#fff' : '#333';
+  annotateCtx.lineWidth = 1;
+  annotateCtx.strokeText(txt, x, y);
+  annotateCtx.fillText(txt, x, y);
+  annotateCtx.restore();
+  annotationHistory.push(annotateCtx.getImageData(0,0,annotateCanvas.width,annotateCanvas.height));
+}
 
 function drawPreview(x, y) {
   const saved = annotationHistory[annotationHistory.length-1];
@@ -1687,10 +1721,23 @@ function drawArrow(ctx, x1, y1, x2, y2, lw) {
   ctx.fillStyle = ctx.strokeStyle;
   ctx.fill();
 }
+let currentTextColor = '#000000';
+function setTextColor(col) {
+  currentTextColor = col;
+  ['tc_black','tc_white','tc_yellow'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.outline = 'none';
+  });
+  const map = {'#000000':'tc_black','#ffffff':'tc_white','#f1c40f':'tc_yellow'};
+  if(map[col]) document.getElementById(map[col]).style.outline = '2px solid var(--tan)';
+}
 function setTool(t) {
   currentTool = t;
-  ['toolCircle','toolArrow','toolPen'].forEach(id => document.getElementById(id)?.classList.remove('active'));
-  const map = {circle:'toolCircle', arrow:'toolArrow', pen:'toolPen'};
+  document.getElementById('toolCircle')?.classList.remove('active');
+  document.getElementById('toolArrow')?.classList.remove('active');
+  document.getElementById('toolPen')?.classList.remove('active');
+  document.getElementById('toolText')?.classList.remove('active');
+  const map = {circle:'toolCircle', arrow:'toolArrow', pen:'toolPen', text:'toolText'};
   document.getElementById(map[t])?.classList.add('active');
 }
 function undoAnnotation() {
@@ -2278,93 +2325,123 @@ async function generatePDF() {
               y = 35;
             }
 
-            // Defect box
-            doc.setDrawColor(220,212,204); doc.setLineWidth(0.3);
-            doc.setFillColor(250,249,247);
-            doc.roundedRect(margin-2, y-2, W-margin*2+4, boxH, 2, 2, 'FD');
+          // ── Two-column defect box ──
+          const PHOTO_COL_W = d.photo ? 58 : 0;
+          const LABEL_W = 22; // fixed label column width for alignment
+          const detailX = margin + (d.photo ? PHOTO_COL_W + 6 : 2);
+          const detailW = W - margin*2 - (d.photo ? PHOTO_COL_W + 6 : 2) - 4;
 
-            // Severity circle with number
-            const sCol = SEVERITY_COLORS[d.severity||0] || '#888888';
-            const rgb = hexToRgb(sCol);
-            if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b); else doc.setFillColor(140,140,140);
-            doc.circle(margin+4, y+5, 4, 'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-            doc.text(globalItemNum.toString(), margin+4, y+7.5, {align:'center'});
+          // Pre-calculate right-column height
+          const fieldLines = (d.category?1:0)+(d.groupName?1:0)+(d.locationName?1:0);
+          const dnameStr = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
+          const dnameW = detailW - LABEL_W - 2;
+          const dnameLineCount = doc.splitTextToSize(dnameStr, dnameW).length;
+          const commentLineCount = d.comment ? doc.splitTextToSize(d.comment, detailW).length : 0;
+          const rightH = 6 + fieldLines*5.5 + dnameLineCount*5 + (d.severity?5.5:0) + (d.rating?5.5:0) + (d.comment ? commentLineCount*4.5+4 : 0) + 6;
 
-            // Labelled fields
-            let dY = y+2;
-            const labelX = margin+11;
-            const labelColor = [140,126,113];
-            const valueColor = [60,60,60];
-            if(d.category) {
-              doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...labelColor);
-              doc.text('Category:', labelX, dY+4);
-              doc.setFont('helvetica','normal'); doc.setTextColor(...valueColor);
-              doc.text(d.category, labelX+22, dY+4);
-              dY += 5;
-            }
-            if(d.groupName) {
-              doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...labelColor);
-              doc.text('Group:', labelX, dY+4);
-              doc.setFont('helvetica','normal'); doc.setTextColor(...valueColor);
-              doc.text(d.groupName, labelX+16, dY+4);
-              dY += 5;
-            }
-            if(d.locationName) {
-              doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...labelColor);
-              doc.text('Location:', labelX, dY+4);
-              doc.setFont('helvetica','normal'); doc.setTextColor(...valueColor);
-              doc.text(d.locationName, labelX+22, dY+4);
-              dY += 6;
-            }
+          // Photo height
+          let imgObj = null, iw = 0, ih = 0;
+          if(d.photo) {
+            try {
+              imgObj = new Image(); imgObj.src = d.photo;
+              await new Promise(r => { imgObj.onload=r; imgObj.onerror=r; });
+              if(imgObj.complete && imgObj.naturalWidth > 0) {
+                const maxH = Math.max(rightH - 4, 40);
+                const ratio = Math.min(PHOTO_COL_W / imgObj.naturalWidth, maxH / imgObj.naturalHeight);
+                iw = imgObj.naturalWidth * ratio;
+                ih = imgObj.naturalHeight * ratio;
+              }
+            } catch(e){}
+          }
 
-            // Defect name
-            doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(46,46,46);
-            const dname = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
-            const dnameLines = doc.splitTextToSize(dname, W-margin*2-45);
-            dnameLines.forEach(ln => { doc.text(ln, margin+11, dY+4); dY+=5; });
+          const totalBoxH = Math.max(rightH, ih + 8) + 4;
 
-            // Severity badge
-            if(d.severity) {
-              if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b);
-              doc.roundedRect(W-margin-32, y+0.5, 32, 8, 2, 2, 'F');
-              doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(255,255,255);
-              doc.text(SEVERITY_LABELS[d.severity].toUpperCase(), W-margin-16, y+6.5, {align:'center'});
-            }
+          // Check page space
+          if(y + totalBoxH > H - 22) {
+            addPageFooter(doc, W, H, margin, state.cover.refno);
+            doc.addPage();
+            doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+            doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(8);
+            doc.setTextColor(181,169,154);
+            doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
+            doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(9);
+            doc.setTextColor(255,255,255);
+            doc.text(cat.toUpperCase() + ' / ' + grp.toUpperCase() + ' (continued)', margin+2, 26);
+            y = 35;
+          }
 
-            // Rating
-            if(d.rating) {
-              doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(100,100,100);
-              doc.text('Rating: [' + d.rating + '/5]', margin+11, dY+4);
-              dY += 6;
-            }
+          // Draw box
+          doc.setDrawColor(220,212,204); doc.setLineWidth(0.3);
+          doc.setFillColor(250,249,247);
+          doc.roundedRect(margin-2, y-2, W-margin*2+4, totalBoxH, 2, 2, 'FD');
 
-            // Comment
-            if(d.comment) {
-              doc.setFont('helvetica','italic'); doc.setFontSize(8.5); doc.setTextColor(80,80,80);
-              const lines = doc.splitTextToSize(d.comment, W-margin*2-14);
-              lines.forEach(line => { doc.text(line, margin+4, dY+5); dY += 5; });
-              dY += 2;
-            }
+          // Item number circle (top-left of box)
+          const sCol2 = SEVERITY_COLORS[d.severity||0]||'#888888';
+          const rgb2 = hexToRgb(sCol2);
+          if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
+          doc.circle(margin+4, y+5, 4, 'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+          doc.text(globalItemNum.toString(), margin+4, y+7.5, {align:'center'});
 
-            // Photo — constrained to fit inside box
-            if(d.photo) {
-              try {
-                const img = new Image(); img.src = d.photo;
-                await new Promise(r => { img.onload = r; img.onerror = r; });
-                if(img.complete && img.naturalWidth > 0) {
-                  const maxW = W - margin*2 - 12;
-                  const maxH = 48;
-                  const ratio = Math.min(maxW/img.naturalWidth, maxH/img.naturalHeight);
-                  const iw = img.naturalWidth * ratio;
-                  const ih = img.naturalHeight * ratio;
-                  doc.addImage(img, 'JPEG', margin+4, dY+4, iw, ih);
-                  dY += ih + 6;
-                }
-              } catch(e){}
-            }
+          // ── LEFT: Photo ──
+          if(imgObj && iw > 0) {
+            doc.addImage(imgObj, 'JPEG', margin+2, y+2, iw, ih);
+            // Divider line between photo and text
+            doc.setDrawColor(220,212,204); doc.setLineWidth(0.2);
+            doc.line(margin+PHOTO_COL_W+3, y, margin+PHOTO_COL_W+3, y+totalBoxH-2);
+          }
 
-            y += boxH + 6;
+          // ── RIGHT: Aligned field labels and values ──
+          let dY = y + 3;
+          const labelCol = detailX;
+          const valueCol = detailX + LABEL_W;
+
+          const drawField = (label, value, bold=false) => {
+            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,126,113);
+            doc.text(label, labelCol, dY);
+            doc.text(':', labelCol + doc.getTextWidth(label), dY);
+            doc.setFont('helvetica', bold?'bold':'normal'); doc.setFontSize(7); doc.setTextColor(60,60,60);
+            doc.text(String(value), valueCol, dY);
+            dY += 5.5;
+          };
+
+          if(d.category) drawField('Category', d.category);
+          if(d.groupName) drawField('Group', d.groupName);
+          if(d.locationName) drawField('Location', d.locationName);
+
+          // Defect name (larger, spans full detail width)
+          dY += 1;
+          doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(46,46,46);
+          const dnLines = doc.splitTextToSize(dnameStr, detailW);
+          dnLines.forEach(ln => { doc.text(ln, labelCol, dY); dY+=5; });
+          dY += 1;
+
+          // Severity badge inline
+          if(d.severity) {
+            if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
+            const sevLabel = SEVERITY_LABELS[d.severity].toUpperCase();
+            const sevW = doc.getTextWidth('Severity  ' + sevLabel) + 4;
+            doc.roundedRect(labelCol, dY-3, sevW, 6, 1,1,'F');
+            doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(255,255,255);
+            doc.text('Severity ' + d.severity + '  ' + sevLabel, labelCol+2, dY+1.5);
+            dY += 6;
+          }
+
+          if(d.rating) drawField('Rating', '[' + d.rating + ' / 5]');
+
+          // Comment
+          if(d.comment) {
+            dY += 1;
+            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,126,113);
+            doc.text('Remarks :', labelCol, dY); dY += 5;
+            doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+            const cLines = doc.splitTextToSize(d.comment, detailW);
+            cLines.forEach(ln => { doc.text(ln, labelCol, dY); dY+=4.5; });
+          }
+
+          y += totalBoxH + 6;
           }
           addPageFooter(doc, W, H, margin, state.cover.refno);
         }
