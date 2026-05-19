@@ -2340,8 +2340,6 @@ async function generatePDF() {
           const rightH = 6 + fieldLines*5.5 + dnameLineCount*5 + (d.severity?5.5:0) + (d.rating?5.5:0) + (d.comment ? commentLineCount*4.5+4 : 0) + 6;
 
 // Fixed photo dimensions — uniform across all defects
-          const FIXED_PHOTO_H = 52;
-          const FIXED_PHOTO_W = 56;
 
           let imgObj = null, iw = 0, ih = 0;
           if(d.photo) {
