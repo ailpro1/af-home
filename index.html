@@ -2326,7 +2326,7 @@ async function generatePDF() {
             }
 
           // ── Two-column defect box ──
-          const PHOTO_COL_W = d.photo ? 58 : 0;
+          const PHOTO_COL_W = d.photo ? FIXED_PHOTO_W + 4 : 0;
           const LABEL_W = 22; // fixed label column width for alignment
           const detailX = margin + (d.photo ? PHOTO_COL_W + 6 : 2);
           const detailW = W - margin*2 - (d.photo ? PHOTO_COL_W + 6 : 2) - 4;
@@ -2339,22 +2339,26 @@ async function generatePDF() {
           const commentLineCount = d.comment ? doc.splitTextToSize(d.comment, detailW).length : 0;
           const rightH = 6 + fieldLines*5.5 + dnameLineCount*5 + (d.severity?5.5:0) + (d.rating?5.5:0) + (d.comment ? commentLineCount*4.5+4 : 0) + 6;
 
-          // Photo height
+// Fixed photo dimensions — uniform across all defects
+          const FIXED_PHOTO_H = 52;
+          const FIXED_PHOTO_W = 56;
+
           let imgObj = null, iw = 0, ih = 0;
           if(d.photo) {
             try {
               imgObj = new Image(); imgObj.src = d.photo;
               await new Promise(r => { imgObj.onload=r; imgObj.onerror=r; });
               if(imgObj.complete && imgObj.naturalWidth > 0) {
-                const maxH = Math.max(rightH - 4, 40);
-                const ratio = Math.min(PHOTO_COL_W / imgObj.naturalWidth, maxH / imgObj.naturalHeight);
+                // Scale to fit fixed box while preserving aspect ratio
+                const ratio = Math.min(FIXED_PHOTO_W / imgObj.naturalWidth, FIXED_PHOTO_H / imgObj.naturalHeight);
                 iw = imgObj.naturalWidth * ratio;
                 ih = imgObj.naturalHeight * ratio;
               }
             } catch(e){}
           }
 
-          const totalBoxH = Math.max(rightH, ih + 8) + 4;
+          // Uniform box height — all defect boxes same height regardless of photo
+          const totalBoxH = Math.max(rightH, FIXED_PHOTO_H + 8) + 4;
 
           // Check page space
           if(y + totalBoxH > H - 22) {
@@ -2379,22 +2383,21 @@ async function generatePDF() {
 
           // ── LEFT: Photo ──
           if(imgObj && iw > 0) {
-            doc.addImage(imgObj, 'JPEG', margin+2, y+2, iw, ih);
+            // Centre photo vertically within the fixed photo column
+          const photoOffsetY = Math.max(0, (FIXED_PHOTO_H - ih) / 2);
+          doc.setFillColor(240,238,235);
+          doc.rect(margin+2, y+2, FIXED_PHOTO_W, FIXED_PHOTO_H, 'F');
+          doc.addImage(imgObj, 'JPEG', margin+2 + (FIXED_PHOTO_W-iw)/2, y+2+photoOffsetY, iw, ih);
 
             // Divider line between photo and text
             doc.setDrawColor(220,212,204); doc.setLineWidth(0.2);
             doc.line(margin+PHOTO_COL_W+3, y, margin+PHOTO_COL_W+3, y+totalBoxH-2);
           }
 
-          // Item number circle — drawn after photo so it sits on top
-          const sCol2 = SEVERITY_COLORS[d.severity||0]||'#888888';
-          const rgb2 = hexToRgb(sCol2);
-          if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
-          doc.circle(margin+6, y+6, 5, 'F');
-          doc.setDrawColor(255,255,255); doc.setLineWidth(0.6);
-          doc.circle(margin+6, y+6, 5, 'S');
-          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-          doc.text(globalItemNum.toString(), margin+6, y+8.5, {align:'center'});
+          // Clean item number — plain text above the box
+          doc.setFont('helvetica','bold'); doc.setFontSize(8);
+          doc.setTextColor(140,126,113);
+          doc.text(globalItemNum + '.', margin, y - 3);
 
 
           // ── RIGHT: Aligned field labels and values ──
