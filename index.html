@@ -2346,8 +2346,14 @@ async function generatePDF() {
               imgObj = new Image(); imgObj.src = d.photo;
               await new Promise(r => { imgObj.onload=r; imgObj.onerror=r; });
               if(imgObj.complete && imgObj.naturalWidth > 0) {
-                const maxH = Math.max(rightH - 4, 40);
-                const ratio = Math.min(PHOTO_COL_W / imgObj.naturalWidth, maxH / imgObj.naturalHeight);
+                const fixedPhotoW = 52;
+                const fixedPhotoH = 52;
+
+                const ratio = Math.min(
+                  fixedPhotoW / imgObj.naturalWidth,
+                  fixedPhotoH / imgObj.naturalHeight
+                );
+
                 iw = imgObj.naturalWidth * ratio;
                 ih = imgObj.naturalHeight * ratio;
               }
@@ -2379,23 +2385,21 @@ async function generatePDF() {
 
           // ── LEFT: Photo ──
           if(imgObj && iw > 0) {
-            doc.addImage(imgObj, 'JPEG', margin+2, y+2, iw, ih);
+            const imgX = margin + 2 + ((52 - iw) / 2);
+            const imgY = y + 2 + ((52 - ih) / 2);
+
+            doc.addImage(imgObj, 'JPEG', imgX, imgY, iw, ih);
 
             // Divider line between photo and text
             doc.setDrawColor(220,212,204); doc.setLineWidth(0.2);
             doc.line(margin+PHOTO_COL_W+3, y, margin+PHOTO_COL_W+3, y+totalBoxH-2);
           }
 
-          // Item number circle — drawn after photo so it sits on top
-          const sCol2 = SEVERITY_COLORS[d.severity||0]||'#888888';
-          const rgb2 = hexToRgb(sCol2);
-          if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
-          doc.circle(margin+6, y+6, 5, 'F');
-          doc.setDrawColor(255,255,255); doc.setLineWidth(0.6);
-          doc.circle(margin+6, y+6, 5, 'S');
-          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-          doc.text(globalItemNum.toString(), margin+6, y+8.5, {align:'center'});
-
+          // Clean item numbering
+          doc.setFont('helvetica','bold');
+          doc.setFontSize(10);
+          doc.setTextColor(60,60,60);
+          doc.text(globalItemNum + '.', margin+2, y+7);
 
           // ── RIGHT: Aligned field labels and values ──
           let dY = y + 3;
