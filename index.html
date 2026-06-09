@@ -165,6 +165,7 @@
             </button>
             <div id="coverPhotoPreviewBox" style="margin-top: 16px; display: none;">
               <img id="coverPhotoPreviewImg" src="" alt="Cover Photo Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); padding: 4px; background: #222;">
+              <div style="margin-top: 8px;">
               <button class="btn btn-danger" style="margin-top: 8px; padding: 6px 14px; font-size: 12px; display: inline-flex;" onclick="clearCoverPhotoItem()">
                 <i class="fa-solid fa-trash-can"></i> Remove Cover Photo
               </button>
@@ -508,6 +509,78 @@
       state.cover[key] = val;
       syncSaveStateToLocalStorageStore();
     }
+
+    let activeCropperInstance = null;
+
+    function openCoverPhotoCropper(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const cropperImg = document.getElementById('cropperSourceImage');
+        cropperImg.src = e.target.result;
+        
+        document.getElementById('cropperModal').classList.add('open');
+        
+        if (activeCropperInstance) {
+          activeCropperInstance.destroy();
+        }
+        
+        // Lock aspect geometry to matching 180:68 ratios perfectly
+        activeCropperInstance = new Cropper(cropperImg, {
+          aspectRatio: 180 / 68,
+          viewMode: 1,
+          background: false,
+          responsive: true,
+          autoCropArea: 1,
+          movable: true,
+          zoomable: true,
+          rotatable: false,
+          scalable: false
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function closeCropperModal() {
+      document.getElementById('cropperModal').classList.remove('open');
+      document.getElementById('coverPhotoField').value = '';
+      if (activeCropperInstance) {
+        activeCropperInstance.destroy();
+        activeCropperInstance = null;
+      }
+    }
+
+    function executeCroppingComputation() {
+      if (!activeCropperInstance) return;
+
+      // Extract high resolution canvas output mapping standard layout requirements
+      const croppedCanvas = activeCropperInstance.getCroppedCanvas({
+        width: 1440,
+        height: 544,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+
+      state.cover.coverPhoto = croppedCanvas.toDataURL('image/jpeg', 0.85);
+      
+      document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
+      document.getElementById('coverPhotoPreviewBox').style.display = 'block';
+      
+      syncSaveStateToLocalStorageStore();
+      closeCropperModal();
+      triggerToastAlertMessage("Cover photo framed and customized successfully.");
+    }
+
+    function clearCoverPhotoItem() {
+      state.cover.coverPhoto = null;
+      document.getElementById('coverPhotoField').value = '';
+      document.getElementById('coverPhotoPreviewImg').src = '';
+      document.getElementById('coverPhotoPreviewBox').style.display = 'none';
+      syncSaveStateToLocalStorageStore();
+      triggerToastAlertMessage("Cover photo removed.");
+    }
     
     function processCoverPhotoUpload(event) {
       const file = event.target.files[0];
@@ -629,78 +702,6 @@
       } else {
         customContainer.style.display = 'none';
       }
-    }
-
-    let activeCropperInstance = null;
-
-    function openCoverPhotoCropper(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const cropperImg = document.getElementById('cropperSourceImage');
-        cropperImg.src = e.target.result;
-        
-        document.getElementById('cropperModal').classList.add('open');
-        
-        if (activeCropperInstance) {
-          activeCropperInstance.destroy();
-        }
-        
-        // Locking configuration parameters to match the precise aspect footprint geometry rules (180:68)
-        activeCropperInstance = new Cropper(cropperImg, {
-          aspectRatio: 180 / 68,
-          viewMode: 1,
-          background: false,
-          responsive: true,
-          autoCropArea: 1,
-          movable: true,
-          zoomable: true,
-          rotatable: false,
-          scalable: false
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function closeCropperModal() {
-      document.getElementById('cropperModal').classList.remove('open');
-      document.getElementById('coverPhotoField').value = '';
-      if (activeCropperInstance) {
-        activeCropperInstance.destroy();
-        activeCropperInstance = null;
-      }
-    }
-
-    function executeCroppingComputation() {
-      if (!activeCropperInstance) return;
-
-      // Output resolution dimension boundary maps (High fidelity 1440px maintains perfect layout density metrics)
-      const croppedCanvas = activeCropperInstance.getCroppedCanvas({
-        width: 1440,
-        height: 544,
-        imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high'
-      });
-
-      state.cover.coverPhoto = croppedCanvas.toDataURL('image/jpeg', 0.85);
-      
-      document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
-      document.getElementById('coverPhotoPreviewBox').style.display = 'block';
-      
-      syncSaveStateToLocalStorageStore();
-      closeCropperModal();
-      triggerToastAlertMessage("Cover photo framed and customized successfully.");
-    }
-
-    function clearCoverPhotoItem() {
-      state.cover.coverPhoto = null;
-      document.getElementById('coverPhotoField').value = '';
-      document.getElementById('coverPhotoPreviewImg').src = '';
-      document.getElementById('coverPhotoPreviewBox').style.display = 'none';
-      syncSaveStateToLocalStorageStore();
-      triggerToastAlertMessage("Cover photo removed.");
     }
 
     // Process Photographic File Array Selection Buffering Pipeline
@@ -1214,6 +1215,7 @@
             console.error("Cover photo injection pipeline breakdown tracer context exception:", coverPhotoError);
           }
         }
+        
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(120, 120, 120);
@@ -1224,6 +1226,7 @@
         doc.line(margin, sy + 3, W - margin, sy + 3);
 
         sy += 14;
+        
         const metaFieldsBlock = [
           { label: 'Reference No:', val: state.cover.refno || '__________' },
           { label: 'Inspection Date:', val: state.cover.date || '__________' },
