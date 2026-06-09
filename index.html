@@ -11,2433 +11,964 @@
 <link rel="apple-touch-icon" href="/AFH/icon-180.png">
 <link rel="icon" type="image/png" href="/AFH/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
 <style>
-:root {
-  --tan: #b5a99a;
-  --tan-light: #d4cbbf;
-  --tan-dark: #8c7e71;
-  --grey: #636363;
-  --grey-light: #9a9a9a;
-  --grey-dark: #2e2e2e;
-  --bg: #f9f7f4;
-  --bg-card: #ffffff;
-  --border: #e0d8d0;
-  --shadow: rgba(90,70,50,0.10);
-  --red: #c0392b;
-  --orange: #e67e22;
-  --yellow: #f1c40f;
-  --green-light: #27ae60;
-  --green: #1a7a45;
-  --accent: #7b6c5e;
-}
+  :root {
+    --bg-main: #121212;
+    --bg-card: #1e1e1e;
+    --border-color: #2d2d2d;
+    --text-main: #f5f5f5;
+    --text-muted: #aaaaaa;
+    --accent: #d4af37;
+    --accent-hover: #f3cf55;
+    --danger: #cf6679;
+    --success: #03dac6;
+  }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
+  body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--bg);
-  color: var(--grey-dark);
-  min-height: 100vh;
-  font-size: 15px;
-}
+  /* Sidebar styling */
+  .sidebar { width: 260px; background-color: #0a0a0a; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; shrink: 0; }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px 24px; border-bottom: 1px solid var(--border-color); }
+  .brand img { width: 36px; height: 36px; border-radius: 6px; }
+  .brand span { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  .nav-tabs { display: flex; flex-direction: column; gap: 6px; padding: 20px 12px; flex-grow: 1; }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; font-size: 14px; font-weight: 500; }
+  .nav-item:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
+  .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: 3px solid var(--accent); padding-left: 13px; }
 
-/* ===== NAV ===== */
-.app-header {
-  background: var(--grey-dark);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 18px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  position: sticky;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
-  position: sticky;
-  position: relative;
-}
-.app-header { position: sticky; top: 0; z-index: 100; }
-.app-header .logo-wrap { display: flex; align-items: center; gap: 10px; }
-.app-header img { height: 36px; filter: brightness(0) invert(1); }
-.app-header h1 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; letter-spacing: 0.07em; font-weight: 500; color: var(--tan-light); }
+  /* Main frame styling */
+  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
+  .tab-pane { display: none; padding: 32px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-.tab-nav {
-  display: flex;
-  gap: 2px;
-  background: #1e1e1e;
-  padding: 8px 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.tab-nav::-webkit-scrollbar { display: none; }
-.tab-btn {
-  flex-shrink: 0;
-  background: none;
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.55);
-  padding: 7px 16px;
-  border-radius: 20px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.04em;
-}
-.tab-btn.active, .tab-btn:hover {
-  background: var(--tan);
-  color: white;
-  border-color: var(--tan);
-}
+  h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #fff; }
+  .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+  .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+  .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 18px; color: var(--accent); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* ===== PAGES ===== */
-.page { display: none; padding: 18px 16px 100px; }
-.page.active { display: block; }
+  /* Form Layouts */
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group.full-width { grid-column: span 2; }
+  label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+  input, select, textarea { background-color: #121212; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; transition: border-color 0.2s; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 80px; }
 
-/* ===== CARDS ===== */
-.card {
-  background: var(--bg-card);
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 8px var(--shadow);
-}
-.card-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  letter-spacing: 0.03em;
-}
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+  .btn-primary { background-color: var(--accent); color: #000; }
+  .btn-primary:hover { background-color: var(--accent-hover); }
+  .btn-secondary { background-color: #2d2d2d; color: #fff; }
+  .btn-secondary:hover { background-color: #3d3d3d; }
+  .btn-danger { background-color: rgba(207, 102, 121, 0.15); color: var(--danger); border: 1px solid rgba(207,102,121,0.2); }
+  .btn-danger:hover { background-color: rgba(207, 102, 121, 0.25); }
 
-/* ===== FORMS ===== */
-.form-row { margin-bottom: 12px; }
-.form-row label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--grey);
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-.form-row input, .form-row select, .form-row textarea {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.92rem;
-  color: var(--grey-dark);
-  background: #faf9f7;
-  transition: border-color 0.2s;
-  appearance: none;
-}
-.form-row input:focus, .form-row select:focus, .form-row textarea:focus {
-  outline: none;
-  border-color: var(--tan);
-  background: white;
-}
-.form-row textarea { resize: vertical; min-height: 70px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.form-grid .form-row { margin-bottom: 0; }
+  /* Defects List Grid */
+  .defects-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .defect-item { background-color: #161616; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .defect-info h4 { font-size: 15px; color: #fff; margin-bottom: 4px; }
+  .defect-info p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+  .defect-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .badge-low { background-color: rgba(3,218,198,0.15); color: var(--success); }
+  .badge-medium { background-color: rgba(212,175,55,0.15); color: var(--accent); }
+  .badge-high { background-color: rgba(207,102,121,0.15); color: var(--danger); }
+  .defect-photos-preview { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .defect-photos-preview img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
 
-/* ===== LOCATION CHIPS ===== */
-.location-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.loc-chip {
-  padding: 8px 6px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  text-align: center;
-  font-size: 0.78rem;
-  cursor: pointer;
-  background: #faf9f7;
-  color: var(--grey);
-  transition: all 0.18s;
-  font-weight: 500;
-  line-height: 1.2;
-}
-.loc-chip.selected {
-  background: var(--tan);
-  color: white;
-  border-color: var(--tan);
-}
-.loc-chip .loc-icon { font-size: 1.1rem; display: block; margin-bottom: 3px; }
+  /* Photo Uploader Multi-Styler */
+  .photo-upload-container { display: flex; flex-direction: column; gap: 10px; }
+  .preview-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .preview-thumb { position: relative; width: 80px; height: 80px; }
+  .preview-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
+  .preview-thumb .remove-img-btn { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-/* ===== DEFECT CARDS ===== */
-.defect-item {
-  background: var(--bg-card);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  padding: 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 6px var(--shadow);
-  position: relative;
-}
-.defect-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-}
-.defect-location-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--tan-dark);
-  background: var(--tan-light);
-  padding: 3px 8px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-.defect-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--grey-dark);
-  flex: 1;
-}
-.defect-actions { display: flex; gap: 6px; }
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 4px;
-  border-radius: 6px;
-  transition: background 0.15s;
-}
-.icon-btn:hover { background: var(--bg); }
-.defect-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
-.severity-dot {
-  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-}
-.defect-comment {
-  font-size: 0.84rem;
-  color: var(--grey);
-  margin-top: 6px;
-  line-height: 1.5;
-  font-style: italic;
-}
-.defect-thumb {
-  width: 60px; height: 60px; border-radius: 8px; object-fit: cover;
-  border: 1px solid var(--border); cursor: pointer; margin-top: 8px;
-}
+  /* Loader Modal Overlay */
+  .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 10000; }
+  .loader-overlay.open { display: flex; }
+  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ===== RATING STARS ===== */
-.rating-wrap { display: flex; gap: 4px; margin: 8px 0; }
-.star-btn {
-  background: none; border: none; font-size: 1.5rem; cursor: pointer;
-  color: var(--border); transition: color 0.15s; padding: 0;
-}
-.star-btn.active { color: #f0a500; }
-
-/* ===== SEVERITY SELECTOR ===== */
-.severity-row {
-  display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0;
-}
-.sev-btn {
-  flex: 1; min-width: 0;
-  padding: 8px 4px;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: #faf9f7;
-  cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-align: center;
-  transition: all 0.18s;
-  color: var(--grey);
-  line-height: 1.3;
-}
-.sev-btn.s1.sel { background: #27ae60; color: white; border-color: #27ae60; }
-.cat-btn.sel { background: var(--grey-dark); color: white; border-color: var(--grey-dark); }
-#catExterior.sel { background: #3a6b4a; color: white; border-color: #3a6b4a; }
-.sev-btn.s2.sel { background: #8bc34a; color: white; border-color: #8bc34a; }
-.sev-btn.s3.sel { background: #f1c40f; color: #333; border-color: #f1c40f; }
-.sev-btn.s4.sel { background: #e67e22; color: white; border-color: #e67e22; }
-.sev-btn.s5.sel { background: #c0392b; color: white; border-color: #c0392b; }
-
-/* ===== FAB ===== */
-.fab {
-  position: fixed;
-  bottom: 24px; right: 20px;
-  width: 58px; height: 58px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--tan-dark), var(--grey-dark));
-  color: white;
-  font-size: 1.8rem;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.28);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 200;
-  transition: transform 0.18s, box-shadow 0.18s;
-}
-.fab:active { transform: scale(0.93); }
-
-/* ===== MODAL ===== */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.55);
-  z-index: 300;
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: white;
-  border-radius: 20px 20px 0 0;
-  padding: 20px 18px 36px;
-  width: 100%;
-  max-height: 92vh;
-  overflow-y: auto;
-  box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
-  animation: slideUp 0.3s ease;
-}
-@keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.modal-handle {
-  width: 40px; height: 4px; border-radius: 2px;
-  background: var(--border); margin: 0 auto 18px; display: block;
-}
-.modal-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--grey-dark);
-  margin-bottom: 16px;
-  letter-spacing: 0.02em;
-}
-
-/* ===== CANVAS ANNOTATE ===== */
-#annotateCanvas {
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  width: 100%; display: block;
-  touch-action: none;
-}
-.annotate-tools {
-  display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0;
-  align-items: center;
-}
-.tool-btn {
-  padding: 7px 12px; border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: #faf9f7;
-  cursor: pointer;
-  font-size: 0.82rem; font-weight: 600;
-  transition: all 0.15s;
-}
-.tool-btn.active, .tool-btn:hover {
-  background: var(--tan); color: white; border-color: var(--tan);
-}
-input[type="color"].color-pick {
-  width: 36px; height: 36px; border: 2px solid var(--border);
-  border-radius: 8px; padding: 2px; cursor: pointer; background: none;
-}
-input[type="range"].thickness {
-  width: 80px; cursor: pointer; accent-color: var(--tan);
-}
-
-/* ===== BUTTONS ===== */
-.btn {
-  padding: 12px 22px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  transition: all 0.18s;
-}
-.btn-primary {
-  background: var(--grey-dark);
-  color: white;
-  width: 100%;
-  margin-top: 8px;
-}
-.btn-primary:hover { background: var(--accent); }
-.btn-secondary {
-  background: var(--bg);
-  color: var(--grey-dark);
-  border: 1.5px solid var(--border);
-}
-.btn-danger { background: #c0392b; color: white; }
-.btn-tan { background: var(--tan); color: white; }
-
-/* ===== SUMMARY ===== */
-.summary-header {
-  text-align: center;
-  padding: 24px 0 16px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 18px;
-}
-.summary-header img { height: 70px; margin-bottom: 12px; }
-.summary-header h2 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--grey-dark);
-  letter-spacing: 0.04em;
-}
-.summary-header p {
-  font-size: 0.82rem;
-  color: var(--grey);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.stat-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 10px;
-  text-align: center;
-}
-.stat-box .stat-num {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-.stat-box .stat-label {
-  font-size: 0.72rem;
-  color: var(--grey);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 4px;
-}
-
-/* ===== SECTION GROUP ===== */
-.section-group {
-  background: white;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  overflow: hidden;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 8px var(--shadow);
-}
-.section-group-header {
-  background: var(--grey-dark);
-  color: white;
-  padding: 11px 16px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* ===== TOAST ===== */
-.toast {
-  position: fixed;
-  bottom: 90px;
-  left: 50%; transform: translateX(-50%);
-  background: var(--grey-dark);
-  color: white;
-  padding: 10px 22px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  z-index: 999;
-  opacity: 0;
-  transition: opacity 0.3s;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; }
-
-/* ===== EMPTY STATE ===== */
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--grey-light);
-}
-.empty-state .empty-icon { font-size: 3rem; display: block; margin-bottom: 10px; }
-.empty-state p { font-size: 0.9rem; line-height: 1.6; }
-
-/* ===== PHOTO GRID ===== */
-.photo-preview-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-
-/* ===== LIGHTBOX ===== */
-.lightbox {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.92);
-  z-index: 400;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-.lightbox.open { display: flex; }
-.lightbox img { max-width: 95vw; max-height: 88vh; border-radius: 10px; }
-.lightbox-close {
-  position: absolute; top: 18px; right: 18px;
-  background: rgba(255,255,255,0.15); color: white;
-  border: none; border-radius: 50%; width: 36px; height: 36px;
-  font-size: 1.2rem; cursor: pointer;
-}
-
-/* ===== COVER PAGE PREVIEW ===== */
-.cover-preview {
-  border: 2px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  background: white;
-  margin: 0 0 16px;
-}
-.cover-preview-inner {
-  padding: 30px 24px;
-  text-align: center;
-  background: linear-gradient(160deg, #ffffff 0%, #f5f1ed 100%);
-  color: var(--grey-dark);
-}
-.cover-preview-inner .cover-logo { height: 56px; filter: brightness(0) invert(1); margin-bottom: 20px; }
-.cover-preview-inner .cover-company {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.6rem;
-  letter-spacing: 0.1em;
-  color: var(--tan-dark);
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.cover-preview-inner .cover-divider {
-  border: none; border-top: 1px solid rgba(140,126,113,0.35);
-  margin: 14px auto; width: 60%;
-}
-.cover-preview-inner .cover-report-title {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--grey-dark);
-  letter-spacing: 0.04em;
-  margin-bottom: 16px;
-}
-.cover-info-row {
-  display: flex; justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  text-align: left;
-}
-.cover-info-row .ci-label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--tan-dark);
-  font-weight: 600;
-  flex: 0 0 42%;
-}
-.cover-info-row .ci-val {
-  font-size: 0.85rem;
-  color: var(--grey-dark);
-  flex: 1;
-  text-align: right;
-}
-
-/* ===== COMPLIANCE BADGE ===== */
-.compliance-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(181,169,154,0.15);
-  border: 1px solid rgba(181,169,154,0.3);
-  color: var(--tan-light);
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-top: 14px;
-}
-
-/* ===== PHOTO BTN ===== */
-.photo-upload-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1.5px dashed var(--tan);
-  border-radius: 10px;
-  background: rgba(181,169,154,0.06);
-  color: var(--tan-dark);
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: all 0.15s;
-  width: 100%;
-  justify-content: center;
-}
-.photo-upload-btn:hover { background: rgba(181,169,154,0.14); }
-#photoFileInput { display: none; }
-
-/* ===== ANNOTATE MODAL ===== */
-#annotateModal { display: none; }
-#annotateModal.open { display: flex; }
-
-/* ===== PDF LOADER ===== */
-.pdf-loader {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 500;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  gap: 14px;
-}
-.pdf-loader.open { display: flex; }
-.pdf-loader .spinner {
-  width: 44px; height: 44px;
-  border: 4px solid rgba(255,255,255,0.2);
-  border-top-color: var(--tan-light);
-  border-radius: 50%;
-  animation: spin 0.85s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.pdf-loader p { font-size: 0.9rem; font-family: 'DM Sans', sans-serif; }
-
-/* ===== SECTION DIVIDER ===== */
-.section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--grey-light);
-  margin: 16px 0 8px;
-}
-
-/* RESPONSIVE */
-@media (max-width: 380px) {
-  .location-grid { grid-template-columns: repeat(2, 1fr); }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
+  /* Toast notification */
+  .toast { position: fixed; bottom: 24px; right: 24px; background-color: #fff; color: #000; padding: 14px 24px; border-radius: 8px; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 99999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="app-header">
-  <div class="logo-wrap">
-    <img id="headerLogo" src="" alt="AF Home Inspection Logo">
-    <h1 style="position:absolute;left:50%;transform:translateX(-50%);">AF HOME INSPECTION</h1>
-  </div>
-  <button class="btn btn-secondary" style="padding:6px 14px;font-size:0.78rem;" onclick="saveProject()">💾 Save</button>
-</header>
-
-<!-- TAB NAV -->
-<nav class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('cover')">📋 Cover</button>
-  <button class="tab-btn" onclick="switchTab('inspect')">🔍 Inspection</button>
-  <button class="tab-btn" onclick="switchTab('defects')">⚠️ Defects</button>
-  <button class="tab-btn" onclick="switchTab('standards')">📖 Standards</button>
-  <button class="tab-btn" onclick="switchTab('summary')">📊 Summary</button>
-</nav>
-
-<!-- ======================== PAGE: COVER ======================== -->
-<div class="page active" id="page-cover">
-
-  <!-- Live preview -->
-  <div class="cover-preview">
-    <div class="cover-preview-inner">
-      <img id="coverLogoImg" class="cover-logo" src="" alt="Logo">
-      <div class="cover-company">AF Home Inspection</div>
-      <hr class="cover-divider">
-      <div class="cover-report-title" id="prevTitle">INSPECTION REPORT</div>
-      <div id="coverInfoRows"></div>
+  <div class="sidebar">
+    <div class="brand">
+      <img src="/AFH/icon-180.png" alt="Logo">
+      <span>AF Inspect</span>
+    </div>
+    <div class="nav-tabs">
+      <div class="nav-item active" onclick="switchTab('cover')"><i class="fa-solid fa-file-invoice"></i>Cover Page</div>
+      <div class="nav-item" onclick="switchTab('defects')"><i class="fa-solid fa-triangle-exclamation"></i>Defect Entries</div>
+      <div class="nav-item" onclick="switchTab('summary')"><i class="fa-solid fa-square-poll-horizontal"></i>Summary & Export</div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-title">Project Information</div>
-    <div class="form-row">
-      <label>Project / Report Title</label>
-      <input type="text" id="f_title" placeholder="e.g. Residential Property Inspection" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Property Address</label>
-      <input type="text" id="f_address" placeholder="Full address" oninput="updateCover()">
-    </div>
-    <div class="form-grid">
-      <div class="form-row">
-        <label>Property Type</label>
-        <select id="f_proptype" onchange="updateCover()">
-          <option value="">Select type</option>
-          <option>Single-Storey Terrace</option>
-          <option>Double-Storey Terrace</option>
-          <option>Semi-Detached</option>
-          <option>Detached Bungalow</option>
-          <option>Townhouse</option>
-          <option>Apartment / Condominium</option>
-          <option>Low-Cost Flat</option>
-          <option>Service Apartment</option>
-          <option>Shophouse</option>
-          <option>Villa / Resort Home</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>Building Age (Years)</label>
-        <input type="number" id="f_age" placeholder="e.g. 5" oninput="updateCover()">
-      </div>
-    </div>
-    <div class="form-row">
-      <label>Owner / Client Name</label>
-      <input type="text" id="f_owner" placeholder="Full name" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Owner Contact / Email</label>
-      <input type="text" id="f_contact" placeholder="Phone or email" oninput="updateCover()">
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Inspection Details</div>
-    <div class="form-grid">
-      <div class="form-row">
-        <label>Inspection Date</label>
-        <input type="date" id="f_date" oninput="updateCover()">
-      </div>
-      <div class="form-row">
-        <label>Time of Inspection</label>
-        <input type="time" id="f_time" oninput="updateCover()">
-      </div>
-    </div>
-    <div class="form-grid">
-      <div class="form-row">
-        <label>Weather Condition</label>
-        <select id="f_weather" onchange="updateCover()">
-          <option value="">Select</option>
-          <option>☀️ Clear / Sunny</option>
-          <option>⛅ Partly Cloudy</option>
-          <option>☁️ Overcast</option>
-          <option>🌦️ Light Rain</option>
-          <option>🌧️ Heavy Rain</option>
-          <option>🌫️ Hazy / Foggy</option>
-          <option>🌬️ Windy</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>Temperature (°C)</label>
-        <input type="number" id="f_temp" placeholder="e.g. 31" oninput="updateCover()">
-      </div>
-    </div>
-    <div class="form-row">
-      <label>Humidity / Conditions</label>
-      <input type="text" id="f_humidity" placeholder="e.g. High humidity, post-rain" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Inspection Stage</label>
-      <select id="f_stage" onchange="updateCover()">
-        <option value="">Select</option>
-        <option>Vacant Possession (VP) Inspection</option>
-        <option>Defect Liability Period (DLP) Inspection</option>
-        <option>Pre-Purchase Inspection</option>
-        <option>Post-Renovation Inspection</option>
-        <option>Warranty Claim Inspection</option>
-        <option>Annual Maintenance Inspection</option>
-        <option>Handover Inspection</option>
-      </select>
-    </div>
-    <div class="form-row">
-      <label>Report Reference No.</label>
-      <input type="text" id="f_refno" placeholder="e.g. AFH-2025-001" oninput="updateCover()">
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Inspector Details</div>
-    <div class="form-row">
-      <label>Inspector Name</label>
-      <input type="text" id="f_inspector" placeholder="Full name" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Inspector Registration / CIS No.</label>
-      <input type="text" id="f_cis" placeholder="e.g. CIDB/CIS/XXXX" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Company</label>
-      <input type="text" id="f_company" value="AF Home Inspection" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>Inspector Contact</label>
-      <input type="text" id="f_inspcontact" placeholder="Phone / email" oninput="updateCover()">
-    </div>
-    <div class="form-row">
-      <label>General Remarks / Scope of Inspection</label>
-      <textarea id="f_scope" placeholder="Describe the scope, access conditions, limitations, and any general notes..." oninput="updateCover()"></textarea>
-    </div>
-  </div>
-
-</div><!-- /page-cover -->
-
-<!-- ======================== PAGE: INSPECTION AREAS ======================== -->
-<div class="page" id="page-inspect">
-  <div class="card">
-    <div class="card-title">Select Inspection Areas</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:12px;">Tap to include/exclude areas from this inspection. Only selected areas will appear in the report.</p>
-    <div class="location-grid" id="locationGrid"></div>
-    <div class="form-row" style="margin-top:12px;">
-      <label>Custom Area (Optional)</label>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="customAreaInput" placeholder="e.g. Store Room, Prayer Room" style="flex:1;">
-        <button class="btn btn-tan" onclick="addCustomArea()" style="padding:9px 14px;flex-shrink:0;">+ Add</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Overall Inspection Rating</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Overall quality score for this property</p>
-    <div class="rating-wrap" id="overallStars"></div>
-    <p id="ratingLabel" style="font-size:0.82rem;color:var(--tan-dark);font-style:italic;margin-top:4px;"></p>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Inspection Checklist</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
-    <div id="checklistWrap"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Sanitary & Electrical Attachment</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Upload a scanned, annotated checklist page to include in the report.</p>
-    <label for="checklistFileInput" class="photo-upload-btn">📄 Upload Scanned Page</label>
-    <input type="file" id="checklistFileInput" accept="image/*,image/jpeg,image/png,application/pdf" onchange="handleChecklistUpload(event)">
-    <div class="photo-preview-wrap" id="checklistPreviewWrap"></div>
-  </div>
-</div>
-
-<!-- ======================== PAGE: DEFECTS ======================== -->
-<div class="page" id="page-defects">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-    <div class="section-label" style="margin:0;">All Defects</div>
-    <div style="font-size:0.8rem;color:var(--grey);" id="defectCountLabel">0 items</div>
-  </div>
-  <div id="defectsList"></div>
-  <div id="defectsEmpty" class="empty-state">
-    <span class="empty-icon">📋</span>
-    <p>No defects recorded yet.<br>Tap the <strong>+</strong> button to add your first finding.</p>
-  </div>
-</div>
-
-<!-- ======================== PAGE: SUMMARY ======================== -->
-<div class="page" id="page-summary">
-
-  <!-- ACTION BUTTONS AT TOP -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-    <button class="btn btn-primary" style="background:linear-gradient(135deg,#2e2e2e,#7b6c5e);font-size:0.85rem;padding:12px;grid-column:1/-1;" onclick="generatePDF()">
-      📄 Generate PDF Report
-    </button>
-    <button class="btn btn-secondary" style="font-size:0.82rem;" onclick="saveProject()">💾 Save</button>
-    <button class="btn" style="background:var(--bg);border:1.5px solid var(--border);color:var(--grey-dark);font-size:0.82rem;" onclick="loadProject()">📂 Load</button>
-  </div>
-  <input type="file" id="loadFileInput" accept=".json" style="display:none;" onchange="loadFromFile(event)">
-
-  <div class="summary-header">
-    <img id="summaryLogo" src="" alt="Logo">
-    <h2>Inspection Summary</h2>
-    <p>AF Home Inspection · Professional Inspection Report</p>
-  </div>
-
-  <div class="stats-grid" id="statsGrid">
-    <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total Defects</div></div>
-    <div class="stat-box"><div class="stat-num" id="statCritical">0</div><div class="stat-label">Critical</div></div>
-    <div class="stat-box"><div class="stat-num" id="statAreas">0</div><div class="stat-label">Areas Checked</div></div>
-  </div>
-
-  <div id="summaryGroupsWrap"></div>
-</div>
-
-<!-- ======================== PAGE: STANDARDS ======================== -->
-<div class="page" id="page-standards">
-  <div class="card">
-    <div class="card-title">Quick Reference — Inspection Standards</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:14px;">Extracted directly from <strong>CIS 7:2021</strong> (CIDB Malaysia) and the QLASSIC Quality Guidebook for Homeowners. Use as a quick field reference — assessment is <strong>70% visual</strong>.</p>
-
-    <!-- CIS7 6+1 method banner -->
-    <div style="background:linear-gradient(135deg,#2e2e2e,#3e3530);color:white;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-      <div style="font-size:0.8rem;font-weight:700;letter-spacing:0.06em;color:var(--tan-light);margin-bottom:8px;">CIS 7 ASSESSMENT METHOD 6+1</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;">
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Floor</div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Wall</div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Ceiling</div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Door</div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Window</div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:600;">Fixture</div>
-        <div style="background:rgba(181,169,154,0.25);border:1px solid rgba(181,169,154,0.4);border-radius:7px;padding:7px 4px;font-size:0.72rem;font-weight:700;color:var(--tan-light);grid-column:span 2;">+1 M&amp;E</div>
-      </div>
-      <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:8px;">Each room: assess all 6 finishes + M&E fittings. 5 defect groups per element: Finishing · Alignment · Cracks · Hollowness · Jointing</div>
-    </div>
-
-    <!-- Key tolerances quick card -->
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
-      <div style="font-size:0.78rem;font-weight:700;color:var(--tan-dark);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px;">Key Tolerances at a Glance</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Floor/Wall evenness</span><br>Max 3mm per 1.2m</div>
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Wall squareness</span><br>Max 4mm per 300mm</div>
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Tile lippage</span><br>Max 1mm (floor &amp; wall)</div>
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Door/window gap</span><br>Max 5mm</div>
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Staircase tread/riser</span><br>Max 5mm variance</div>
-        <div style="font-size:0.78rem;color:var(--grey-dark);"><span style="font-weight:700;color:var(--accent);">Drain cover gap</span><br>5–10mm</div>
-      </div>
-    </div>
-
-    <div id="standardsContent"></div>
-  </div>
-</div>
-
-<!-- ======================== FAB ======================== -->
-<button class="fab" id="mainFab" onclick="openAddDefectModal()">＋</button>
-
-<!-- ======================== MODAL: ADD DEFECT ======================== -->
-<div class="modal-overlay" id="defectModal">
-  <div class="modal">
-    <span class="modal-handle"></span>
-    <div class="modal-title" id="defectModalTitle">Add Defect Finding</div>
-
-    <div class="form-row">
-      <label>Category</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <button class="sev-btn cat-btn" id="catInterior" onclick="setCategory('Interior')" style="padding:10px;transition:all 0.2s;">🏠 Interior</button>
-        <button class="sev-btn cat-btn" id="catExterior" onclick="setCategory('Exterior')" style="padding:10px;transition:all 0.2s;">🌿 Exterior</button>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label>Group</label>
-      <select id="m_group" onchange="updateDefectTypes()">
-        <option value="">— Select Category First —</option>
-      </select>
-    </div>
-
-    <div class="form-row">
-      <label>Location / Area</label>
-      <select id="m_location">
-        <option value="">— Select Location —</option>
-      </select>
-    </div>
-
-    <div class="form-row">
-      <label>Defect Type</label>
-      <select id="m_defectType">
-        <option value="">— Select Group First —</option>
-      </select>
-    </div>
-
-    <div class="form-row" id="customDefectRow" style="display:none;">
-      <label>Custom Defect Description</label>
-      <input type="text" id="m_customDefect" placeholder="Describe the defect">
-    </div>
-
-    <div class="form-row">
-      <label>Severity Level</label>
-      <div class="severity-row" id="severityRow">
-        <button class="sev-btn s1" onclick="setSeverity(1)" data-s="1">1<br>Minor</button>
-        <button class="sev-btn s2" onclick="setSeverity(2)" data-s="2">2<br>Low</button>
-        <button class="sev-btn s3" onclick="setSeverity(3)" data-s="3">3<br>Moderate</button>
-        <button class="sev-btn s4" onclick="setSeverity(4)" data-s="4">4<br>Serious</button>
-        <button class="sev-btn s5" onclick="setSeverity(5)" data-s="5">5<br>Critical</button>
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label>Quality Rating</label>
-      <div class="rating-wrap" id="defectStars"></div>
-      <p id="defectRatingLbl" style="font-size:0.78rem;color:var(--grey);margin-top:2px;"></p>
-    </div>
-
-    <div class="form-row">
-      <label>Inspector's Comment / Recommendation</label>
-      <select id="m_commentPrefix" onchange="applyPrefix()">
-        <option value="">— Prefix Template —</option>
-        <optgroup label="Observation">
-          <option data-full="Observed signs of ">Observed signs of...</option>
-          <option data-full="Evidence of ">Evidence of...</option>
-          <option data-full="Presence of ">Presence of...</option>
-          <option data-full="Noted ">Noted...</option>
-        </optgroup>
-        <optgroup label="Condition Assessment">
-          <option data-full="Condition is assessed as ">Condition assessed as...</option>
-          <option data-full="This area shows signs of deterioration. ">Area shows deterioration</option>
-          <option data-full="This defect is attributed to ">Attributed to...</option>
-        </optgroup>
-        <optgroup label="Recommendation">
-          <option data-full="Recommended to rectify by appointed contractor within ">Rectify within timeframe...</option>
-          <option data-full="Inspector recommends immediate attention as this may affect structural integrity. ">Immediate attention required</option>
-          <option data-full="Recommend monitoring periodically and rectify if condition worsens. ">Monitor condition</option>
-          <option data-full="Recommend engaging a qualified professional to assess and carry out repairs. ">Engage qualified professional</option>
-          <option data-full="Hacking and re-doing is recommended to achieve proper workmanship. ">Hack and redo required</option>
-          <option data-full="Recommend proper waterproofing treatment to be applied. ">Waterproofing treatment required</option>
-          <option data-full="Touch-up and repainting to be carried out by developer upon rectification. ">Touch-up / repaint after rectification</option>
-        </optgroup>
-        <optgroup label="Compliance">
-          <option data-full="This defect is in non-compliance with acceptable industry standards. ">Non-compliance with industry standard</option>
-          <option data-full="Workmanship does not meet acceptable industry standard. ">Below acceptable standard</option>
-        </optgroup>
-      </select>
-      <textarea id="m_comment" placeholder="Inspector's observation and recommendation..." style="margin-top:6px;"></textarea>
-    </div>
-
-    <div class="form-row">
-      <label>Photo Evidence</label>
-      <label for="photoFileInput" class="photo-upload-btn">📷 Camera · Gallery · Files</label>
-      <input type="file" id="photoFileInput" accept="image/*,image/jpeg,image/png,image/tiff,image/heic" onchange="handlePhotoUpload(event)">
-      <div class="photo-preview-wrap" id="photoPreviewWrap"></div>
-    </div>
-
-    <div class="form-row">
-      <label>Annotate Photo (Circle / Arrow)</label>
-      <div id="annotateSection" style="display:none;">
-        <canvas id="annotateCanvas"></canvas>
-        <div class="annotate-tools">
-          <button class="tool-btn active" id="toolCircle" onclick="setTool('circle')">⭕ Circle</button>
-          <button class="tool-btn" id="toolArrow" onclick="setTool('arrow')">➡️ Arrow</button>
-          <button class="tool-btn" id="toolPen" onclick="setTool('pen')">✏️ Freehand</button>
-          <button class="tool-btn" id="toolText" onclick="setTool('text')">T&nbsp;Text</button>
-          <input type="color" class="color-pick" id="annoColor" value="#e74c3c" title="Colour">
-          <div style="display:flex;gap:4px;align-items:center;margin-left:2px;">
-            <span style="font-size:0.72rem;color:var(--grey);font-weight:600;">Text:</span>
-            <button onclick="setTextColor('#000000')" id="tc_black" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#000;cursor:pointer;" title="Black"></button>
-            <button onclick="setTextColor('#ffffff')" id="tc_white" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#fff;cursor:pointer;" title="White"></button>
-            <button onclick="setTextColor('#f1c40f')" id="tc_yellow" style="width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:#f1c40f;cursor:pointer;" title="Yellow"></button>
-          </div>
-          <input type="range" class="thickness" id="annoThickness" min="2" max="14" value="4" title="Line thickness">
-          <button class="tool-btn" onclick="undoAnnotation()" style="margin-left:auto;">↩️ Undo</button>
-          <button class="tool-btn btn-danger" onclick="clearAnnotations()">🗑️ Clear</button>
-        </div>
-        <button class="btn btn-tan" onclick="saveAnnotation()" style="width:100%;margin-top:4px;">✔ Apply Annotation</button>
-      </div>
-      <div id="annotatePrompt" style="font-size:0.82rem;color:var(--grey);margin-top:4px;display:none;">Upload a photo first to enable annotation tools.</div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
-      <button class="btn btn-secondary" onclick="closeDefectModal()">Cancel</button>
-      <button class="btn btn-primary" style="margin-top:0;" onclick="submitDefect()">Save Finding</button>
-    </div>
-  </div>
-</div>
-
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img id="lightboxImg" src="" alt="">
-</div>
-
-<!-- PDF LOADER -->
-<div class="pdf-loader" id="pdfLoader">
-  <div class="spinner"></div>
-  <p>Generating PDF report…</p>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- ======================== SCRIPT ======================== -->
-<script>
-const LOGO_B64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+977fOQDGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGPuHhclkUhKRKH1FviSMMcZ2K5lMyt08zoGEMcbYzgGiV01DPvnQ/ac/f/uyZx5fdu9VU6ZMqeJAwtgAVXW+BOyrjLIsEY/HARAVAMDyZYtPMQz9mmDQ/CYRAQghIJvNfZgvFGa9+vSL993W2povB5JYLObxFWQcQBj7KgaOpibEUhB4ZMn8H1aEKq4JBgL/5ikP8oWig6W/EF3TdcPQIZ/Pv5Ur2LPvuHfcA6+8Ai4CwKMcSBgHEMa+GogIW1tbRbzQf+jeu4+oqAj80gwEfiwRIVcouP7fBe74m1BEIECZuq5rug6ZbP6tQiE/K3ZOyyP+s333ydhXhcaXgH1VAsfKeFwiousA3rIFcw+sqau9EhHPNU1Dy+XyLhEBIioBAACA4H9HCEIAou04XtFxVcA0DguHgsuGaX1gYiGfvxERHwCAj4gEQBwQE4qvOOMAwth/gFp2MpkUiOgBgLtkwe17VVVXJ0TTPQ+KQAoAIYAIAAAAAA"; // (truncated for structure - will be set dynamically)
-
-// ======= DATA STORE =======
-let state = {
-  cover: {},
-  selectedLocations: [],
-  customLocations: [],
-  overallRating: 0,
-  checklist: {},
-  defects: [],
-  editingId: null
-};
-
-const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+977fOQDGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGPuHhclkUhKRKH1FviSMMcZ2K5lMyt08zoGEMcbYzgGiV01DPvnQ/ac/f/uyZx5fdu9VU6ZMqeJAwtgAVXW+BOyrjLIsEY/HARAVAMDyZYtPMQz9mmDQ/CYRAQghIJvNfZgvFGa9+vSL993W2povB5JYLObxFWQcQBj7KgaOpibEUhB4ZMn8H1aEKq4JBgL/5ikP8oWig6W/EF3TdcPQIZ/Pv5Ur2LPvuHfcA6+8Ai4CwKMcSBgHEMa+GogIW1tbRbzQf+jeu4+oqAj80gwEfiwRIVcouP7fBe74m1BEIECZuq5rug6ZbP6tQiE/K3ZOyyP+s333ydhXhcaXgH1VAsfKeFwiousA3rIFcw+sqau9EhHPNU1Dy+XyLhEBIioBAACA4H9HCEIAou04XtFxVcA0DguHgsuGaX1gYiGfvxERHwCAj4gEQBwQE4qvOOMAwth/gFp2MpkUiOgBgLtkwe17VVVXJ0TTPQ+KQAoAIYAIAAAAAA";
-
-// Will be replaced with actual b64
-const REAL_LOGO = "";
-
-// Default locations
-const DEFAULT_LOCATIONS = [
-  { id:"carPorch",      icon:"🚗", name:"Car Porch",          order:1  },
-  { id:"mainEntrance",  icon:"🚪", name:"Main Entrance",      order:2  },
-  { id:"livingRoom",    icon:"🛋", name:"Living Room",        order:3  },
-  { id:"diningRoom",    icon:"🍽", name:"Dining Room",        order:4  },
-  { id:"kitchen",       icon:"🍳", name:"Kitchen",            order:5  },
-  { id:"utility",       icon:"🧺", name:"Utility Area",       order:6  },
-  { id:"staircase",     icon:"🪜", name:"Staircase",          order:7  },
-  { id:"corridor",      icon:"🚶", name:"Corridor / Walkway", order:8  },
-  { id:"masterBedroom", icon:"🛏", name:"Master Bedroom",     order:9  },
-  { id:"masterBath",    icon:"🛁", name:"Master Bathroom",    order:10 },
-  { id:"bedroom1",      icon:"🛏", name:"Bedroom 1",          order:11 },
-  { id:"bathroom1",     icon:"🚿", name:"Bathroom 1",         order:12 },
-  { id:"bedroom2",      icon:"🛏", name:"Bedroom 2",          order:13 },
-  { id:"bathroom2",     icon:"🚿", name:"Bathroom 2",         order:14 },
-  { id:"bedroom3",      icon:"🛏", name:"Bedroom 3",          order:15 },
-  { id:"bathroom3",     icon:"🚿", name:"Bathroom 3",         order:16 },
-  { id:"bedroom4",      icon:"🛏", name:"Bedroom 4",          order:17 },
-  { id:"balcony",       icon:"🌿", name:"Balcony",            order:18 },
-  { id:"garden",        icon:"🌳", name:"Garden / Yard",      order:19 },
-  { id:"roof",          icon:"🏠", name:"Roof",               order:20 },
-  { id:"ceiling",       icon:"⬆", name:"Ceiling",            order:21 },
-  { id:"facade",        icon:"🏗", name:"External Facade",    order:22 },
-  { id:"drainage",      icon:"💧", name:"Drainage / Compound",order:23 },
-  { id:"electrical",    icon:"⚡", name:"Electrical DB",      order:24 },
-];
-
-// Category → Group → Defect Types mapping
-const INSPECTION_GROUPS = {
-  Interior: {
-    order: 1,
-    groups: [
-      { id:'floor',    name:'Floor',    icon:'🟫', order:1,
-        defects:['Hollow Tiles','Loose / Debonded Tiles','Hairline Cracks','Structural Cracks','Uneven / Lippage Tiling','Grouting Defects','Screeding Defects','Ponding / Poor Gradient','Missing / Damaged Tiles','Other (Custom)'] },
-      { id:'wall',     name:'Wall',     icon:'🧱', order:2,
-        defects:['Hairline Cracks','Structural Cracks','Water Seepage / Leakage','Water Stain / Dampness','Peeling / Flaking Paint','Blistering Paint','Poor Workmanship – Plastering','Poor Workmanship – Painting','Efflorescence / Salt Deposits','Sealant Failure','Missing / Damaged Tiles','Other (Custom)'] },
-      { id:'ceiling',  name:'Ceiling',  icon:'⬆', order:3,
-        defects:['Hairline Cracks','Water Stain / Dampness','Peeling / Flaking Paint','Sagging Ceiling','Poor Workmanship – Skimming','Water Seepage / Leakage','Biological Growth','Other (Custom)'] },
-      { id:'windows',  name:'Windows',  icon:'🪟', order:4,
-        defects:['Window Not Aligned','Window Cannot Close Properly','Hardware Defect (Hinges / Locks)','Sealant Failure','Broken / Cracked Glass','Rust / Corrosion','Missing Parts / Components','Other (Custom)'] },
-      { id:'doors',    name:'Doors',    icon:'🚪', order:5,
-        defects:['Door Not Aligned','Door Cannot Close Properly','Hardware Defect (Hinges / Locks)','Missing Parts / Components','Damaged Door Panel','Rust / Corrosion','Other (Custom)'] },
-      { id:'fixtures', name:'Fixtures', icon:'🔧', order:6,
-        defects:['Broken / Damaged Sanitary Fitting','Missing Parts / Components','Rust / Corrosion','Plumbing Leak','Water Pressure Issue','Loose Fitting','Stain / Discolouration','Other (Custom)'] },
-      { id:'me_int',   name:'M&E',      icon:'⚡', order:7,
-        defects:['Electrical Issue – Socket / Switch','Electrical Issue – Light Point','Plumbing Issue – Pipe','Drainage Blockage','Insufficient Power Points','Circuit Breaker Issue','Conduit Defect','Other (Custom)'] },
-    ]
-  },
-  Exterior: {
-    order: 2,
-    groups: [
-      { id:'ext_floor',   name:'Floor / Paving',    icon:'🟫', order:1,
-        defects:['Hollow Tiles','Loose / Debonded Tiles','Hairline Cracks','Structural Cracks','Ponding / Poor Gradient','Vegetation / Biological Growth','Missing / Damaged Tiles','Other (Custom)'] },
-      { id:'ext_wall',    name:'Wall / Facade',     icon:'🧱', order:2,
-        defects:['Hairline Cracks','Structural Cracks','Peeling / Flaking Paint','Efflorescence / Salt Deposits','Water Seepage / Leakage','Poor Workmanship – Painting','Biological Growth / Algae','Spalling Concrete','Other (Custom)'] },
-      { id:'ext_ceiling', name:'Ceiling / Soffit',  icon:'⬆', order:3,
-        defects:['Hairline Cracks','Water Stain / Dampness','Peeling / Flaking Paint','Biological Growth','Spalling Concrete','Other (Custom)'] },
-      { id:'ext_windows', name:'Windows',            icon:'🪟', order:4,
-        defects:['Window Not Aligned','Window Cannot Close Properly','Hardware Defect','Sealant Failure','Rust / Corrosion','Other (Custom)'] },
-      { id:'ext_doors',   name:'Doors / Gate',      icon:'🚪', order:5,
-        defects:['Door / Gate Not Aligned','Door / Gate Cannot Close Properly','Hardware Defect (Hinges / Locks)','Rust / Corrosion','Missing Parts / Components','Damaged Panel','Other (Custom)'] },
-      { id:'roof',        name:'Roof',               icon:'🏠', order:6,
-        defects:['Missing / Cracked Roof Tiles','Roof Flashing Defect','Gutter / Downpipe Defect','Water Ponding on Roof','Vegetation on Roof','Ridge Capping Defect','Roof Leak','Other (Custom)'] },
-      { id:'drainage',    name:'Drainage',           icon:'💧', order:7,
-        defects:['Drainage / Gradient Issue','Ponding','Drain Blockage','Vegetation / Debris','Broken / Missing Drain Cover','Other (Custom)'] },
-      { id:'fencing',     name:'Fencing / Boundary', icon:'🔲', order:8,
-        defects:['Cracks','Rust / Corrosion','Missing Parts','Structural Settlement','Paint Defect','Other (Custom)'] },
-      { id:'me_ext',      name:'M&E External',       icon:'⚡', order:9,
-        defects:['External Electrical Issue','External Drainage Issue','Sewerage Issue','Water Meter / Pipe Issue','External Conduit Defect','Other (Custom)'] },
-    ]
-  }
-};
-
-// Standards reference content — sourced from CIS 7:2021 & QLASSIC Quality Guidebook for Homeowners (CIDB Malaysia)
-const STANDARDS_DATA = [
-
-  // ============================================================
-  // INTERIOR — CIS 7:2021 Annex A, Internal Finishes
-  // Assessment framework: 6+1 method (Floor · Wall · Ceiling · Door · Window · Fixture + M&E)
-  // ============================================================
-
-  { category:'Interior', group:'Floor', icon:'🟫', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No construction stain marks. Consistent colour tonality/shading (manufactured products). No permanent foreign material visible. Surface must not be unduly rough or patchy. Painted screeds: no brush marks, pin holes, blistering, or peeling.' },
-    { std:'Evenness of Surface', tool:'Spirit level 1.2m + steel wedge',
-      desc:'Max 3mm deviation over 1.2m straight edge. Falls in wet areas (bathroom, balcony, utility) must slope correctly toward floor trap. No water ponding acceptable.' },
-    { std:'Staircase Treads & Risers', tool:'Spirit level 1.2m + steel wedge',
-      desc:'Variance in tread/riser lengths must not exceed 5mm from dimensions in approved drawings. Measure each step individually.' },
-    { std:'Tile Lippage', tool:'L-square (200x300mm) + steel wedge',
-      desc:'Lippage between two adjacent tiles: max 1mm. Tile joints must be aligned with skirting tiles and aligned between all tile rows.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No chipping, broken tiles, cracked tiles, or scratches. No warpage or sagging (engineered/timber floors). No loose or rocking panels. Carpet: no visible joints, stretched firm and even.' },
-    { std:'Hollowness / Delamination', tool:'Tapping rod + auditory (hearing)',
-      desc:'Swipe then tap with tapping rod — no hollow or drumming sound on tiles/screed. No delamination (carpet peeling, screed debonding). Timber strips must rest firmly on joists/screeds.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Skirting: consistent thickness and height, neat joints, no visible gaps to wall. Grout: consistent colour, size, properly filled — no holes, over-grout, under-grout, or stains. Edges of carpet/timber properly sealed and anchored. No visible joints for carpet or engineered timber.' },
-  ]},
-
-  { category:'Interior', group:'Wall', icon:'🧱', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks. Good paintwork — no paint drips, brush marks, pin holes, blistering, peeling, or trowel marks. Consistent colour tone. No rough or patchy surface from touch-up. Painted plaster must not be chalky. Textured finish must be consistent.' },
-    { std:'Evenness of Surface', tool:'Spirit level 1.2m + steel wedge',
-      desc:'Wall surface flatness: max 3mm per 1.2m. Verticality (plumb): max 3mm per 1.2m. Check all four walls in each room.' },
-    { std:'Wall Squareness', tool:'L-square (200x300mm) + steel wedge',
-      desc:'Walls must meet at right angle — max 4mm deviation per 300mm. Tile lippage between adjacent tiles: max 1mm. Tile joints must be aligned.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No visible cracks, dents, scratches, or corrosion. No warpage on tiles or wood/timber panels. Any crack visible to naked eye at 1m distance must be recorded.' },
-    { std:'Hollowness / Delamination', tool:'Tapping rod + auditory (hearing)',
-      desc:'Swipe then tap plaster, tiles, or textured surfaces — no hollow or drumming sound. No wallpaper or timber panel delamination. Timber panels must rest firmly on backing/joists.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Edges to be straight, aligned, and consistent. Tile grout: consistent size, properly filled — no voids or stains. Wallpaper/timber edges neatly laid and properly anchored. No visible joint lines. Consistent spacing for cladding panels.' },
-  ]},
-
-  { category:'Interior', group:'Ceiling', icon:'⬆', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks including leakage marks, excess paint, or fingerprints. Consistent colour tone. Good paintwork — good opacity, no brush marks, pin holes, blistering, or trowel marks.' },
-    { std:'Alignment & Evenness', tool:'Visual',
-      desc:'Surface must be smooth, even, not wavy, and not sagging. False ceiling panels must be level with each other. Edges must be straight and aligned. Ceiling grid must be straight and aligned. Panels must not warp and must sit neatly in grids.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No concrete spalling, chipped panels, or cracks. No sign of corrosion on metal ceiling grids or panels. Any stain mark must be investigated — it may indicate active leakage above.' },
-    { std:'Roughness & Patchiness', tool:'Visual',
-      desc:'Skim-coated or painted concrete must not show rough surface or formwork joint lines. Cold joints must be ground smooth. Touch-up must not leave patchy or rough surface.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Joints between ceiling and wall: neat, consistent, and properly sealed. Joints between ceiling tee and panel (false ceiling): neat and consistent width. Access panel/manhole joints: neat, consistent, and flush with surrounding ceiling.' },
-  ]},
-
-  { category:'Interior', group:'Doors', icon:'🚪', items:[
-    { std:'Joints & Gaps', tool:'Steel gauge + steel wedge',
-      desc:'Gap at bottom of door panel to finished floor: max 5mm (or per project specification). Gap between door panel and frame (all sides): max 5mm, consistent. No visible gaps between door frame and wall. Door frame joints internally and externally must be neat.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m + L-square',
-      desc:'Door frame aligned and level with wall opening. Double doors must flush with each other and with the frame. Frame and panel corners must be at right angles. No rattling sound when door fully closed.' },
-    { std:'Materials & Damages', tool:'Visual + angle mirror',
-      desc:'No stain marks or visible damages. Door panel must not sag or warp. Nail holes and joints must be filled, sanded smooth, and given good paintwork — check top and bottom of door panel using angle mirror. Glazing clean and evenly sealed. No corrosion anywhere. No additional timber strips added for site adjustment.' },
-    { std:'Functionality', tool:'Physical + auditory (test min 3×, pass at least 2×)',
-      desc:'Door must open, close, and lock with ease and smoothly. No squeaky sound. Lockset must engage and release properly. Test door stopper — door must stay open at intended position. Door must not creep or swing on its own.' },
-    { std:'Accessories', tool:'Visual',
-      desc:'All accessories (hinges, knob, lockset, door closer, guard, stopper, flush bolt, alarm sensor) in good condition — no stains or corrosion. No missing accessories. Screws must be flush — no over-tightened or defective screw heads.' },
-  ]},
-
-  { category:'Interior', group:'Windows', icon:'🪟', items:[
-    { std:'Joints & Gaps', tool:'Visual',
-      desc:'No visible gaps between window frame and wall — check both inside and outside. Joints must be neat internally and externally. No visible gaps at joints between window panel and frame. Sealant around frame must be neat and continuous — no voids or tears.' },
-    { std:'Alignment & Evenness', tool:'Visual',
-      desc:'Window frame aligned and level with wall opening. Window panel and frame corners must be at right angles. Frame must be plumb and square — no twist or bow.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No stain marks or visible damages on frame or glazing. Louvered window glass panels must be of correct length. Glazing clean and evenly sealed with sealant or gasket (aluminium windows). No sign of corrosion. No patchy paintwork from touch-up.' },
-    { std:'Functionality', tool:'Physical + auditory (test min 3×, pass at least 2×)',
-      desc:'Window must open, close, and lock smoothly. No squeaky sound during operation. No sign of water leakage or staining at frame junction — check for water marks inside near frame.' },
-    { std:'Accessories', tool:'Visual',
-      desc:'All accessories (handles, stays, hinges, security bars for louvre windows, alarm sensor) in good condition — no stains or corrosion. No missing accessories. Screws must be flush and properly fastened.' },
-  ]},
-
-  { category:'Interior', group:'Fixtures', icon:'🔧', items:[
-    { std:'Joints & Gaps', tool:'Visual',
-      desc:'All joints surrounding fixtures (basin, WC, sink, shower tray, kitchen cabinet, wardrobe, mirror, railing) must be neat and consistent. No visible gaps. Welding joints must be ground smooth and flush. Fixtures scope: WC, basin, sink, bathtub, shower screen, wardrobe, kitchen cabinet, railing, vanity top, mirror, grill door, unit number plate.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m',
-      desc:'All fixtures must be level and in proper alignment. Cabinet doors must be at uniform reveal gap. Sanitary fittings at correct height. Railing must be continuous and at correct height.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No stain marks, dents, scratches, chips, or cracks on any fixture. Consistent and uniform colour. Good paintwork on painted parts. Check inside cabinet interiors too.' },
-    { std:'Functionality', tool:'Visual + physical',
-      desc:'All fixtures securely fixed, functional, and safe. Cabinet doors and drawers open/close smoothly without squeaking. Flush WC and run taps — run each fitting for 5 min, check for leaks at base and joints. Check stopper: fill basin, wait 2-3 min, ensure no leak. Railing must be firm — no wobble.' },
-    { std:'Accessories', tool:'Visual',
-      desc:'No missing or defective accessories (hinges, handles, bottle trap, hose, piping). Accessories fit well — no stains. No corrosion on metal accessories. Screw heads flush and intact.' },
-  ]},
-
-  { category:'Interior', group:'M&E', icon:'⚡', items:[
-    { std:'Joints & Gaps', tool:'Visual',
-      desc:'Joints surrounding all M&E fittings (switches, sockets, floor traps, pipe outlets, shower mixer) must be neat and consistent. No visible gaps. Joints must be properly sealed and marked.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level',
-      desc:'All M&E fittings must be aligned, levelled, and straight. Switch plates and socket covers flush to wall. Light fittings hung level. Floor traps flush with finished floor. Spacing between fittings must be consistent.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No stain marks or visible damages on fittings. Consistent and uniform colour. No chipping, cracks, paint stains, or mortar drippings. Covers must sit flush and tight — no loose capping.' },
-    { std:'Functionality & Safety', tool:'Visual + physical',
-      desc:'All fittings securely fixed, functional, and safe. Test each switch, socket (plug in radio/device), and light fixture. Run every tap and shower for min 5 min — check for leaks. Flush every toilet — check for base leaks. Test doorbell. Run A/C. No leakage at any pipe joint.' },
-    { std:'Accessories', tool:'Visual',
-      desc:'No missing accessories (screw caps, floor trap filter/covers, SMATV point covers). All accessories fit well — no stains. Screws flush — no defective or missing screw heads. No loose conduit capping at outlets.' },
-  ]},
-
-  // ============================================================
-  // EXTERIOR — CIS 7:2021 Annex A Part 2 (External Finishes) + Annex C (External Works)
-  // ============================================================
-
-  { category:'Exterior', group:'Roof', icon:'🏠', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No construction stain marks or rust on any roof surface. No rough surface (flat roof membranes). Good paintwork. Consistent colour tone throughout.' },
-    { std:'Alignment & Evenness', tool:'Visual',
-      desc:'Even and level — no tripping hazard. Falls must be in correct direction toward gutters/RWDP outlets. Pitched roof tiles must be in alignment — no displaced, raised, or rocking tiles. Ridge must be straight and level.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No visible damages — cracks, chipping, stripping, or sharp protrusions. Missing or broken tiles must be recorded. Ridge capping mortar must be intact — no cracking or voids. Gutters must have no rust or loose sections.' },
-    { std:'Construction & Waterproofing', tool:'Visual',
-      desc:'No sign of leakage or active water ingress. Proper flashing/dressing for all protrusions (pipes, A/C supports, solar panels). No clogging or ponding on flat roofs. All openings sealed against pest invasion. RWDP inlet must be lower than surrounding gutter invert. Gutters and RWDP inlets covered where practical. Min gutter fall 1:200.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Consistent joint width — neat at all tile/sheet junctions. Good lap at joints and proper vertical abutment details. No open joints at ridge, hip, or valley.' },
-  ]},
-
-  { category:'Exterior', group:'Wall / Facade', icon:'🧱', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks (mortar, paint drips). Consistent colour tone, good paintwork, no efflorescence, no discolouration or fading. No rough or patchy surface (plaster/paint). No sign of corrosion (cladding). Surface must not be peeling, blistered, or chalky.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level',
-      desc:'Wall must be aligned and not wavy. Edges must be straight and aligned. Surface evenness consistent. No obvious bulging or bowing of cladding panels.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No visible damages, dents, or scratches. Any crack visible to naked eye must be recorded. Step cracks at brick joints or corners indicate movement — record as Serious or Critical.' },
-    { std:'Construction', tool:'Visual',
-      desc:'Weep holes provided as specified for masonry walls. All external fixtures (aluminium strips, glass holders, cladding anchors) neatly and securely installed. Gaps around all openings properly sealed.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Consistent and neat expansion/movement joints. External tile joints aligned and consistent in size. Cladding sealant compatible with cladding material. Joints of regular width as specified.' },
-  ]},
-
-  { category:'Exterior', group:'Floor / Paving', icon:'🟫', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks on apron, car porch, or car park floor. No rough or patchy surface. Consistent colour and good paintwork (bay markings). No sign of corrosion on metalwork or fixtures.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level 1.2m',
-      desc:'Even surface — check for lips, raised edges, or tripping hazards. Falls must be in correct direction — water must drain freely away from building. No water ponding within compound. Car park: falls in correct direction to floor drains.' },
-    { std:'Cracks & Damages', tool:'Visual',
-      desc:'No visible cracks, chipping, or damaged tiles/paving. No loose or hollow tiles. No missing or damaged accessories. Check driveway and patio for cracks.' },
-    { std:'Functionality', tool:'Visual + physical',
-      desc:'Apron and car porch must drain freely — no ponding. Car porch/car park ceiling, wall, column, and M&E fittings securely fixed, functional, and safe. No visible gaps around M&E fittings. Check that drain gradient is adequate.' },
-    { std:'Jointing', tool:'Visual + steel measuring tape',
-      desc:'Consistent joint width and neat on all paving. Perimeter drain joints consistent and neat. Drain covers flush with surrounding surface — max 20mm protrusion tolerance. Gap between drain covers 5-10mm.' },
-  ]},
-
-  { category:'Exterior', group:'Drainage', icon:'💧', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks on drain walls and base. No rough or patchy surface. No sign of corrosion on drain grating. Drain grating properly painted if specified.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level',
-      desc:'Drain finishes even, level, aligned, and consistent. Drain covers level with frame — no rocking. Inspection chamber covers level with surroundings — max 20mm protrusion tolerance.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No visible cracks or damages to drain body or walls. Drain cover frame must be intact — no broken sections. Inspection chamber covers present, intact, and safe to step on.' },
-    { std:'Functionality & Gradient', tool:'Visual',
-      desc:'Free-flowing — no water ponding or siltation inside drain. Drain grating safely and securely fixed and functional. All silt traps clear before handover. Gap between drain covers: 5-10mm. Gap between sides of drain: 5-10mm.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Consistent joint width and neat throughout drain length. All drain covers present and secured. Inspection chambers accessible — no debris blocking.' },
-  ]},
-
-  { category:'Exterior', group:'Fencing / Boundary', icon:'🔲', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks on fence or gate. Consistent colour and good paintwork. No rough or patchy surface. Surface must not be peeling or blistered.' },
-    { std:'Alignment & Evenness', tool:'Visual + spirit level',
-      desc:'Fence piers and gate posts must be vertical, perpendicular, and straight. Gate leaf must be parallel and aligned with posts when closed. Fence panels even and consistent in height.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No visible damages or defects. No missing accessories (hinges, locks, bolts, handles, intercoms). No sign of corrosion on metalwork — especially at base of posts and weld points.' },
-    { std:'Functionality', tool:'Physical',
-      desc:'Gate must open, close, and lock smoothly — swing must clear ground. Lockset must engage properly. Fence panels securely fixed — no wobble. Automatic gate: test from wall switch and remote control.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Consistent joint width and neat between fence sections. No visible gaps at post connections. All M&E fittings on gate (intercom, sensor, lights) neatly installed — no gaps around fittings.' },
-  ]},
-
-  { category:'Exterior', group:'Roadwork / Footpath', icon:'🛣', items:[
-    { std:'Finishing', tool:'Visual',
-      desc:'No stain marks on road surface, kerbs, or footpath. Consistent colour and good paintwork on road markings and signs. No rough or patchy surface. Turfing done evenly — no dead grass, weeds, or bald patches.' },
-    { std:'Alignment & Evenness', tool:'Visual',
-      desc:'Even road/footpath surface — no water ponding. Edges of kerbs and footpath straight and aligned. No tripping hazards. Footpath lighting aligned and at consistent height.' },
-    { std:'Materials & Damages', tool:'Visual',
-      desc:'No visible damages or defects on road, kerbs, or footpath. No missing or defective accessories (signage, lights, benches, railings). No sign of corrosion on street furniture or lamp posts.' },
-    { std:'Functionality', tool:'Visual + physical',
-      desc:'All fixtures securely fixed, functional, and safe. Road lights and footpath lights operational. Fixed benches, railings, and signage stable without wobble. Road markings clear and correctly applied.' },
-    { std:'Jointing', tool:'Visual',
-      desc:'Consistent joint width and neat throughout road surface and paving. Kerb joints neatly finished. Expansion joints present and filled. No visible gaps around M&E fittings (lamp post conduit, signage). ' },
-  ]},
-
-];
-
-const CIS7_CHECKLIST = [
-  "Workmanship of wall finishes (plastering, painting)",
-  "Floor finishes (tiling, screeding)",
-  "Ceiling finishes (skimming, painting)",
-  "Door and window installations",
-  "Sanitary fittings (WC, basin, shower, taps)",
-  "Electrical fittings (switches, sockets, light points)",
-  "Roof integrity (tiles, flashing, gutters)",
-  "Drainage and waterproofing",
-  "Structural elements (columns, beams, slabs)",
-  "External works (compound, car porch, boundary wall)",
-  "M&E services (water supply, electrical, sewerage)",
-  "Staircase and balustrade",
-];
-
-const SEVERITY_LABELS = ["", "Minor", "Low", "Moderate", "Serious", "Critical"];
-const SEVERITY_COLORS = ["", "#27ae60","#8bc34a","#f1c40f","#e67e22","#c0392b"];
-const RATING_LABELS = ["","Poor – Significant rework needed","Below average – Needs attention","Average – Meets basic requirements","Good – Meets acceptable standards","Excellent – Exceeds industry standards"];
-
-// ======= INIT =======
-document.addEventListener('DOMContentLoaded', () => {
-  setLogos();
-  renderLocations();
-  renderOverallStars();
-  renderDefectStars();
-  renderChecklist();
-  setDefaultDate();
-  updateCover();
-  renderDefects();
-  updateSummary();
-  renderStandards();
-  document.getElementById('m_defectType').addEventListener('change', function(){
-    document.getElementById('customDefectRow').style.display = this.value === 'Other (Custom)' ? 'block' : 'none';
-  });
-});
-
-function setLogos() {
-  const logoB64 = getLogo();
-  ['headerLogo','coverLogoImg','summaryLogo'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.src = logoB64;
-  });
-}
-
-function getLogo() {
-  return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAADICAYAAADGFbfiAAA2M0lEQVR42u3deZxU1ZU48HPufUttvS/srsQorWaMxjH+koHWLIqajKNVcY0b2opBRFESDb4qEUQFFVAUFBERl+pR3KKijo3JRGMimhibGDVEBNka6O7a6y33/P54VU130yBuM5N4vp8PdHdVvVfvva6+593tXADGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGPsHxYmk0lJRKL0FfmSMMYY261kMil38zgHEsYYYzsHiF41DfnkQ/ef/vzjy555fNm9V02ZMqWKAwljA1TV+RKwrzLLskQ8HgdEVAAAy5ctPsUw9GuCQfObRARCCMhmcx/mC4VZrz794n23tbbmy4EkFot5fAUZBxDGvoqBo6kJsRQEHlky/4cVoYprgoHAv3nKg3yh6GDpL0TXdN0wdMjn86tzBXv2HfeOe+CVV8BFAHiUAwnjAMLYVwMRYWtrqygX+g/de/cRFRWBX5qBwI8lIuQKBdf/u8AdfxuKCAQoU9d1Tdchk82/VSjkZ8XOaXnEf7bvPhn7qtD4ErCvSuBYGY9LRHQBwFu2YO6BNXW1VyLiuaZpaLlc3iUiQERJQAAAhOB/RwhCAKLtOF7RcVXANA4Lh4LLnml9YGIhn78REZ8AAI+IBEAcEBOKrzjjAMLYP0EtO5lMCkT0AMBdsuD2veqqayfpmnZRIBQIpdNZyuZyrh8jSjVyREIiF1BoCERA5AGRJAQBQKJYLLqACMGAeWTADCx/OvlAWyGXn4mILwD4/SPt7e2USHAgYf/kf1x8Cdg/q94d3ZY1qfaQrzVNCAYCl0VCwdpsNg+e8lxAlAAECIIIFAKBh0KIUDAgstmcKzWpBU0Tcvk8KEUOEAgQiACACKQAAIKBoPSUgqJd/FUmk5lx+vmXvsqBhHEAYewfNHBEo1GFiHTRRRfpx48+6kLTNKaEgsG9svk8KKUcBNAAAYAAAIFK0QPD4bAs5AueY9tLU+nOW4UwBldWRH6GUh4TDoUjRccBu2i7BASIKEpbewAIoVBQKxSL4DlOsjuVuenslglvciBhHEAY+wfQf0juEw8tOlVq2rWRcPhfHNuFomM7iCAAQPjdHACAoIiIgoGA5nkKXMd5Mp3JTz/t/JY/9N73ovm37lcVrjg9EDRjuq4fahg65AtFcF3XRRSEQIIAFSKJcCgkc7mC43nu0q5M120/HXf5OwAAlEzKOAcSxgGEsf9bgaOpqQnLzVUP37/gBxWh4C+CweAYz/OgaNuOQBAEiH5HOSAQEhGpQMDQhJSQy+X/u5DLT4ue29KnH6OpqQmj0SiVgxIAyMeXLjhW6vpZUupjw6FgnecpKBSKCoBcAhAEQAJQhkIBkS8UikXbXrq9KzVr3PhJfwUAaLMsbUw87iEi8W+PcQBh7H9BeWRVcyLhAgA8uPCOf6mqqrAM0/x3KQTkCwUXgBAARbm1CvwHPE3T9KBpQjaXeydvF6efcua4R0r7FK2trdh/SK5lWWLMGBDNzf57AQAsvuPmwdV1dSfoUvsJATZHImHNsR2wHdsjIo8ICBGNSDiE2Wwu57jefZs2b5p9yaRffMiBhHEAYex/Se8O8oVzb9l3yKCGyVLTxplmwMhlcy4gEPijDAlLUzqIyBMo9Eg4BLlc7mPbLs56c8Wv704sWVIoB6OOpiYaaD5Hm2VpHU1NVK6VAAD0fl3yvnmHSCP4E93QTzZ1Y5TfxFUAz1MOALmIaAaDIZHP5buKrnP3xvVb5/zs6qs3lffdnEh4O2IcYxxAGPtSA8fMmTOrDtp70GW6rl8RDAaqM9ksEaAr/CFViABIgESkFCLKikgYc7l82nHtOzetXzu7ZXJia3mfDe3tWK7JzJ5t1V55ZWL77o6hob0dO5qaqKGhHVeuBFXu1zj88MP1n//s4v9nBLTThBRjg4HgCCkl5PJ5cD2vIBCNcCgocvnCZtt2b1+75cO7J01KdPU6N8WBhHEAYewLRGQJgDghIo0eDdrlFy063zDMq0Oh4P65XA6IlE2AGvhRo1wCKwCAcCioFQsFz/bU4m0bN918/uVT3gfwO7VboRWi7aMIEwk127JqRx36tRu6u9K1p11wyWnlYDXHsioH7T1oktSN19Z/sO73kxJ+gV+q1eDKlSvle++9hwcccAA1Nzf3NHHNnDmlar9h+x+jSe1kXYofBoLBRkSEfD6vABCDwQAWC8U1dsGe9+Jrq+6dP39+pn+QZOz/Mp5IyP5PK3eQI8Y8gAQ88sCCUyqCoV8EQ8HD7aINmWzWQb/jWgMgfwoggAIgZZqmIUBAJpddUehOXRe78LLflwMHRKMqHo9jItHqAgC0Lr33/GDAnNrY0LBPOpN7AgCgoaEBAQA22dvNvQJ7X1tdVambB2kbli9b/NuiY7+QzWVfRsQ1ANATNNra2rSOjg7R2dlJLS0t3QCwHACWz5pl1e83dK9jpNCiUuCxgUCgxvM8kJrcr6K64rbjRh910TFH/cvsG+cseCAWizkcSBgHEMY+c42jbwf5skV3fKeqsiphmuYxQAqy2ZwDQAIBpT+VAwEQFBB5mqYZpm5ALp9blUvnpscuuGR5OXDE29sJojHV2poUiUTCnX/bTV/fa8SQWeFg6MRcPg9d3SlPKZf6HotSyvM6CoXCYE3ThkbCZhQQo9lcIP/Uo/e/VbS95z23+OJv33zqrebm5mJ5u2QyKSORjVrjuoA6oqVlKwAkASB51+wbhjU0NB5nmuYpgHi0EKKquqryINcN3Ru/esL4ouPcfOpZFyZjsZjHebYYBxDG9lyf1CPLFs3fryIcmqrr+jmmYWI2n3OACBFREoE/fMnPN+IKFEYoFJKZbPZv+Vx+1vTb7lq0atUqh8gSEAfAWMyzLEsgAgHEvMeWLhgXCkVmm6ZZmcnmHABFQqCBiDs17SKCBoDC9Vw3m88TEaGUMmiaxtEVEXl0Lp+//tj/95P3jzkq1la0nec2dW99LRaLbQYArxQQxXPPPac3Nq5TRxzR8jEALAKARQ8vvmsf13F/mM/nxwohvlNTXfNNqclHftX64JVF156OiE8CgNd/jgtjHEAY66XcZBOLxbzFt91WXTekZqKmaZeHQsHqTDarsrmcBwiSABARCEGQIlICUIRDISNfKHR1d6duX/vXtbdNTCRS5X36zV879j8pGg2OPvmEedVVkQvyhSJksllXIGoE6BEAEKHwj2glAABUQgUoQEAEEAhI/rBgVEpRqT9DIYAMmoGvGabxNdd1LwqHg9ufeHjx72zbeT6fSq1AxPcAoKd28uyzc8zGxoA64oiWDwFgAQAsuO/OO0fkC/b3Aob2Yyn14wbX1z/xq/988O18sWCdeua4JxKJRE88A+5oZxxAGAMgyxLg31170WjUOPPk4y42zMCVoWBwr2w2B+lM1gE/9Yj0y28AIiIAoEg4pBXyBSeTySzc2tl503mXTPoQAMCyLC2RSHjlpp82y9KaYzH31htv3O+A/Yc9UlVR8a2udNoFAOFn4AUg8pvCCPqugZ6CNAgi2DHmhPyE71AKJuhPULQdx7UdlwAIpRS1oWBgrBBybDoQKDz16P1/dFzvJc91nv3Vy6+9NXbsxEJ5/+8kk8ZqAIjFYusAYDEALF5w6w1DspmG0eFI+PSQGbjr6dal4x3XudOVkWe4OYtxAGEcOErt+xiLeZBIwCP33XlSpKLSqohEDs8X8pBKZ1whABFRApVSqwMRAHimYeoAAJlc9lfdnZnE2S2X/qEcKMbEEx5iok/HdnNzs3vP3NlHDh066LFgIDC8O512EEGDHSO2ABH9MEE7T+xTiFA+BoDS91iKNDteLYAIAQE8V6msm1eISEJgwDCCR0U0eVQ+X/jlKccf88GPfzD6Fc91n35v/d9fPTgW6yjv4I033tADa9bgwbHYRgB4BAAesSwrcNQhB4wWhnlkauvHQ+fdZD35s6vjG0stbVwTYRxA2FeL3xeBCgC8h+69+4iKqmA8YAZOACLoTqVcgYiIIP0ymxD9ioGnSambAUPmc/lVuVQ6Hr1g/DPl5qn29nZqTiRcSOx4n3LwuH/B7OaGusFPaJqozGazjvD7UPxcin4yRfTXRKddDG6nPmtMEfZuRyIAIgUCFfSqmwABAoBQitxCoUiIRIgoDVMfGTHCI13Pu6DJ+HrH8keW/LdbLD63YXPXy0ccccTfegVY0d7eqh18cKwAACsAYMViywoUIhHJs9cZBxD21ax5ACAmEmrBrTcMGTJs+C80Tb/ENA0tl887fpLb8qJOolzEuyhQDweCIpPNrst1Zm5acduChQtLHeTxeN9Z4f2Dx6L5tx0/qGHQ4wBkFou2I4WUui6FbdsEgECKEFDQzjfzYwAgAZVQAaJ/t0Np6BcRkRRCGAFTSCH9zhkAUMoDz/OAiMDzFCil/IcVkW07RdtxFACipsk6wzBOxlDwZF3XM08+vPgPruf9JpXLPjdmzJg3XnnlFbscIKMAgLFYgT9BjAMI+0pKJqMSY62qdemCH0TCkQdN02zIZfOUyxUcRBAEUOrARgAADxFEOBTS84V8prOre/7H2zfdPGHCNdvKhWq5g3yn4GFZWnNzs7tw7q3HDBnU+DgCmLbjelIKQaQwnc7/ORgKHqw8RQoR/VqOf1dPu7m37xdG3GAwINPd6ZdzufxcRd7XDMOsBoK9AaEOAUZomgwoBbVEKmKapiE1CQJRE0ICAQEpAk8pcF0PwpFwxND1ZhSiOZQNXXflzy746+UXn/PslrVbErFYLMWfHsYBhH2lNTSMQgAgHbXR4VCoobM7lRMCAwgowS/FiYgQECkUCOhFu6jS6fT9WzdtnlGeQd6/g3znIJWUzbGYe/9ds49sbGh8AhFMx3E8AKDKSIW2YeOmGzPp1Ora2pql2WzOFX5TWe+Wqj4hJAVpUOXxwqUXlRqzSNck2q634bTzWp7cVSB72zBqqiJ6ZShSNUTqIgKS6sjFwZrUal1yhkhNrwCg4VhAIy8xQgQBBAijFCOrKionuXuphwDgDSJLICa46YpxAGFfbR5CwXYcEogaEGC5e9rvQUASAimfL6zIdKXjp100/ncAO2aQl9Y132UNJxaLeXPm3Lx/Q/2gp6WmVRSLRVcgUigY1Du2bnv1J+ddfM3Di+ZfRH663D5VDv9Hwl02vvX+ifxp7wLI8CcNRrRgMOiN6eggKKWAL02E7Cj9+9snXRfLOicQDA42K2XArG8YrOfzBSNSn9/gHxuvI8I4gDAGSimJKLBPmxACAJEXDAb1bdu2vxg7t+W4co2ivb2d8BOGr1qWJaJRoJkzZ1btO3jQY2bAaMzl8o5AEIahYy6X27Jh44YzAADI8/Qdb+n3gRApJOgdQFYCAIBZNGhHmMHSP9UnlMRiMS+ZTMLYsWP7HyMSEcTjcSxn8W1ob0cYMwbK79HR0UTlFRQTiSUFAOB+DsYBhLFdQUTCXYxAFUKAq1SqNMxXj8Vi9p7sMh73c2YtX7bokYpI5BuZbMYWiDoguprU9C3d2y762VVT1wIAuKRUn2oH9AoP/UY4FU0bew3a7R3t/GBIuLukpDTgcNtEYpfnQaVQFY/H0X8p1zwYBxDG+keRvj/6k/iA/D4GiYiUTCb3aNJcW1ubRGx2k0sW3lJTU31cOpMtIqJBBG5FOKR3dGxdeNZFP3vy2WefNceOHVsEAb2G6xIgCigX3H5irX6H2tM1UppQiAA9AeWLzWlNvTKpcH8H4wDC2M4FshA7F49En6U8Lg/XfWjxXRc21NdOzuZyNiJoROAFA6be1ZX684u/XTUpmUzKxnXrFACAILGjPoFIivyZHQOV2JU7BTzaMf8DABAIk8mkBACZTCY/1bHzrHLGAYSxT32f7fUEC9oRPnpu6RHL+ah2L5lMyubmZnfJgrnfq6uuuiufL7hKkUQAEFKA43huR/f2cffcc0/ue0OGGFtqa7GtrU1b9/47sidUqVIs8TvwAaHchDUGABKQ6lsT6RNkEAAAhV0KBBwMGAcQxr70+FGec9G7MEbsGRC1JzOtyyOuFs6acUBDbc3DRCQ85SoEgQDgRUIhfcOmTVdfeMmVvwcAiCUSPX0p9999e64nXJWHDve8Y/mblaWvFeA/W0qnUqqtIAG6SgESDV84b9aJupCah6CIXJIgwQMA2fuPTfo/CSEIAGXRKXZdcOmVr/CngXEAYexTEVBKAbIjLwhQ7wJ8twHEH3EVV9aEyyobhw5+wjCN+nyh4ACgRgBuwDT1LR1bW08/b/ysOdOnNwQrzZpQwGiQUttbAOxjmuZxdtEmABKleSelXFd+Nqw+b5ZOQ69RxqVeEAJAkPlcnkKR8OiqmqrRotwE1pPJhEpBsWcLQARQnoJwKASbt25tB4CDObUu4wDC2KeASIpKQ2LRz0DVU/sg8vNA7W7zeFMTIiI9tuzeZVVVlQdlshkbUWil3FnCdhyla/r+jy29Z7WQsl4KWaXpUjd0HaSQ4LguFItFv/cckfo0pfXLxgsVUEplsiODSakHnfxEWsqzbcfzUz0ioijlfFSlapVfwaHSeSMRKCwUpEDs8mtjHEEYBxDG9phSpT5pJChPuyg3YSHiTrPBewePtrY2ic3NbnLJPXfU1dScmMpkigiol+7zSRGQ63rKDBjfJDLAU4qQwFOk7KJtAwBqAkGU81YR7UhjUgpgOwevfvNV/KS7BEQEUkgppZCKqLwyYql2BT2ZGnvvxiMFhq5DFiDoP4Y93fKMcQBh7JNrIKLPYFWkPs1Eu8pI1dbWJpubm93kkgXXNTbUXZrJZmwE1EsFthJCarqUIPw88P4/gYgAmut6UCzaoJTbpRBzUpNDPc+fxUFAPWW/7Dc+zLRNP1Nv7wy8SP6MeUT0PC9tO3YnIug7BgIAAQKhAizlfFf+WSECkgdEhuM4m/iTwDiAMPYpEZEq9w2AX+OAHXfjoITQ+q1LTrhyZVw2Nze7jyy66+q6utpEJpt1gEBDBCBFyjQNrVAsdtqO0wlKbSKBW0GpdYpUGkCuz+fy6/OF4sZ0atu6usbBJ+49fNjCTDbnEpHWu4LRf9aeaRT75zBBQARFpCrCYW3zlq3Pv/za0+cOGbK/kculvUIhjIFstmebQriInmf32W2hUIEjPM8pnRt/IBgHEMb2vAayo8mo3OKDAkkp8kzD0AExVH7eKq1Y2JxIuA/ee9f1DYPqpxYKRYeIJAKgIuVURCJGZ1fnrzs2bz7t3df+1HVba2t+d++/9J55vYpt4fdp9HTC9H1tCsoNUuWOcEFA5C+NiAAASi1c+EwOAHPcmcE4gDD2PxNFerqmFZEnCEVlRSTQnUqvS2cyc4kAW1tBJhIJOwGAjz+46M6amqrxuXzeUUpJAERF5AYDQSOTyb677sM1p0689saOco2ltbVVNDQ09OS16uhoolHt7bIpHnceuGfejoABCqnXrHLsN0W+EipKA6uoT3wpBz6BAggAV7ZdJ8eMifeaC9JrCdwBpkciDhSuGOMAwtjuEZI/Vok8RKFFQiGtWCzYnd3dCz9Y/2Fi8uTE1kPFAj3WErOn/+IXg5q+ccAD1ZVVP8hkMzYRaAiACsgNBky9WCxs3LDpoxMnXntjRzKZlLFYzCvVcHZeZMqyEBFp6YI51L8wp/Ko4gH6X/zcXdgnNhCRPyyXFCAAJTuaaOD5K8i/b8YBhLEvigDwEABNwwx6noJ8Lvd4dypzwxnjxr9VzgV1REuL8+CC+cfX1lbdFQwH9k5nMg6iHzwIwAmaAaNo2x0fr990YssVU/9WDh578v5KYd9o0CuZYn8pSJeCXmlZ20+epsIYBxDGvixKuVIReelMJmkX7btOP3/8b/wymgQiqnnzZtQNqx9sBc3ABIECstmcAwBaqdZih0MhM58vfLRh/cYft1wx5Y+UTEr8NHmlZN/ahfIrEaXg1ncUbzkXVu/BYtQzVqzUHcIYBxDGvlx+H0EClAdPbd605ekzLrz07d7Pz5o8Obh82X3nGIYxJRQO7pXN5lyXHEQUGgB4BECVFZVmKp1+be3ataf/7Kqpay3L0jAWcz/Nccg+P1Hf77B/DaR3PYX6bEfAtRHGAYSx/xGISJZlidj5LX/u/fiiOdMbqusGn2Wa5sXhUPCAol2ETCbrIIL0p3KDaxqmLgRCd3f3PY8913bZkiVLCqVmK/fTH4fWM6uDiBCFIOoZaKt2tVGfUNIzegy5BsI4gDD2pSit8IcrV8bFmDFxDxF7SuilC+78VqQi9FND16LBUHCQYzuQzmRcIfwJIgTg6ppmBAIBmctl/5zJ5H4ZO7flKQB/eO9nTYfueV4peJRXN/ezkgBRaf3zHSpLIYV6JTvBHRPNe2URZowDCGOfq5JhWRY2NTVhQ0MDdnR0ECL6pTWAAkjAsgVzDwxGIj8UQkSlFEdHIhEsFAqQzWZtACxlcidhmqbUNQ2yudzft27pmPPKqnfunjdvXrFU61CfZ6U+RKWIiHp6xEvJD4mABqqAYOnp8usJeqodxE1YjAMIY19QhSORSPQpUSdNmhT85iEjDw6boWNRiB/oUvxrIGCGXNcF13PtTDbrIYEGKIyAYYCu65DL58G27VW5bG7xW399c2kiMS8F4K//8UUswoQoUQhRWuCcENDPxCUEIkrRLxdWBSCgFEIguf5C7igQQZFAIRBRcA2EcQBh7DNHDSKcO3euUVkpa8imhkgouK+ha4ciim+Tom9FwqGGYDAArutB0S6C63kgpQTDNAxEBMd2oFAoZvK5wjsFyL2ULxaejp17ye/L+y/XOr6oFfwUKOW4rkIgRxGQ3wGiPMdxEZTXZw12QhRE5DmO7XmechEAwc+9q2zbNlzXdfkTwDiAMPYZbuYBgO6999Ya3fO+icXQkYauHapJ2ShQNijPiwBQZzqb2ZLNZlwCFAjkohDdjqe2k1Ife679d4/wL45dWH1Oy+Uf9Sm8k0kJ0agqNYN9bs2JhAcA0Jnf1hroCr6Sy+dIqXLq+CJIKTHdpVIAAM3N/mttw+jc1tn5bdtxpK75Obo0XSPXcVFsl+jk/dfz8rSMMfa/XJNpa7M0IksAT+FmjGsg7KtTG7EsC+PxeE882NUQV8uyhN/R3o4AY6Cjo4Pa29upNELL/Z861oGeiMfjOx23ZVm7XOBqoNczxhhjjDHGGGOMMcYYY4wxxv4x8SgX9qk/M5ZllXMR7vFs8FIntNjTN2lqaqI9GRYbjUblqFGj8NNsY1lW78Eje3QO5QWq2tvbsampqU+HeXt7e8/7R2MxhXswNb18PVavXk2tra2fevgvEWE8HpcAAAPt49NebwCAhD/EmQcDMMb4JuSLYFmWSCaT8tNsk0wmJfUk2drj4MrXnPEfP/vn/awQEZx77rlVIw8YeXYkFMHtm7e/Nm3mtD9YliV2dRdffu6qq6767pDGxiMcpYr+mh9SF6WlN/xkuKAECXLJRUTEQja7fWo8vgR2kRqXiBAR6aqf/3xsY13dSNd1vUKhkH/mmWeWrlq1ytnFZ50sa3xEw8YzhdSF1KWezWb/MG3atNcGOofeaVPOOuusxv332efIcKTyXzVNO0iRNxgABRAUhRB/zxVyfykWi29ufvfdNxa2tnaXa0cD1QwSiYSaMGFC89577334tm3b/nTjjTe+uKcpWsr7PO2CCwYdst9+pwqhGdu2dfxl1qxZz5cDUSKRUNa11jGR6sg3PM8reB5pmqEFkBA98ggJEQQAEqFH6EkkIkIvvzF7f2JOogt6r7DF2G7wPBC2p3fJEhHdRCJx/fBhIyaQp6BYLK6LRqOjACC3m0JHAIAKh4P/3jhkyBXd3SmQUkCqO9XlKVUUKCQiClJELrkKAFAIEfCI/g4AD5YCyE77bm1tFQDgVUYiLY0NjT+ybRu2dGzpXrVq1cMA4PTfxl9+FiGVMqtGDK+8KxwOYzAYhDV//3AmALxWPs7eBX0sFvMmTJhw2LChQyeZAXNsTVVNXWdnJ3meetN1vQ8BlJC6PpiA/mPY0GFVjmNDTXX1R7cceWTyj3/8463Lli3bOEBgEACgqquqzxsyeMjZUkjv8ssvPy4Wi71kWZaWSCTc3dVUEomE96Mf/ajisAMOeLqmuuZbgWAAMpnU4wDwfK8mK2WEjLMbBw06N51KARFAOp3+GAgdQhAIikCBoNI1cgE0pZS3xd7yFAB0WZaF/fOZMcYBhH0m0WhUJhIJd9KkSUfW1NRenM1kXMd27Nra2hFNBx10ZTyRSHzSHTRKvTubzbm249hkK+OjTR/98I7b7vjDKAB9dTlb+o4aMR5++OFQCgSwu7thTcrufD7vOo4NiNj5SedCRAoQtxUKhWoiAqVUof+hJpNJEYvFvHg8PqW6ujpRWVFlptJdat3H669ds2bNPYsXL+7ovcHIkSPNs88++3sVofD0qpqab3ieO/nII488e/jw4ZfEYrHlA12bSDhiZ7NZR9M0GDFixCPjx48bnUgk2geqtZSDRzwepxUrVgSP/vbRj1dXVX8rl8ulATGolErtfJ6YzuVyruO6rm077iuvr/zOiidXfLgnLRKfJ8sx+2oRfAnYJxUq0WgUAEDW1dffoUmpFwqFTik1s1gsutW1tZPHjx8/MhqNqt215Qu/eNIQSCKhZgoTAYBW+0HCBQCv9NUFAGcXzVA7UUoJANCIQCvdEO1qdjkCADi6jgCoEYFERE2IvjdRlmVhLBbzrKnWrKFDh83UNUN2dXWm1rz3/klTp06dsXjx4g6ySFiWpVmWpRGR+OCDD4qWZf3qhf966d+2btv6vOcpJYRsHDpk6GNXTLziR7FYzItGoxLA72gHADAMowoRdc/zKBgI1e2779efPfvss/dqbW31+l/HUoc5HIGonXzyya1Dhgz5XqGQdwnIACBtoL9jREIE1BBRIoLcf9j+GiJ+Un8L1zoY10DYF6d8Nz5lypRLhg8f8a0tmzauXPvRRzMOOvCgF1zPLYZC4ciwYcNuRsT/SCaTuyycELG0HhMSIIGu68KyLG379u2ytra2/x23KjWhfGKBhojU60U0atQoEY1GtY0bN+KQIUN6by8sy1KdhYIGQAiAQETgeTs2LzchTZky5YwhQ4dcWcjns4Zhhju2dsyeO3/+s3PmzDEvu+wyu5RuRZXu1gEA8KKLLtIWLlyYSqVSsVNOOeVt0zCHa7omBg0dtPjMM888eNmyBzdZVlxEo1EFAOA4zj5Fu5giIttTXnVFpGKvgw486Jljjz22+frrr9/Wq08GW1tbRSwW86bfMP2BYcOGnbB27do/hUKh/YQQQf/Mdr7sos9jCEoped1112nl61B+ZsyYMTB//nxqbW1VHEAYBxD2hbEsS0SjUXXmmWcOaWwcFM9ls2pLR8eNd95554szZsx4rq6u7vhsNlusqa4++eqrrz4+Fos9t6umLCIqJYtCBCBQSnWV2vs/Z94r0buQ9FavXp0pFeoDOvTQQ7edc865BAhI/nFRr1qKt3r1alldXT1FkSJPqUAqm8muXbt2iWVZYvv27c4ucl7RwoULnQULFugtLS3p73//2LuGD9vrpnQ2k6upqandf//9xwHgNABLCiH88xVYWywWN3/08cdXj9x3v+V20S7WNzQc0tzcvPyDDz74QTwetwFANDU1YSwW8xKWNX/vffY5c/36db9+8803L//20Uf/Wgjpl/lK4a4vjL9m4sqVK7e+++67O13r3V0rxjiAsM+sqakJEVHF4/GZgwcPaXzvvb8+vXbt2v9KJpPGq6++elUoFDpWk0KikKquru6W0aNHt0WjURsG6PQmRH/JplKhHQ5XHJ9IJEZKKTXPA5ASQAjhmboeSmUybyYSiffKI60+KYL4+1VK0/WKGTNmjNc0DfuWo6ocxEgpVSGEMAjIQ0QpNNF7P+5PfvKTfTSpHVgs2srQdZnP5dY89NBD6xBREe3+UF566SUFALh9e+bXtTU5QEBdeUSBQKAZAKbF43FVKrCFFAJc162fc+utT0ybNu2yxsZBc3O5XHbwoMHfvfCCC+9DxDMWLFigx2IxJ5FI3Lzffvtd8vHH699ZtWrVyUOHDg0BkUGkCABBCEE7Rw+hAAGU55EmNe288857mIhs5V8RUgoQkTxNaEZXqqtt+vTpN+9uNB1jHEDYHotGozIWi3lXXHHVsfX1jWdv3rxp0wsvrBj32muveaVO3vapU6daQ4cMvdG2i/mampqm0c2jr0TE6QPWQpQqdU4oEEJQRSQ82/O8nqYWAgBQBIYZgNyWLZcCwHuliXKfUENRgAjgecoLmGaN63p3lpbEBX+NQYLeXQSldjRCABcBJPabr1FfXx8CQB0AvNIB73ENadSoUQQAlM+nt7uuW5Saprueh1Jq9X6rklAAACeeeGItANYrpVKHHnpoeOrUqfNmzJjx9YaGxkszmUyucXDj6ddff/3alpaWX0ybNu2GESNGXLVly5a///n993/U2tq6feLESwaRv/CuLAVGsfNV8eMACiQiQE1qgwDRUUohkQKJKAjJM0zDNApGI3/iGQcQ9kXBUaNG0ejRowMNDXW3G4YOmXRqy0knnfTTsWPHCiJCUKBJKYO2Y9sIqNu27dZU1Vx1xRVXPBCNRtf3v5st1yQQEEmR2Lh+3Qkbtmx52zRNKYpFL196neu6qOv69lLzyh4V3kQAUkgtX8htWL58+Xfq6uoKtm0LKSV5noeGYSjTM7Eoi1RfX1932GGH/RoAa/zaEPYJINlstgBEHgIIUgRCirpRo0aFVq9enYE9nB9Bui4BUQKAEojoeV4KANSjjz4qY7GYR0SVBFSJQut4++23PX9eDF5208ybhtfU1Py4kCsUqyqrfj592rRD6urrT+jq7Nr23nvvnfzgvff+nYjwiiuucBD71Dp2asJSSgkgAIEobNcpvLBixfdffPHFLbs7bq59MA4g7HMrd5xPSySuqK+rPziV7nZ0Q9+XCG4hf4q1vww4gWfbTtrQ9WrHcYqhUKiqob7+ZkQ8faAOdSICICRFHpGU65ctW7b+8x4rkd85jwhIBOr1119fv7taw4QJEzwikEIggD8UywMA2LhxI5UCyHpPeR8HteAIT3lKSK3+yCOPrIlGo7lSIbu7ACKIiKZOjR8UCoa0QrGQ13RNc4r22wAA7e3tEgC8UCgkpJSglGuDPwqNiAhOOumIM777ndhL1dXV387n8/mGxsYTCoVi/sO1H8YWLFjwJ8uyDES0r7rsMhQCewYm0ACTLSUi9Qp34sADD6w4+uijtwKAiMfjfWqH6MdQ7kBnHEDY51PuOG+ZOHGfioqqqzzlwbZt2ya//vrry4LBINq23VNYGYYhamtrzYObDn4uEokcXCgUChUVFT+ZPHnyolgs9lJ56Grfuo3/HxGZvfI1qX53wns0AgsAAKU/qgvQ76gfNGiQefHFF6vVq1djqUkJAPz+nPb2dtq+fbtZbswCRCD0m7CGDBlCpVFY+YMOOmhZfUPDNelUKlNZUREZOnToaYlE4pY5c+aYAFDc1aEMHToUEZFuvPHG8wCBpBQik0l72zq33d07SA0fPjxo6DoUi4UiAChEpGg0Kp95ZlWuuvqgfz/sXw7776qqyq/lsjl7y9aO026//faXS/m73FItjfx6V7lONPD8zdKlBiw14SUSCWVZFvDiV4wDCPtSlDvOr79+2qyqmurqjz9e/5sZM2bM3d0211xzzdSKysonAICkpkN9Q/2ckSNHfjOZTDoLFy4UpTYVUbrThdIXVS7QPk/TiV9MIqBfXNLmzZvLyRH7z0THWCxGl156qQIgAiptiTuasBKJhGdZlli3bt3MSDhyfE1N9WFF287X1dZeM27cuN9MnDjxd72TGDY1NVE5kWI8HvcQ0fnFL355ViQSGes4jh0IBMwPP/zwmrlz574djUbl9zo71UIACIVCDbphAJVqH4gIra2tXqnvaEttbe1/7L/vvo9v29o5/YbpNzxVHl5cnsMhQ5JKTXfoNwriQBemXL0AIRDDYV2WglCfYbz9fvfE67ozDiDsszZdyVgs5l1zzTWn1NfXnZxOpezUttTVpZqJlkgkvN4jkTCOaIElEonEkzfNnPlCdU3tD/K5XLamqmbUqaeeeiki3jpnzhy9VFPwAMhDBA8APNM0v6CCComIPCICIfAT9xkMBpU/lBa90iiv3tsQAOB9992XvuCCC44fdeCBSyMVld83K43g1w/4+jNXXnnlxYj42EBNZIlEQk6fPm1cOFx5m2kGRD6XM9evX3/djBkzbixf12gyKaG1FYgoLKXwECjnx1aFiEil/hFExHcA4BAAKJb6kvq+XxEAATwAEkSeoAGGhyEiEYGnlPIIyPnLX1ZtefLJV1z+lDMOIOxLabqKxWJq8uTJ+9fX1y+uqqoSa9aseejm227+XakAdEsFE/QpcC3/m4+3br0qGAwdGw5HwogAQ4cOnT158uSXL7vssj9NnDgRhNACoVBYuq4KmSaClFJ+IQdOqiIcDktH1yCXz9XA7meiU7FY1BCxNhQMCjMQANyCwX6BQJUK7c0A8MPrr49fFgmGx1dUVhxQX1/XOmvWrDW2bT/nFIurddPsdl230TTNQzRN/35Dfd3wVDoNXV2dbR0dHYlbbrnllXJOLYAdad8Rsb66qlpu27ZNH6jgL71/cVfDapWuS03XK3Rdh0ikAnRdD/d/jeu6VeFIWCpSUillfvvoEx486qjjMoBSESgij6Sf1UUoAFC6qZv5fP5P1tSpN+zh8GnGOIAw3+rVqxEAlETZbNvO62vWrMl0dnZeV2qy2WVh0qvAffvaa6/9ZXV1dXOhUMgaphGRUn4XEf8IAJDp3v7+xg36Csd18p7nmdlsNv15jre9vZ0AANKp9B82ig0BpZRKpbq2wScPuy2mU6knMrmcIQD0bD7bXjp/6n1ORIRCCLruuvico44avvDYMWeNDkci39N1/WghZDQUDkcECs00DAcA0+Sp1R+tXXdvJpd5fubMma/3rtH1usYEAJDP5zesX79uRVfX9rd2dU0BAPsHj3g8TolEAjTHyaW6u58SQqhsNh0s5HK/738Oqa6uP20yjAbbLhQBhIaIFQBQRcrPEEN+2x0ikiIARQpMpdQ2ABhwXgljjH1pPs36F/9ozXoDPX7iiSeGJk6cWD169OjAQNdiwAEEjP2T4fVA2E6fifIQ3Gg0qj5NU4ZlWaKpqannM9V7+/KKfuXnvqjO2t7vGY1GqZSnao+Dwh6eIyaTSVFqghpwBUMiEvF4fI9WGOy1uiF91gEEvc9hoP30/13saa2O54IwxtiXf+OFpVoX8o0Y+6ridO7sf5xlWaJ/k5dlWaJfqnGkAVKPExEmk0mZTCalNeDzliAi0et5HOC9BZWWqt1FenMk8p8v3en3HTlgWUhkIUAc/e8Je++n/8/9tu3Z70DNfv2vze72xRhjrG+AELt5Dj/jPvHLeO2nPYaB9r2r8yXioMH+7+NRWGx3Pm9hSgPsjxbOm3cAeV6h5fLLPyoPGV0wd9aBqWI+j4hrk8mkLBTWBgwnMvIvH236SyKRsHtet+DWIUNrGo5yFQkF8MHbf/lbeyKR8ACAFi9eHAiSPQqErJISdNCMTPT0n77aux/m4XvuHGWEAo2oSFNCaOS5ufY1G36bSCRcf9Vb/7XLWx842kB9HwK15eNtmVdaWlqcUg3BOHDk8KN11NEuuGnTlJrURSSVyW766bjx7wAALFhw65AKM1J7xrkXtfeceGm/rQ/fd3TYCAwtOk7uo81r/hsRU72HzSYXLRr1/qZN2xCv3ZxMJmV397qqoIwMO+v8lj9/ib+ngX5XjH0ivsthn1SofJ5/fZQ75+vrKu+uqq24HgDgueeeM/zH6qYecfDB77Xev+j4WCzmBWTtYeHKyteH1dUNK2/f+uCi44fXD35VoDzc0I3DAoZx5T77NNSXnw+gPSxcWfE7KbFFSPlDQ5e/fCr5YNvixXcMBgAYM2aMGaqsfElq2kQScIQQ8ijdNI8BAM2vHRAsnDt33+eXJ3+voZhDAo7WpJjSWGU+MmHCBBMAoBYgoAn5YynxlEhV8AXNNG7UNO0UqcnvlmsY9ZW1PzUN85lyDYOI8KGH7hn03PJHXw4Y5o1FxxmjS63loH2a3kkuvfcERKQ33ligAwCEa0Kzjz784Pcfuf/uf4vFYl5NpP6E6srKZz8hWNAX/btijGsg7DNbvHhxoLoaAl1dANWlx7oAwDDyGLKDlOv5aiBAN4TsIOXyeYQqgJAdJCfsis5OVWhpacntdLuM4Gqy772L0ITrut7qQMRc8vSjD177wYZ1L44cvhdVmH4TDyLS8oeX1EghB9vkOE4u99Zf12257Zprrimv3kdd+ZwXDITEhu2dN02cOPmtO2+/5VvfOuwbv+/8a9e/AsCTxWIRCcAFEBvNYOjvutRCGzs7nk0kEoUxY8Zozc3N7vJHH1joKtc+6dSz/g1KOboevu/OEfPmzbMBACYmEikAmAQA8NR/PjjGc93Hfhw79w4AgKF7b9DATxNfICQHAGDlypWiubnZffyR++d4SjWedMqZB5fP+enWBxPhUPihSbMnDT788IsKAC0ARMq1nT9XRCqeeHjJwvPItdfpofCAI6P8kVZDK7JZA6sBIJfP7wgupd8DlB+vAoBuADsYJCOfx27/JWAH/dd43hZv3LgpGQ4mjAMI+8zKs5+D6H3bUJEfVJoFWyAKQqRaRJRYSaADRNBAlJ4IgwdCREBJ8CKhMCoAEDqqkNTCjp55GQCe7T+jmogQqG8CRQQRSafTK/JF+/66mqrnvr73Pv/huF5XxnGxfFwnn37OQ3fccctv9x8y9DgwjO9948B9735s6f2XnnL2uU8AAIgiKkDMjhjUcMvyh5dkNV0OWvfx+ulv/PmvzyMimKbpCCFtQhWWiCFFXqXp9e2D0BCDnut2Q68Ej6eff+m6Prf7RBJaW+EpsiWiCLW1tWkdHSsFrPS3ISJXyr5/WqQgoMjL9n7Mcey1phkIig1C7Ghmg8qt27bfp+vi/apIxTNCky95nrMdeiWdLDd57bPPPpUBoV0WCKMGSkEkGBF+tnxCgX6qYRACImEdlOcJqAEIAXgQDGGIkBQAGOQpcpUEvb5z8WLrzvPOSxRgD9PWM8YBhPVRLuhPO3dcGwC0fZH77AkWQlQCuH1SiCjlhaWmjTjzjPPefWD+/H+tH1S9Qtfk4HxeeeV9PNm65Me60P891d31G8MMvCs0LQTCDZULO71SJ9PUK7dtS91ea1T8+vV337cTiUSh/B6vvPIKXTH+wirluZFUNksStaxuBM+4+WbrwZUrV26xLEts694+saG24bEnH136sPLUq0LCYU7RCb/yhz/9dO7cuTYighDCIyJ46j+XVXueF2hubnbb2iwNxgBAAsBTVCkkVZaazRQR4dI7b51cN3ToM88+vuwF5XnPFGz7gEAgcFI6m71w9uzZ2TcWLNCPaGlxBGLAMI29Tjnj3EX33zO/edighv9yXJXuXaCXg815553XBQDXf0lNl4xxAGGfGX7SEq6fvAcE7FUYRaNR5dc27J/bjpsGADj++OMdAAC74EwLBWXesizx0/Hjt0yYMOGoY4/8xg+LAD2LIElb+zUEQATDkf0BUeUzueboOePeKt+RO86Wba5dGTWU/urYs89OAfSkE1EAQNFoFDzlnmFKY5gWQCmlBkpBdzBoOldffY2yLEuce+HEVTOnTPnGwd865EekYC+J4nVHipdra2ud8roZ5eviOu6F3anUGj9QlNfYSIDneU+A8t4qFfaKiPCnP7vyg+OOO+4bl55/5kmeRyN1ob297qOPbm65/OcfERECogsA4Cm4wnacraVFplbdd+esQ2qqaw/pVahTv9rQFzZqjPNfMcb+4X1Bw24/U8H6Zc252NVx7m7YMs//YIyxfgaawEdEov9kvAHyUGEymZRtlqW1tVnaQBMNdzVBr/fz/f/1Dzbl925ra9PaLEvb1f52NRHRKk0WHCio+fu1tF1t2//x3eyLMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4wxxhhjjDHGGGOMMcYYY4yxL8L/B3Za1XgN96AIAAAAAElFTkSuQmCC";
-}
-
-function setDefaultDate() {
-  const now = new Date();
-  document.getElementById('f_date').value = now.toISOString().split('T')[0];
-  document.getElementById('f_time').value = now.toTimeString().slice(0,5);
-}
-
-// ======= TABS =======
-function switchTab(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if(name === 'defects') { renderDefects(); }
-  else if(name === 'summary') { updateSummary(); }
-  document.getElementById('mainFab').style.display = (name === 'defects' || name === 'inspect') ? 'flex' : 'none';
-}
-function updateFab(show) {}
-
-// ======= COVER =======
-function updateCover() {
-  const g = id => document.getElementById(id)?.value || '';
-  const rows = [
-    ['Property Address', g('f_address')],
-    ['Property Type', g('f_proptype')],
-    ['Building Age', g('f_age') ? g('f_age') + ' years' : ''],
-    ['Owner / Client', g('f_owner')],
-    ['Inspection Date', g('f_date')],
-    ['Inspection Time', g('f_time')],
-    ['Weather', g('f_weather')],
-    ['Temperature', g('f_temp') ? g('f_temp') + ' °C' : ''],
-    ['Inspection Stage', g('f_stage')],
-    ['Report Ref. No.', g('f_refno')],
-    ['Inspector', g('f_inspector')],
-    ['CIS Registration', g('f_cis')],
-  ].filter(r => r[1]);
-  const rowsHtml = rows.map(r => `<div class="cover-info-row"><span class="ci-label">${r[0]}</span><span class="ci-val">${r[1]}</span></div>`).join('');
-  document.getElementById('coverInfoRows').innerHTML = rowsHtml;
-  const title = g('f_title') || 'INSPECTION REPORT';
-  document.getElementById('prevTitle').textContent = title;
-  state.cover = { title:g('f_title'), address:g('f_address'), proptype:g('f_proptype'), age:g('f_age'), owner:g('f_owner'), contact:g('f_contact'), date:g('f_date'), time:g('f_time'), weather:g('f_weather'), temp:g('f_temp'), humidity:g('f_humidity'), stage:g('f_stage'), refno:g('f_refno'), inspector:g('f_inspector'), cis:g('f_cis'), company:g('f_company'), inspcontact:g('f_inspcontact'), scope:g('f_scope') };
-}
-
-// ======= LOCATIONS =======
-function renderLocations() {
-  const grid = document.getElementById('locationGrid');
-  const allLocs = [...DEFAULT_LOCATIONS, ...state.customLocations.map((c,i) => ({id:'custom_'+i, icon:'📍', name:c, order:100+i}))];
-  grid.innerHTML = allLocs.map(l => `
-    <div class="loc-chip ${state.selectedLocations.includes(l.id) ? 'selected' : ''}" onclick="toggleLocation('${l.id}')">
-      <span class="loc-icon">${l.icon}</span>${l.name}
-    </div>`).join('');
-}
-function toggleLocation(id) {
-  const idx = state.selectedLocations.indexOf(id);
-  if(idx > -1) state.selectedLocations.splice(idx,1);
-  else state.selectedLocations.push(id);
-  renderLocations();
-  populateLocationDropdown();
-}
-function addCustomArea() {
-  const input = document.getElementById('customAreaInput');
-  const val = input.value.trim();
-  if(!val) return;
-  state.customLocations.push(val);
-  const id = 'custom_' + (state.customLocations.length - 1);
-  state.selectedLocations.push(id);
-  input.value = '';
-  renderLocations();
-  populateLocationDropdown();
-  toast('Area added: ' + val);
-}
-function getLocationName(id) {
-  const def = DEFAULT_LOCATIONS.find(l => l.id === id);
-  if(def) return def.name;
-  if(id.startsWith('custom_')) {
-    const i = parseInt(id.replace('custom_',''));
-    return state.customLocations[i] || id;
-  }
-  return id;
-}
-function getLocationOrder(id) {
-  const def = DEFAULT_LOCATIONS.find(l => l.id === id);
-  if(def) return def.order;
-  if(id.startsWith('custom_')) return 100 + parseInt(id.replace('custom_',''));
-  return 999;
-}
-function populateLocationDropdown() {
-  const sel = document.getElementById('m_location');
-  const prev = sel.value;
-  const allLocs = [...DEFAULT_LOCATIONS, ...state.customLocations.map((c,i) => ({id:'custom_'+i, name:c}))];
-  // Filter to only selected areas; if none selected yet, show all
-  const active = state.selectedLocations.length
-    ? allLocs.filter(l => state.selectedLocations.includes(l.id))
-    : allLocs;
-  sel.innerHTML = '<option value="">— Select Location —</option>' + active.map(l => {
-    return `<option value="${l.id}" ${prev===l.id?'selected':''}>${l.name}</option>`;
-  }).join('');
-}
-
-// ======= CATEGORY / GROUP =======
-let currentCategory = '';
-function setCategory(cat) {
-  currentCategory = cat;
-  document.getElementById('catInterior').classList.toggle('sel', cat === 'Interior');
-  document.getElementById('catExterior').classList.toggle('sel', cat === 'Exterior');
-  // Populate group dropdown
-  const grpSel = document.getElementById('m_group');
-  const groups = INSPECTION_GROUPS[cat]?.groups || [];
-  grpSel.innerHTML = '<option value="">— Select Group —</option>' + groups.map(g =>
-    `<option value="${g.id}">${g.icon} ${g.name}</option>`
-  ).join('');
-  // Reset defect dropdown
-  document.getElementById('m_defectType').innerHTML = '<option value="">— Select Group First —</option>';
-  document.getElementById('customDefectRow').style.display = 'none';
-}
-function updateDefectTypes() {
-  const grpId = document.getElementById('m_group').value;
-  const catGroups = INSPECTION_GROUPS[currentCategory]?.groups || [];
-  const grp = catGroups.find(g => g.id === grpId);
-  const defSel = document.getElementById('m_defectType');
-  if(!grp) { defSel.innerHTML = '<option value="">— Select Group First —</option>'; return; }
-  defSel.innerHTML = '<option value="">— Select Defect —</option>' + grp.defects.map(d =>
-    `<option>${d}</option>`
-  ).join('');
-}
-
-// ======= STANDARDS =======
-function renderStandards() {
-  const wrap = document.getElementById('standardsContent');
-  if(!wrap) return;
-  const cats = ['Interior','Exterior'];
-  wrap.innerHTML = cats.map(cat => {
-    const catData = STANDARDS_DATA.filter(s => s.category === cat);
-    return `
-      <div style="margin-bottom:18px;">
-        <div style="background:var(--grey-dark);color:white;padding:10px 14px;border-radius:10px 10px 0 0;font-weight:700;font-size:0.88rem;letter-spacing:0.05em;">
-          ${cat === 'Interior' ? '🏠' : '🌿'} ${cat.toUpperCase()}
-        </div>
-        ${catData.map(g => `
-          <div style="border:1px solid var(--border);border-top:none;padding:12px 14px;">
-            <div style="font-size:0.82rem;font-weight:700;color:var(--tan-dark);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">${g.icon} ${g.group}</div>
-            ${g.items.map(item => `
-              <div style="margin-bottom:9px;padding-bottom:9px;border-bottom:1px solid var(--border);">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-                  <div style="font-size:0.82rem;font-weight:700;color:var(--grey-dark);flex:1;">${item.std}</div>
-                  ${item.tool ? `<span style="font-size:0.67rem;font-weight:600;background:#eef2f0;color:#3a6b4a;border:1px solid #c0d8c8;padding:2px 7px;border-radius:5px;white-space:nowrap;flex-shrink:0;">🔧 ${item.tool}</span>` : ''}
-                </div>
-                <div style="font-size:0.79rem;color:var(--grey);margin-top:4px;line-height:1.6;">${item.desc}</div>
-              </div>`).join('')}
-          </div>`).join('')}
-        <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;height:4px;background:var(--tan-light);"></div>
-      </div>`;
-  }).join('');
-}
-
-// ======= CHECKLIST =======
-function renderChecklist() {
-  const wrap = document.getElementById('checklistWrap');
-  wrap.innerHTML = CIS7_CHECKLIST.map((item, i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
-      <input type="checkbox" id="chk${i}" style="width:18px;height:18px;accent-color:var(--tan);cursor:pointer;" ${state.checklist[i] ? 'checked' : ''} onchange="state.checklist[${i}]=this.checked">
-      <label for="chk${i}" style="font-size:0.85rem;color:var(--grey-dark);cursor:pointer;flex:1;">${item}</label>
-    </div>`).join('');
-}
-
-// ======= STARS =======
-function renderOverallStars() {
-  const wrap = document.getElementById('overallStars');
-  wrap.innerHTML = [1,2,3,4,5].map(i => `<button class="star-btn ${state.overallRating >= i ? 'active' : ''}" onclick="setOverallRating(${i})">★</button>`).join('');
-}
-function setOverallRating(n) {
-  state.overallRating = n;
-  renderOverallStars();
-  document.getElementById('ratingLabel').textContent = RATING_LABELS[n];
-}
-
-let currentDefectRating = 0;
-function renderDefectStars() {
-  const wrap = document.getElementById('defectStars');
-  wrap.innerHTML = [1,2,3,4,5].map(i => `<button class="star-btn ${currentDefectRating >= i ? 'active' : ''}" onclick="setDefectRating(${i})">★</button>`).join('');
-}
-function setDefectRating(n) {
-  currentDefectRating = n;
-  renderDefectStars();
-  document.getElementById('defectRatingLbl').textContent = RATING_LABELS[n];
-}
-
-// ======= SEVERITY =======
-let currentSeverity = 0;
-function setSeverity(n) {
-  currentSeverity = n;
-  document.querySelectorAll('.sev-btn').forEach(b => {
-    b.classList.remove('sel');
-    if(parseInt(b.dataset.s) === n) b.classList.add('sel');
-  });
-}
-
-// ======= PHOTO & ANNOTATION =======
-let currentPhotoDataURL = null;
-let pendingPhotoDataURL = null;
-let annotationHistory = [];
-let scannedChecklistDataURL = null; // New variable for checklist
-
-function handleChecklistUpload(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    scannedChecklistDataURL = e.target.result;
-    document.getElementById('checklistPreviewWrap').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:8px; border:1px solid var(--border);">`;
-  };
-  reader.readAsDataURL(file);
-  event.target.value = '';
-}
-let currentTool = 'circle';
-let isDrawing = false;
-let startX, startY;
-let annotateCtx, annotateCanvas, annotateImg;
-
-function handlePhotoUpload(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    pendingPhotoDataURL = e.target.result;
-    // Show thumb preview
-    const wrap = document.getElementById('photoPreviewWrap');
-    wrap.innerHTML = `<img src="${e.target.result}" class="defect-thumb" onclick="openLightbox('${e.target.result}')">`;
-    // Setup canvas
-    setupAnnotateCanvas(e.target.result);
-    document.getElementById('annotateSection').style.display = 'block';
-    document.getElementById('annotatePrompt').style.display = 'none';
-    currentPhotoDataURL = e.target.result;
-  };
-  reader.readAsDataURL(file);
-  event.target.value = '';
-}
-
-function setupAnnotateCanvas(imgSrc) {
-  annotateCanvas = document.getElementById('annotateCanvas');
-  annotateCtx = annotateCanvas.getContext('2d');
-  const image = new Image();
-  image.onload = () => {
-    const maxW = annotateCanvas.parentElement.clientWidth;
-    const ratio = image.height / image.width;
-    annotateCanvas.width = maxW;
-    annotateCanvas.height = maxW * ratio;
-    annotateCtx.drawImage(image, 0, 0, annotateCanvas.width, annotateCanvas.height);
-    annotateImg = annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height);
-    annotationHistory = [annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height)];
-    setupCanvasEvents();
-  };
-  image.src = imgSrc;
-}
-
-function setupCanvasEvents() {
-  annotateCanvas.removeEventListener('mousedown', canvasMouseDown);
-  annotateCanvas.removeEventListener('mousemove', canvasMouseMove);
-  annotateCanvas.removeEventListener('mouseup', canvasMouseUp);
-  annotateCanvas.removeEventListener('touchstart', canvasTouchStart);
-  annotateCanvas.removeEventListener('touchmove', canvasTouchMove);
-  annotateCanvas.removeEventListener('touchend', canvasTouchEnd);
-  annotateCanvas.addEventListener('mousedown', canvasMouseDown);
-  annotateCanvas.addEventListener('mousemove', canvasMouseMove);
-  annotateCanvas.addEventListener('mouseup', canvasMouseUp);
-  annotateCanvas.addEventListener('touchstart', canvasTouchStart, {passive:false});
-  annotateCanvas.addEventListener('touchmove', canvasTouchMove, {passive:false});
-  annotateCanvas.addEventListener('touchend', canvasTouchEnd);
-}
-
-function getPos(e, canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-}
-
-function canvasMouseDown(e) { isDrawing = true; const p = getPos(e, annotateCanvas); startX=p.x; startY=p.y; if(currentTool==='pen') annotateCtx.beginPath(); }
-function canvasTouchStart(e) { e.preventDefault(); isDrawing = true; const p = getPos(e, annotateCanvas); startX=p.x; startY=p.y; if(currentTool==='pen') annotateCtx.beginPath(); }
-function canvasMouseMove(e) { if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
-function canvasTouchMove(e) { e.preventDefault(); if(!isDrawing) return; const p = getPos(e, annotateCanvas); drawPreview(p.x, p.y); }
-function canvasMouseUp(e) {
-  if(!isDrawing) return; isDrawing=false;
-  const p = getPos(e, annotateCanvas);
-  if(currentTool === 'text') { placeTextOnCanvas(p.x, p.y); return; }
-  finalizeShape(p.x, p.y);
-}
-function canvasTouchEnd(e) {
-  if(!isDrawing) return; isDrawing=false;
-  if(e.changedTouches.length){
-    const p = getPos({clientX:e.changedTouches[0].clientX,clientY:e.changedTouches[0].clientY}, annotateCanvas);
-    if(currentTool === 'text') { placeTextOnCanvas(p.x, p.y); return; }
-    finalizeShape(p.x,p.y);
-  }
-}
-function placeTextOnCanvas(x, y) {
-  const txt = prompt('Enter annotation text:');
-  if(!txt) return;
-  const thickness = parseInt(document.getElementById('annoThickness').value);
-  const fontSize = Math.max(14, thickness * 5);
-  annotateCtx.save();
-  annotateCtx.font = `bold ${fontSize}px sans-serif`;
-  annotateCtx.fillStyle = currentTextColor;
-  annotateCtx.strokeStyle = currentTextColor === '#ffffff' ? '#000' : currentTextColor === '#000000' ? '#fff' : '#333';
-  annotateCtx.lineWidth = 1;
-  annotateCtx.strokeText(txt, x, y);
-  annotateCtx.fillText(txt, x, y);
-  annotateCtx.restore();
-  annotationHistory.push(annotateCtx.getImageData(0,0,annotateCanvas.width,annotateCanvas.height));
-}
-
-function drawPreview(x, y) {
-  const saved = annotationHistory[annotationHistory.length-1];
-  if(!saved) return;
-  annotateCtx.putImageData(saved, 0, 0);
-  const color = document.getElementById('annoColor').value;
-  const thickness = parseInt(document.getElementById('annoThickness').value);
-  annotateCtx.strokeStyle = color;
-  annotateCtx.lineWidth = thickness;
-  annotateCtx.lineCap = 'round';
-  if(currentTool === 'circle') {
-    const rx = Math.abs(x - startX)/2, ry = Math.abs(y - startY)/2;
-    const cx = (startX + x)/2, cy = (startY + y)/2;
-    annotateCtx.beginPath();
-    annotateCtx.ellipse(cx, cy, rx||4, ry||4, 0, 0, 2*Math.PI);
-    annotateCtx.stroke();
-  } else if(currentTool === 'arrow') {
-    drawArrow(annotateCtx, startX, startY, x, y, thickness);
-  } else if(currentTool === 'pen') {
-    annotateCtx.lineTo(x, y);
-    annotateCtx.stroke();
-  }
-}
-function finalizeShape(x, y) {
-  drawPreview(x, y);
-  annotationHistory.push(annotateCtx.getImageData(0, 0, annotateCanvas.width, annotateCanvas.height));
-}
-function drawArrow(ctx, x1, y1, x2, y2, lw) {
-  const hLen = Math.max(10, lw*3);
-  const angle = Math.atan2(y2-y1, x2-x1);
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - hLen*Math.cos(angle-0.4), y2 - hLen*Math.sin(angle-0.4));
-  ctx.lineTo(x2 - hLen*Math.cos(angle+0.4), y2 - hLen*Math.sin(angle+0.4));
-  ctx.closePath();
-  ctx.fillStyle = ctx.strokeStyle;
-  ctx.fill();
-}
-let currentTextColor = '#000000';
-function setTextColor(col) {
-  currentTextColor = col;
-  ['tc_black','tc_white','tc_yellow'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.style.outline = 'none';
-  });
-  const map = {'#000000':'tc_black','#ffffff':'tc_white','#f1c40f':'tc_yellow'};
-  if(map[col]) document.getElementById(map[col]).style.outline = '2px solid var(--tan)';
-}
-function setTool(t) {
-  currentTool = t;
-  document.getElementById('toolCircle')?.classList.remove('active');
-  document.getElementById('toolArrow')?.classList.remove('active');
-  document.getElementById('toolPen')?.classList.remove('active');
-  document.getElementById('toolText')?.classList.remove('active');
-  const map = {circle:'toolCircle', arrow:'toolArrow', pen:'toolPen', text:'toolText'};
-  document.getElementById(map[t])?.classList.add('active');
-}
-function undoAnnotation() {
-  if(annotationHistory.length > 1) {
-    annotationHistory.pop();
-    annotateCtx.putImageData(annotationHistory[annotationHistory.length-1], 0, 0);
-  }
-}
-function clearAnnotations() {
-  if(annotateImg) { annotateCtx.putImageData(annotateImg, 0, 0); annotationHistory = [annotateCtx.getImageData(0,0,annotateCanvas.width,annotateCanvas.height)]; }
-}
-function saveAnnotation() {
-  if(!annotateCanvas) return;
-  currentPhotoDataURL = annotateCanvas.toDataURL('image/jpeg', 0.85);
-  document.getElementById('photoPreviewWrap').innerHTML = `<img src="${currentPhotoDataURL}" class="defect-thumb" onclick="openLightbox('${currentPhotoDataURL}')">`;
-  toast('Annotation saved ✔');
-}
-
-// ======= DEFECT MODAL =======
-function openAddDefectModal(editId) {
-  state.editingId = editId || null;
-  populateLocationDropdown();
-  if(editId) {
-    const d = state.defects.find(x=>x.id===editId);
-    if(d) {
-      document.getElementById('defectModalTitle').textContent = 'Edit Defect Finding';
-      if(d.category) { setCategory(d.category); }
-      setTimeout(() => {
-        document.getElementById('m_group').value = d.group||'';
-        updateDefectTypes();
-        setTimeout(() => {
-          document.getElementById('m_defectType').value = d.defectType||'';
-          document.getElementById('m_location').value = d.location||'';
-          if(d.defectType==='Other (Custom)') { document.getElementById('customDefectRow').style.display='block'; document.getElementById('m_customDefect').value=d.customDefect||''; }
-        }, 10);
-      }, 10);
-      setSeverity(d.severity||0);
-      currentDefectRating = d.rating||0; renderDefectStars();
-      document.getElementById('m_comment').value = d.comment||'';
-      currentPhotoDataURL = d.photo||null;
-      document.getElementById('photoPreviewWrap').innerHTML = d.photo ? `<img src="${d.photo}" class="defect-thumb" onclick="openLightbox('${d.photo}')">` : '';
-      if(d.photo) { document.getElementById('annotateSection').style.display='block'; setupAnnotateCanvas(d.photo); }
-    }
-  } else {
-    document.getElementById('defectModalTitle').textContent = 'Add Defect Finding';
-    currentCategory = '';
-    document.getElementById('catInterior').classList.remove('sel');
-    document.getElementById('catExterior').classList.remove('sel');
-    document.getElementById('m_group').innerHTML = '<option value="">— Select Category First —</option>';
-    document.getElementById('m_location').value = '';
-    document.getElementById('m_defectType').innerHTML = '<option value="">— Select Group First —</option>';
-    document.getElementById('customDefectRow').style.display = 'none';
-    document.getElementById('m_customDefect').value = '';
-    setSeverity(0); document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('sel'));
-    currentDefectRating = 0; renderDefectStars();
-    document.getElementById('m_comment').value = '';
-    document.getElementById('m_commentPrefix').value = '';
-    currentPhotoDataURL = null;
-    document.getElementById('photoPreviewWrap').innerHTML = '';
-    document.getElementById('annotateSection').style.display = 'none';
-  }
-  document.getElementById('defectModal').classList.add('open');
-}
-function closeDefectModal() {
-  document.getElementById('defectModal').classList.remove('open');
-  state.editingId = null;
-}
-function applyPrefix() {
-  const sel = document.getElementById('m_commentPrefix');
-  const opt = sel.options[sel.selectedIndex];
-  const full = opt?.getAttribute('data-full');
-  if(full) {
-    const txt = document.getElementById('m_comment');
-    txt.value = full;
-    txt.focus();
-    txt.setSelectionRange(full.length, full.length);
-  }
-}
-function submitDefect() {
-  const loc = document.getElementById('m_location').value;
-  const dtype = document.getElementById('m_defectType').value;
-  const grpId = document.getElementById('m_group').value;
-  if(!currentCategory) { toast('Please select Interior or Exterior'); return; }
-  if(!grpId) { toast('Please select a group'); return; }
-  if(!dtype) { toast('Please select a defect type'); return; }
-  // Resolve group name
-  const catGroups = INSPECTION_GROUPS[currentCategory]?.groups || [];
-  const grpObj = catGroups.find(g => g.id === grpId);
-  const defect = {
-    id: state.editingId || Date.now().toString(),
-    category: currentCategory,
-    categoryOrder: INSPECTION_GROUPS[currentCategory]?.order || 99,
-    group: grpId,
-    groupName: grpObj ? grpObj.name : grpId,
-    groupOrder: grpObj ? grpObj.order : 99,
-    location: loc,
-    locationName: loc ? getLocationName(loc) : '',
-    locationOrder: loc ? getLocationOrder(loc) : 99,
-    defectType: dtype,
-    customDefect: document.getElementById('m_customDefect').value,
-    severity: currentSeverity,
-    rating: currentDefectRating,
-    comment: document.getElementById('m_comment').value,
-    photo: currentPhotoDataURL,
-    ts: Date.now()
-  };
-  if(state.editingId) {
-    const idx = state.defects.findIndex(x=>x.id===state.editingId);
-    if(idx > -1) state.defects[idx] = defect;
-  } else {
-    state.defects.push(defect);
-  }
-  closeDefectModal();
-  renderDefects();
-  updateSummary();
-  toast(state.editingId ? 'Defect updated ✔' : 'Defect recorded ✔');
-}
-
-// ======= RENDER DEFECTS =======
-function renderDefects() {
-  const list = document.getElementById('defectsList');
-  const empty = document.getElementById('defectsEmpty');
-  const countLbl = document.getElementById('defectCountLabel');
-  const sorted = [...state.defects].sort((a,b) =>
-    (a.categoryOrder||99) - (b.categoryOrder||99) ||
-    (a.groupOrder||99) - (b.groupOrder||99) ||
-    (a.locationOrder||99) - (b.locationOrder||99) ||
-    a.ts - b.ts
-  );
-  countLbl.textContent = sorted.length + ' item' + (sorted.length!==1?'s':'');
-  if(!sorted.length) { list.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display = 'none';
-  list.innerHTML = sorted.map(d => `
-    <div class="defect-item">
-      <div class="defect-header">
-        <div style="flex:1;">
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px;">
-            ${d.category ? `<span style="font-size:0.68rem;font-weight:700;background:var(--grey-dark);color:white;padding:2px 7px;border-radius:5px;text-transform:uppercase;">${d.category}</span>` : ''}
-            ${d.groupName ? `<span style="font-size:0.68rem;font-weight:700;background:var(--tan);color:white;padding:2px 7px;border-radius:5px;">${d.groupName}</span>` : ''}
-            ${d.locationName ? `<span class="defect-location-badge">${d.locationName}</span>` : ''}
-          </div>
-          <div class="defect-name">${d.defectType === 'Other (Custom)' ? d.customDefect : d.defectType}</div>
-        </div>
-        <div class="defect-actions">
-          <button class="icon-btn" onclick="openAddDefectModal('${d.id}')" title="Edit">✏️</button>
-          <button class="icon-btn" onclick="deleteDefect('${d.id}')" title="Delete">🗑️</button>
-        </div>
-      </div>
-      <div class="defect-meta">
-        ${d.severity ? `<span style="display:flex;align-items:center;gap:4px;font-size:0.78rem;font-weight:600;color:${SEVERITY_COLORS[d.severity]};"><span class="severity-dot" style="background:${SEVERITY_COLORS[d.severity]};"></span>Severity ${d.severity} – ${SEVERITY_LABELS[d.severity]}</span>` : ''}
-        ${d.rating ? `<span style="font-size:0.78rem;color:var(--grey);">${d.rating}/5</span>` : ''}
-      </div>
-      ${d.comment ? `<div class="defect-comment">${d.comment}</div>` : ''}
-      ${d.photo ? `<div class="photo-preview-wrap"><img src="${d.photo}" class="defect-thumb" onclick="openLightbox('${d.photo}')"></div>` : ''}
-    </div>`).join('');
-}
-function deleteDefect(id) {
-  if(!confirm('Delete this defect record?')) return;
-  state.defects = state.defects.filter(d=>d.id!==id);
-  renderDefects();
-  updateSummary();
-  toast('Defect removed');
-}
-
-// ======= SUMMARY =======
-function updateSummary() {
-  const total = state.defects.length;
-  const critical = state.defects.filter(d=>d.severity >= 4).length;
-  const groups = new Set(state.defects.map(d=>d.group)).size;
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statCritical').textContent = critical;
-  document.getElementById('statAreas').textContent = groups || state.selectedLocations.length;
-
-  // Sort: Category → Group → Location → timestamp
-  const sorted = [...state.defects].sort((a,b)=>
-    (a.categoryOrder||99)-(b.categoryOrder||99) ||
-    (a.groupOrder||99)-(b.groupOrder||99) ||
-    (a.locationOrder||99)-(b.locationOrder||99) ||
-    a.ts-b.ts
-  );
-
-  // Build 3-level hierarchy: category → group → items
-  const catMap = {};
-  sorted.forEach(d => {
-    const cat = d.category || 'Uncategorised';
-    const catOrd = d.categoryOrder || 99;
-    const grp = d.groupName || d.group || 'General';
-    const grpOrd = d.groupOrder || 99;
-    if(!catMap[cat]) catMap[cat] = { order:catOrd, groups:{} };
-    if(!catMap[cat].groups[grp]) catMap[cat].groups[grp] = { order:grpOrd, items:[] };
-    catMap[cat].groups[grp].items.push(d);
-  });
-
-  const wrap = document.getElementById('summaryGroupsWrap');
-  if(!sorted.length) { wrap.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><p>No defects recorded yet.</p></div>'; return; }
-
-  const catKeys = Object.keys(catMap).sort((a,b)=>catMap[a].order-catMap[b].order);
-  wrap.innerHTML = catKeys.map(cat => {
-    const catData = catMap[cat];
-    const grpKeys = Object.keys(catData.groups).sort((a,b)=>catData.groups[a].order-catData.groups[b].order);
-    return `<div style="margin-bottom:16px;">
-      <div style="background:var(--grey-dark);color:white;padding:10px 16px;border-radius:12px 12px 0 0;font-weight:700;font-size:0.85rem;letter-spacing:0.05em;">
-        ${cat === 'Interior' ? '🏠' : '🌿'} ${cat.toUpperCase()}
-      </div>
-      ${grpKeys.map(grp => {
-        const grpData = catData.groups[grp];
-        return `<div class="section-group" style="border-radius:0;margin-bottom:0;">
-          <div class="section-group-header" style="background:#3e3530;">
-            ${grp} <span style="margin-left:auto;opacity:0.6;">${grpData.items.length} item${grpData.items.length!==1?'s':''}</span>
-          </div>
-          ${grpData.items.map(d => `
-            <div style="padding:11px 14px;border-bottom:1px solid var(--border);">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                <div style="flex:1;">
-                  ${d.locationName ? `<div style="font-size:0.7rem;color:var(--tan-dark);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;">${d.locationName}</div>` : ''}
-                  <div style="font-weight:600;font-size:0.88rem;color:var(--grey-dark);">${d.defectType==='Other (Custom)'?d.customDefect:d.defectType}</div>
-                </div>
-                ${d.severity ? `<span style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:${SEVERITY_COLORS[d.severity]};color:white;white-space:nowrap;">${SEVERITY_LABELS[d.severity]}</span>` : ''}
-              </div>
-              ${d.comment ? `<div style="font-size:0.8rem;color:var(--grey);margin-top:5px;font-style:italic;">${d.comment}</div>` : ''}
-              ${d.rating ? `<div style="font-size:0.76rem;color:var(--grey);margin-top:3px;">Rating: ${d.rating}/5</div>` : ''}
-              ${d.photo ? `<img src="${d.photo}" class="defect-thumb">` : ''}
-            </div>`).join('')}
-        </div>`;
-      }).join('')}
-      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;height:4px;background:var(--tan-light);"></div>
-    </div>`;
-  }).join('');
-}
-
-// ======= LIGHTBOX =======
-function openLightbox(src) {
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
-}
-function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
-
-// ======= SAVE / LOAD =======
-function saveProject() {
-  updateCover();
-  const data = JSON.stringify(state, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const name = state.cover.refno || 'AFH-' + new Date().toISOString().split('T')[0];
-  a.href = url; a.download = name + '.json'; a.click();
-  URL.revokeObjectURL(url);
-  toast('Project saved as ' + name + '.json');
-}
-function loadProject() { document.getElementById('loadFileInput').click(); }
-function loadFromFile(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const loaded = JSON.parse(e.target.result);
-      state = { ...state, ...loaded };
-      // Re-populate form
-      if(state.cover) {
-        const c = state.cover;
-        const fields = ['title','address','proptype','age','owner','contact','date','time','weather','temp','humidity','stage','refno','inspector','cis','company','inspcontact','scope'];
-        fields.forEach(f => { const el = document.getElementById('f_'+f); if(el && c[f]) el.value = c[f]; });
-      }
-      renderLocations();
-      renderOverallStars();
-      renderChecklist();
-      renderDefects();
-      updateSummary();
-      updateCover();
-      toast('Project loaded ✔');
-    } catch(err) { toast('Error loading file'); }
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-}
-
-// ======= PDF GENERATION =======
-Here is the step-by-step guide and the code updates required to implement your requested formatting and features.
-
-You will need to make **three** copy-paste replacements in your `AFH Inspect.html` file.
-
-### Step 1: Add the UI for the Checklist Upload
-
-Find the `<div class="page" id="page-inspect">` section in your HTML. Scroll to the bottom of that section, right before the `</div>` or `<div class="page" id="page-defects">` tag, and paste this new card.
-
-**Find this code:**
-
-```html
-  <div class="card">
-    <div class="card-title">Inspection Checklist</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
-    <div id="checklistWrap"></div>
-  </div>
-</div>
-
-```
-
-**Replace it with this:**
-
-```html
-  <div class="card">
-    <div class="card-title">Inspection Checklist</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
-    <div id="checklistWrap"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Sanitary & Electrical Attachment</div>
-    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Upload a scanned, annotated checklist page to include in the report.</p>
-    <label for="checklistFileInput" class="photo-upload-btn">📄 Upload Scanned Page</label>
-    <input type="file" id="checklistFileInput" accept="image/*,image/jpeg,image/png,application/pdf" onchange="handleChecklistUpload(event)">
-    <div class="photo-preview-wrap" id="checklistPreviewWrap"></div>
-  </div>
-</div>
-
-```
-
----
-
-### Step 2: Add the Javascript for the Checklist File Handler
-
-Find where the photo and annotation variables are declared in the `<script>` section.
-
-**Find this code:**
-
-```javascript
-let currentPhotoDataURL = null;
-let pendingPhotoDataURL = null;
-let annotationHistory = [];
-
-```
-
-**Replace it with this:**
-
-```javascript
-let currentPhotoDataURL = null;
-let pendingPhotoDataURL = null;
-let annotationHistory = [];
-let scannedChecklistDataURL = null; // New variable for checklist
-
-function handleChecklistUpload(event) {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    scannedChecklistDataURL = e.target.result;
-    document.getElementById('checklistPreviewWrap').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:8px; border:1px solid var(--border);">`;
-  };
-  reader.readAsDataURL(file);
-  event.target.value = '';
-}
-
-```
-
----
-
-### Step 3: Replace the `generatePDF()` Function
-
-This completely rewrites the PDF generation to apply your white backgrounds, the new cover format, the tabular defect list, and the appended checklist.
-
-**Find the entire `async function generatePDF() { ... }` block** (it starts around line 1025 and ends around line 1330).
-
-**Replace the entire function with this:**
-
-```javascript
-async function generatePDF() {
-  document.getElementById('pdfLoader').classList.add('open');
-  await new Promise(r => setTimeout(r, 100));
-  try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
-    const W = 210, H = 297;
-    const margin = 15;
-
-    // ---- COVER PAGE ----
-    doc.setFillColor(255,255,255);
-    doc.rect(0, 0, W, H, 'F'); // All white background
-
-    // Main Title: BUILDING DEFECT INSPECTION
-    doc.setFont('times','bold');
-    doc.setFontSize(22);
-    doc.setTextColor(46,46,46);
-    doc.text('BUILDING DEFECT INSPECTION', W/2, 60, {align:'center'});
-
-    // Divider
-    doc.setDrawColor(181,169,154);
-    doc.setLineWidth(0.5);
-    doc.line(margin, 68, W-margin, 68);
-
-    // Sub Title
-    doc.setFont('times','bold');
-    doc.setFontSize(14);
-    const subTitleText = (state.cover.title || 'INSPECTION REPORT').toUpperCase();
-    doc.text(subTitleText, W/2, 78, {align:'center'});
-
-    // Cover info table
-    const infoItems = [
-      ['Property Address', state.cover.address],
-      ['Property Type', state.cover.proptype],
-      ['Building Age', state.cover.age ? state.cover.age + ' years' : null],
-      ['Owner / Client', state.cover.owner],
-      ['Owner Contact', state.cover.contact],
-      ['Inspection Date', state.cover.date],
-      ['Inspection Time', state.cover.time],
-      ['Weather Condition', state.cover.weather],
-      ['Inspection Stage', state.cover.stage],
-      ['Report Reference No.', state.cover.refno],
-      ['Inspector Name', state.cover.inspector],
-    ].filter(r => r[1]);
-
-    let yy = 92;
-    const rowH = 9;
-    doc.setDrawColor(220,212,204);
-    doc.setLineWidth(0.3);
-    doc.rect(margin, yy-6, W-margin*2, infoItems.length * rowH);
-    
-    infoItems.forEach((row, i) => {
-      if(i % 2 === 0) doc.setFillColor(250, 247, 244);
-      else doc.setFillColor(255, 255, 255);
-      doc.rect(margin, yy-6, W-margin*2, rowH, 'F');
+  <div class="main-content">
+
+    <div id="coverTab" class="tab-pane active">
+      <h2>Cover Page</h2>
+      <p class="subtitle">Enter the general parameters and project metadata configuration details below.</p>
       
-      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-      doc.text(row[0].toUpperCase(), margin+3, yy);
+      <div class="card">
+        <h3><i class="fa-solid fa-sliders"></i>General Meta Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Reference Number</label>
+            <input type="text" id="metaRef" placeholder="e.g. AFH-2026-001" oninput="updateCoverField('refno', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Inspection Date</label>
+            <input type="date" id="metaDate" oninput="updateCoverField('date', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Client Name</label>
+            <input type="text" id="metaClient" placeholder="e.g. John Doe" oninput="updateCoverField('client', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Inspector Name</label>
+            <input type="text" id="metaInspector" placeholder="e.g. Alex Harrison" oninput="updateCoverField('inspector', this.value)">
+          </div>
+          <div class="form-group full-width">
+            <label>Property Address</label>
+            <textarea id="metaProperty" placeholder="e.g. No. 12, Jalan Ipoh, 30000 Ipoh, Perak, Malaysia" oninput="updateCoverField('property', this.value)"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="defectsTab" class="tab-pane">
+      <h2>Defect Entries</h2>
+      <p class="subtitle">Log structural, architectural, engineering and general property conditions items.</p>
       
-      doc.setFont('helvetica','normal'); doc.setTextColor(46,46,46);
-      const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
-      doc.text(safeVal, W-margin-3, yy, {align:'right'});
+      <div class="card">
+        <h3><i class="fa-solid fa-square-plus"></i>Add Inspection Entry Item</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Location / Room Zone</label>
+            <input type="text" id="defLocation" placeholder="e.g. Living Room, Master Bedroom">
+          </div>
+          <div class="form-group">
+            <label>Defect Category Class</label>
+            <select id="defCategory">
+              <option value="Interior">Interior Space</option>
+              <option value="Exterior">Exterior Envelope</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Elemental Group / System</label>
+            <input type="text" id="defGroup" placeholder="e.g. Ceiling, Wall, Floor, Doors">
+          </div>
+          <div class="form-group">
+            <label>Defect Type Title</label>
+            <input type="text" id="defType" placeholder="e.g. Hairline Crack, Paint Peeling, Unevenness">
+          </div>
+          <div class="form-group full-width">
+            <label>Severity Rating Classification</label>
+            <select id="defRating">
+              <option value="Low">Low (Minor / Cosmetic)</option>
+              <option value="Medium" selected>Medium (Moderate Action Required)</option>
+              <option value="High">High (Major Fault / Structural Risk)</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label>Inspector Technical Comments / Remarks</label>
+            <textarea id="defComments" placeholder="Describe the severity scope, root source cause or corrective suggestion instructions if required..."></textarea>
+          </div>
+          <div class="form-group full-width photo-upload-container">
+            <label>Defect Photographic Evidence</label>
+            <input type="file" id="defPhotosInput" accept="image/*" multiple style="display:none;" onchange="handleDefectPhotos(event)">
+            <button class="btn btn-secondary" style="align-self: flex-start;" onclick="document.getElementById('defPhotosInput').click()"><i class="fa-solid fa-camera"></i> Capture / Upload Photos</button>
+            <div class="preview-strip" id="defectPhotoPreviewStrip"></div>
+          </div>
+        </div>
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px; text-align: right;">
+          <button class="btn btn-primary" onclick="addNewDefectItem()"><i class="fa-solid fa-plus"></i> Save Defect Entry Row</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fa-solid fa-list-check"></i>Currently Logged Entries (<span id="defectsCountText">0</span>)</h3>
+        <div class="defects-grid" id="defectsListContainer"></div>
+      </div>
+    </div>
+
+    <div id="summaryTab" class="tab-pane">
+      <h2>Summary & Export</h2>
+      <p class="subtitle">Review report data metrics compilation files, attach secondary compliance checklist logs, and compile your master PDF.</p>
       
-      if(i < infoItems.length-1) {
-        doc.setDrawColor(235,228,220); doc.setLineWidth(0.2);
-        doc.line(margin, yy+3, W-margin, yy+3);
-      }
-      yy += rowH;
-    });
+      <div class="card">
+        <h3><i class="fa-solid fa-chart-pie"></i>Inspection Data Analytics compilation</h3>
+        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); text-align: center;">
+          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
+            <div style="font-size:24px; font-weight:700; color:var(--success);" id="statLowCount">0</div>
+            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">Low Faults</div>
+          </div>
+          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
+            <div style="font-size:24px; font-weight:700; color:var(--accent);" id="statMedCount">0</div>
+            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">Medium Faults</div>
+          </div>
+          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
+            <div style="font-size:24px; font-weight:700; color:var(--danger);" id="statHighCount">0</div>
+            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">High Faults</div>
+          </div>
+        </div>
+      </div>
 
-    addPageFooter(doc, W, H, margin, state.cover.refno);
-    
-    // ---- REPORT GUIDE PAGE ----
-    doc.addPage();
-    doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
-    doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(255,255,255);
-    doc.text('REPORT GUIDE & LEGEND', margin, 11);
+      <div class="card">
+        <h3><i class="fa-solid fa-paperclip"></i>Sanitary & Electrical Installation Checklist Attachment</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
+          Upload a scanned page or annotated image copy of your compliance matrix checklist (e.g., exported via iOS Notes). This will automatically be scale-rendered onto a dedicated standalone full-size layout sheet placed precisely right before the master report statistics dashboard block.
+        </p>
+        <div style="background:#161616; padding: 20px; border-radius: 8px; border: 1px dashed var(--border-color); text-align: center;">
+          <input type="file" id="checklistUploadField" accept="image/*" style="display: none;" onchange="processChecklistUpload(event)">
+          <button class="btn btn-secondary" onclick="document.getElementById('checklistUploadField').click()">
+            <i class="fa-solid fa-file-arrow-up"></i> Choose Checklist Scanned Image
+          </button>
+          <div id="checklistPreviewBox" style="margin-top: 16px; display: none;">
+            <img id="checklistPreviewImg" src="" alt="Checklist Scanned File Sheet Grid Preview Thumbnail" style="max-width: 100%; max-height: 240px; border-radius: 6px; border: 1px solid var(--border-color); padding: 4px; background: #fff;">
+            <button class="btn btn-danger" style="margin: 12px auto 0 auto; padding: 6px 14px; font-size: 12px; display: flex;" onclick="clearChecklistUploadItem()">
+              <i class="fa-solid fa-trash-can"></i> Discard Checklist File
+            </button>
+          </div>
+        </div>
+      </div>
 
-    let gy = 30;
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
-    doc.text('HOW TO READ THE DEFECT TABLE', margin, gy); gy+=8;
-    
-    const howTo = [
-      ['Table Structure', 'Defects are formatted in columns by Location, Group, Defect Type, Rating, and Photo.'],
-      ['Inspector Comments', 'Specific remarks or recommendations are placed in italics directly below the defect type.'],
-      ['Severity & Rating', 'Severity indicates urgency (1=Minor to 5=Critical). Rating indicates workmanship (1=Poor to 5=Excellent).'],
-    ];
-    howTo.forEach(([label, text]) => {
-      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(46,46,46);
-      doc.text(label + ':', margin, gy);
-      doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-      const lines = doc.splitTextToSize(text, W-margin*2-25);
-      lines.forEach(ln => { doc.text(ln, margin+25, gy); gy+=5; });
-      gy += 2;
-    });
+      <div style="text-align: center; margin-top: 32px; margin-bottom: 40px;">
+        <button class="btn btn-primary" style="padding: 16px 40px; font-size: 16px; width: 100%; box-shadow: 0 4px 14px rgba(212,175,55,0.25);" onclick="buildReportPDF()">
+          <i class="fa-solid fa-file-pdf"></i> Generate Professional Report Document
+        </button>
+      </div>
+    </div>
 
-    addPageFooter(doc, W, H, margin, state.cover.refno);
+  </div>
 
-    // ---- DEFECT TABLE PAGES ----
-    const drawTableHeader = (yPos) => {
-      doc.setFillColor(46,46,46);
-      doc.rect(margin, yPos, W-margin*2, 10, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-      doc.text('LOCATION', margin+2, yPos+6);
-      doc.text('GROUP', margin+32, yPos+6);
-      doc.text('DEFECT TYPE & COMMENTS', margin+62, yPos+6);
-      doc.text('RATING', margin+122, yPos+6);
-      doc.text('PHOTO', margin+147, yPos+6);
-      return yPos + 10;
+  <div class="loader-overlay" id="pdfLoader">
+    <div class="spinner"></div>
+    <div style="color: #fff; font-size: 14px; font-weight: 500;" id="loaderStatusMessageText">Generating inspection report compilation files...</div>
+  </div>
+
+  <div class="toast" id="toastNotificationBar"></div>
+
+  <script>
+    // Initialize Master Runtime State Data Array Vector
+    let state = {
+      cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection' },
+      defects: [],
+      checklistImage: null
     };
 
-    const pdfSorted = [...state.defects].sort((a,b)=>
-      (a.locationOrder||99)-(b.locationOrder||99)||
-      (a.groupOrder||99)-(b.groupOrder||99)||
-      a.ts-b.ts
-    );
+    // Buffer array holding base64 strings of currently staging photos for active input session
+    let internalStagingPhotos = [];
 
-    if (pdfSorted.length > 0) {
-      doc.addPage();
-      doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F'); // White bg
-      doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
-      doc.text('DEFECT FINDINGS', margin, 11);
+    // On Load Initialization Lifecycle Event Linkage Hook
+    window.addEventListener('DOMContentLoaded', () => {
+      syncLoadStateFromLocalStorageStore();
+    });
 
-      let y = 25;
-      y = drawTableHeader(y);
-
-      for (let i = 0; i < pdfSorted.length; i++) {
-        const d = pdfSorted[i];
-        
-        // Calculate text lines for row height
-        doc.setFontSize(8);
-        const locLines = doc.splitTextToSize(d.locationName || '-', 26);
-        const grpLines = doc.splitTextToSize(d.groupName || d.group || '-', 26);
-        const typeStr = d.defectType === 'Other (Custom)' ? (d.customDefect||'-') : (d.defectType||'-');
-        const typeLines = doc.splitTextToSize(typeStr, 56);
-        const commentLines = d.comment ? doc.splitTextToSize(d.comment, 56) : [];
-
-        // Required Height Calculation
-        const textH = Math.max(
-          locLines.length * 4.5,
-          grpLines.length * 4.5,
-          (typeLines.length * 4.5) + (commentLines.length > 0 ? (commentLines.length * 4.5) + 3 : 0)
-        ) + 6;
-        
-        const photoSize = 28; // 1:1 ratio uniform size in mm
-        const rowH = Math.max(textH, d.photo ? photoSize + 6 : 0);
-
-        // Page Break Logic (Retain Header)
-        if (y + rowH > H - 20) {
-          addPageFooter(doc, W, H, margin, state.cover.refno);
-          doc.addPage();
-          doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
-          doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-          doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
-          doc.text('DEFECT FINDINGS (CONT.)', margin, 11);
-          y = 25;
-          y = drawTableHeader(y);
-        }
-
-        // Draw Row Boundaries
-        doc.setDrawColor(220,220,220); doc.setLineWidth(0.2);
-        doc.line(margin, y+rowH, W-margin, y+rowH); // Bottom line
-
-        // Draw Texts
-        doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
-        doc.text(locLines, margin+2, y+5);
-        doc.text(grpLines, margin+32, y+5);
-
-        doc.setFont('helvetica','bold'); doc.setTextColor(46,46,46);
-        doc.text(typeLines, margin+62, y+5);
-        
-        if (commentLines.length > 0) {
-          doc.setFont('helvetica','italic'); doc.setTextColor(100,100,100);
-          doc.text(commentLines, margin+62, y+5 + (typeLines.length * 4.5) + 1);
-        }
-
-        doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
-        let rY = y+5;
-        if(d.rating) { doc.text(`R: ${d.rating}/5`, margin+122, rY); rY+=5; }
-        if(d.severity) { doc.text(`Sev: ${d.severity}`, margin+122, rY); }
-
-        // Draw Photo 1:1 Scale
-        if (d.photo) {
-          try {
-            // Drawn strictly as a square to satisfy uniform 1:1 scale requirement
-            doc.addImage(d.photo, 'JPEG', margin+147, y+3, photoSize, photoSize);
-          } catch(e) {}
-        }
-
-        y += rowH;
-      }
-      addPageFooter(doc, W, H, margin, state.cover.refno);
-    }
-
-    // ---- SANITARY & ELECTRICAL CHECKLIST PAGE (Before Summary) ----
-    if (scannedChecklistDataURL) {
-      doc.addPage();
-      doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
-      doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
-      doc.text('SANITARY & ELECTRICAL ATTACHMENT', margin, 11);
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
       
-      try {
-        const chkImg = new Image(); chkImg.src = scannedChecklistDataURL;
-        await new Promise(r => { chkImg.onload=r; chkImg.onerror=r; });
-        if(chkImg.complete && chkImg.naturalWidth > 0) {
-          const maxW = W - margin*2;
-          const maxH = H - 35;
-          const ratio = Math.min(maxW / chkImg.naturalWidth, maxH / chkImg.naturalHeight);
-          const iw = chkImg.naturalWidth * ratio;
-          const ih = chkImg.naturalHeight * ratio;
-          doc.addImage(chkImg, 'JPEG', margin + (maxW-iw)/2, 22, iw, ih);
+      if(tabId === 'cover') {
+        document.querySelector('.nav-tabs .nav-item:nth-child(1)').classList.add('active');
+        document.getElementById('coverTab').classList.add('active');
+      } else if(tabId === 'defects') {
+        document.querySelector('.nav-tabs .nav-item:nth-child(2)').classList.add('active');
+        document.getElementById('defectsTab').classList.add('active');
+        rebuildUIDefectsListMatrix();
+      } else if(tabId === 'summary') {
+        document.querySelector('.nav-tabs .nav-item:nth-child(3)').classList.add('active');
+        document.getElementById('summaryTab').classList.add('active');
+        calculateSummaryAnalyticsMetrics();
+      }
+    }
+
+    function triggerToastAlertMessage(msg) {
+      const toast = document.getElementById('toastNotificationBar');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    }
+
+    function syncSaveStateToLocalStorageStore() {
+      localStorage.setItem('afh_inspect_state_v2', JSON.stringify(state));
+    }
+
+    function syncLoadStateFromLocalStorageStore() {
+      const stored = localStorage.getItem('afh_inspect_state_v2');
+      if (stored) {
+        try {
+          state = JSON.parse(stored);
+          
+          // Populate cover form inputs UI
+          document.getElementById('metaRef').value = state.cover.refno || '';
+          document.getElementById('metaDate').value = state.cover.date || '';
+          document.getElementById('metaClient').value = state.cover.client || '';
+          document.getElementById('metaInspector').value = state.cover.inspector || '';
+          document.getElementById('metaProperty').value = state.cover.property || '';
+          
+          if (state.checklistImage) {
+            document.getElementById('checklistPreviewImg').src = state.checklistImage;
+            document.getElementById('checklistPreviewBox').style.display = 'block';
+          }
+        } catch (e) {
+          console.error("Local data ingestion fault context breakdown:", e);
         }
-      } catch(e) {}
-      addPageFooter(doc, W, H, margin, state.cover.refno);
+      }
     }
 
-    // ---- SUMMARY PAGE ----
-    doc.addPage();
-    doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
-    doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
-    doc.text('INSPECTION SUMMARY & STATISTICS', margin, 11);
-
-    const totalD = state.defects.length;
-    const critD = state.defects.filter(d=>d.severity>=4).length;
-    
-    let sy = 30;
-    const statCols = [
-      ['Total Defects', totalD, '#636363'],
-      ['Critical / Serious', critD, '#c0392b'],
-    ];
-    let sx = margin;
-    statCols.forEach(col => {
-      const cw = 60;
-      doc.setDrawColor(200,200,200); doc.setLineWidth(0.5);
-      doc.roundedRect(sx, sy, cw, 22, 2,2,'D');
-      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(46,46,46);
-      doc.text(col[1].toString(), sx + cw/2, sy+12, {align:'center'});
-      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-      doc.text(col[0], sx + cw/2, sy+18, {align:'center'});
-      sx += cw + 10;
-    });
-
-    sy += 40;
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
-    doc.text('DEFECTS BY AREA', margin, sy); sy+=6;
-    doc.setDrawColor(210,200,190); doc.setLineWidth(0.2); doc.line(margin,sy,W-margin,sy); sy+=5;
-
-    const grpCounts = {};
-    state.defects.forEach(d => {
-      const key = d.locationName || 'General Area';
-      grpCounts[key] = (grpCounts[key]||0) + 1;
-    });
-    const grpEntries = Object.entries(grpCounts).sort((a,b)=>b[1]-a[1]);
-    grpEntries.forEach(([grp, cnt]) => {
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
-      doc.text(grp, margin, sy);
-      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(80,80,80);
-      doc.text(cnt.toString(), W-margin, sy, {align:'right'});
-      sy += 8;
-    });
-
-    if(state.overallRating) {
-      sy += 10;
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
-      doc.text('OVERALL QUALITY RATING', margin, sy); sy+=7;
-      doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(240,165,0);
-      doc.text('[' + state.overallRating + ' / 5]', margin, sy);
-      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(100,100,100);
-      doc.text(RATING_LABELS[state.overallRating], margin + 28, sy);
+    function updateCoverField(key, val) {
+      state.cover[key] = val;
+      syncSaveStateToLocalStorageStore();
     }
 
-    addPageFooter(doc, W, H, margin, state.cover.refno);
+    // Process Photographic File Array Selection Buffering Pipeline
+    function handleDefectPhotos(event) {
+      const files = Array.from(event.target.files);
+      if(!files.length) return;
 
-    // Save
-    const filename = (state.cover.refno||'AFH-Report') + '_' + (state.cover.date||new Date().toISOString().split('T')[0]) + '.pdf';
-    doc.save(filename);
-    toast('PDF saved: ' + filename);
-  } catch(err) {
-    console.error(err);
-    toast('PDF generation error: ' + err.message);
-  }
-  document.getElementById('pdfLoader').classList.remove('open');
-}
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          // Process image using HTML5 Canvas to safely scale/compress data footprint
+          const img = new Image();
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            // Maintain layout parity compression bounds square/rect size optimization
+            let maxW = 800;
+            let maxH = 800;
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > height) {
+              if (width > maxW) { height *= maxW / width; width = maxW; }
+            } else {
+              if (height > maxH) { width *= maxH / height; height = maxH; }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            internalStagingPhotos.push(compressedBase64);
+            rebuildStagingPhotosThumbStrip();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+      event.target.value = ''; // flush input field frame loop anchor bounds
+    }
 
-function addPageFooter(doc, W, H, margin, refno) {
-  doc.setFillColor(46,46,46);
-  doc.rect(0, H-10, W, 10, 'F');
-  doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(120,120,120);
-  doc.text('AF Home Inspection  ·  Professional Inspection Report  ·  ' + (refno||''), W/2, H-4, {align:'center'});
-}
+    function rebuildStagingPhotosThumbStrip() {
+      const container = document.getElementById('defectPhotoPreviewStrip');
+      container.innerHTML = '';
+      internalStagingPhotos.forEach((base64, index) => {
+        const div = document.createElement('div');
+        div.className = 'preview-thumb';
+        div.innerHTML = `
+          <img src="${base64}">
+          <button class="remove-img-btn" onclick="removeStagingPhotoIndex(${index})"><i class="fa-solid fa-xmark"></i></button>
+        `;
+        container.appendChild(div);
+      });
+    }
 
-function hexToRgb(hex) {
-  const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return r ? { r:parseInt(r[1],16), g:parseInt(r[2],16), b:parseInt(r[3],16) } : null;
-}
+    function removeStagingPhotoIndex(idx) {
+      internalStagingPhotos.splice(idx, 1);
+      rebuildStagingPhotosThumbStrip();
+    }
 
-// ======= TOAST =======
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2600);
-}
+    function addNewDefectItem() {
+      const loc = document.getElementById('defLocation').value.trim();
+      const cat = document.getElementById('defCategory').value;
+      const grp = document.getElementById('defGroup').value.trim();
+      const typ = document.getElementById('defType').value.trim();
+      const rat = document.getElementById('defRating').value;
+      const com = document.getElementById('defComments').value.trim();
 
-// ======= FAB visibility control by tab =======
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('mainFab').style.display = 'flex';
-});
-</script>
+      if(!loc || !grp || !typ) {
+        triggerToastAlertMessage("Validation Fault: Location, Group, and Defect Type fields required.");
+        return;
+      }
 
+      const newItem = {
+        id: Date.now() + Math.random().toString(36).substr(2, 5),
+        location: loc,
+        category: cat,
+        group: grp,
+        defectType: typ,
+        rating: rat,
+        comments: com,
+        photos: [...internalStagingPhotos]
+      };
+
+      state.defects.push(newItem);
+      syncSaveStateToLocalStorageStore();
+      
+      // Flush Active Entry Fields Form Content State Variables Block Loop
+      document.getElementById('defLocation').value = '';
+      document.getElementById('defGroup').value = '';
+      document.getElementById('defType').value = '';
+      document.getElementById('defComments').value = '';
+      internalStagingPhotos = [];
+      document.getElementById('defectPhotoPreviewStrip').innerHTML = '';
+      
+      rebuildUIDefectsListMatrix();
+      triggerToastAlertMessage("Defect row logged successfully.");
+    }
+
+    function removeDefectItem(id) {
+      state.defects = state.defects.filter(item => item.id !== id);
+      syncSaveStateToLocalStorageStore();
+      rebuildUIDefectsListMatrix();
+      triggerToastAlertMessage("Defect item deleted.");
+    }
+
+    function rebuildUIDefectsListMatrix() {
+      document.getElementById('defectsCountText').innerText = state.defects.length;
+      const container = document.getElementById('defectsListContainer');
+      container.innerHTML = '';
+
+      if(!state.defects.length) {
+        container.innerHTML = `<div style="text-align:center; padding:32px; color:var(--text-muted); font-size:13px; font-style:italic;">No structural or architectural defect listings logged currently.</div>`;
+        return;
+      }
+
+      // Render items ordered directly by creation timing logic framework map
+      state.defects.forEach((d) => {
+        const item = document.createElement('div');
+        item.className = 'defect-item';
+        
+        let photoThumbnailsHtml = '';
+        if(d.photos && d.photos.length) {
+          photoThumbnailsHtml = `<div class="defect-photos-preview">`;
+          d.photos.forEach(p => { photoThumbnailsHtml += `<img src="${p}">`; });
+          photoThumbnailsHtml += `</div>`;
+        }
+
+        item.innerHTML = `
+          <div class="defect-info">
+            <h4>${d.location} &mdash; ${d.group} : <span style="color:var(--accent);">${d.defectType}</span></h4>
+            <p style="margin-top:4px;"><span class="defect-badge badge-${d.rating.toLowerCase()}">${d.rating}</span> <span style="color:#888; font-size:12px; margin-left:8px;">Scope Class: ${d.category}</span></p>
+            ${d.comments ? `<p style="font-style:italic; margin-top:8px; color:#ccc; background:#222; padding:8px; border-radius:4px; font-size:12.5px;">&ldquo; ${d.comments} &rdquo;</p>` : ''}
+            ${photoThumbnailsHtml}
+          </div>
+          <button class="btn btn-danger" style="padding: 8px 12px; shrink:0;" onclick="removeDefectItem('${d.id}')"><i class="fa-solid fa-trash-can"></i></button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function calculateSummaryAnalyticsMetrics() {
+      let low = 0, med = 0, high = 0;
+      state.defects.forEach(d => {
+        if(d.rating === 'Low') low++;
+        else if(d.rating === 'Medium') med++;
+        else if(d.rating === 'High') high++;
+      });
+      document.getElementById('statLowCount').innerText = low;
+      document.getElementById('statMedCount').innerText = med;
+      document.getElementById('statHighCount').innerText = high;
+    }
+
+    // Secondary Binary Attachment Handler Matrix: Scanned Image Page Parser
+    function processChecklistUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          // Scale bounds set slightly wider/higher to maximize document clarity profiles
+          let maxDimension = 1600; 
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
+          } else {
+            if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          state.checklistImage = canvas.toDataURL('image/jpeg', 0.85);
+          document.getElementById('checklistPreviewImg').src = state.checklistImage;
+          document.getElementById('checklistPreviewBox').style.display = 'block';
+          syncSaveStateToLocalStorageStore();
+          triggerToastAlertMessage("Scanned checklist document attachment loaded.");
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearChecklistUploadItem() {
+      state.checklistImage = null;
+      document.getElementById('checklistUploadField').value = '';
+      document.getElementById('checklistPreviewImg').src = '';
+      document.getElementById('checklistPreviewBox').style.display = 'none';
+      syncSaveStateToLocalStorageStore();
+      triggerToastAlertMessage("Checklist document link decoupled.");
+    }
+
+    /* ================================================================================
+      PDF RENDERING CORE COMPLIANCE ENGINE
+      ================================================================================
+      Specifications Fulfilled:
+      - All White Page Background Document Flow Architecture.
+      - Retains exact header and footer drawing formatting logic layouts.
+      - Removed last client/inspector signatory sections blocks completely.
+      - Cover Page changes: Stripped logo and company text string; renders optimized 
+        bold header string: 'BUILDING DEFECT INSPECTION'.
+      - Table Columns Layout Array: ['location', 'Group', 'defect type', 'rating', 'Photos']
+      - Complex Sort Hierarchy Ordering: Location -> Group -> Defect Type.
+      - Conditional inspector comments injection nested inside Column 3 using *Italics*.
+      - Skips 'Category' string completely from compilation tables.
+      - Automatically forces all photographic cell attachments into strict uniform 1:1 squares.
+      - Re-evaluates exact row height bounds metrics dynamic text lines wrapping to 
+        safely re-render the master table headers on cross-page overflows.
+      - Appends dedicated checklist scan sheets page full scale directly before summary block.
+    */
+    async function buildReportPDF() {
+      document.getElementById('pdfLoader').classList.add('open');
+      // Yield control loop thread sequentially to ensure DOM loader animation rendering frames execute
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      try {
+        const { jsPDF } = window.jspdf;
+        // Standard Portrait A4 Coordinate Frame System Framework Bounds Map: 210mm x 297mm
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const W = doc.internal.pageSize.getWidth();
+        const H = doc.internal.pageSize.getHeight();
+        const margin = 15;
+
+        // ----------------------------------------------------------------------
+        // PHASE 1: MASTER COVER PAGE RENDERING (All White Background Minimalist Structure)
+        // ----------------------------------------------------------------------
+        // Draw document main layout banner title strings (Replaces Logo and Company Name text)
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(28);
+        doc.setTextColor(30, 30, 30);
+        doc.text('BUILDING DEFECT INSPECTION', margin, 55);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(12);
+        doc.setTextColor(110, 110, 110);
+        doc.text('PROFESSIONAL COMPREHENSIVE PROPERTY CONDITION REPORT', margin, 64);
+
+        // Accent layout delimiter horizontal rule separator line vector
+        doc.setDrawColor(46, 46, 46);
+        doc.setLineWidth(0.75);
+        doc.line(margin, 72, W - margin, 72);
+
+        // Metadata structural data block rendering matrix
+        let sy = 120;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        doc.text('REPORT METADATA PARAMETERS', margin, sy);
+
+        doc.setDrawColor(230, 230, 230);
+        doc.setLineWidth(0.25);
+        doc.line(margin, sy + 3, W - margin, sy + 3);
+
+        sy += 14;
+        const metaFieldsBlock = [
+          { label: 'Reference No:', val: state.cover.refno || '__________' },
+          { label: 'Inspection Date:', val: state.cover.date || '__________' },
+          { label: 'Client Profile:', val: state.cover.client || '__________' },
+          { label: 'Property Scope:', val: state.cover.property || '__________' },
+          { label: 'Lead Inspector:', val: state.cover.inspector || '__________' }
+        ];
+
+        metaFieldsBlock.forEach(item => {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(10);
+          doc.setTextColor(80, 80, 80);
+          doc.text(item.label, margin, sy);
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(30, 30, 30);
+
+          if (item.label === 'Property Scope:') {
+            const wrapPropertyLines = doc.splitTextToSize(item.val, W - margin - 55);
+            let wrapY = sy;
+            wrapPropertyLines.forEach((line, lineIndex) => {
+              doc.text(line, margin + 40, wrapY);
+              if (lineIndex < wrapPropertyLines.length - 1) wrapY += 5;
+            });
+            sy = wrapY + 10;
+          } else {
+            doc.text(item.val, margin + 40, sy);
+            sy += 9;
+          }
+        });
+
+        // Add standard master document bottom structural block footer asset
+        appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+
+        // ----------------------------------------------------------------------
+        // PHASE 2: DEFECT ENTRIES COMPILATION GRID TABLE MODULE RENDERING
+        // ----------------------------------------------------------------------
+        if (state.defects && state.defects.length > 0) {
+          
+          // Execute multi-tier alphanumeric relational sort algorithm sequence structure
+          const tabularSortedDefects = [...state.defects].sort((a, b) => {
+            const locCompare = (a.location || '').localeCompare(b.location || '', undefined, {numeric: true, sensitivity: 'base'});
+            if (locCompare !== 0) return locCompare;
+
+            const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, {numeric: true, sensitivity: 'base'});
+            if (grpCompare !== 0) return grpCompare;
+
+            return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
+          });
+
+          // Add secondary page to initialize matrix table generation
+          doc.addPage();
+          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(16);
+          doc.setTextColor(30, 30, 30);
+          doc.text('Defect Analysis Log Sheet Grid', margin, 22);
+
+          let currentTableY = 28;
+          // Exact dimensional spacing map layout bounds allocation sizing constraints matching W=180mm net printable space
+          const tableColumnWidthAllocations = { location: 26, group: 30, defectType: 64, rating: 20, photos: 40 };
+          const netTablePrintableWidth = 180;
+          
+          const columnXCoordinates = {
+            location: margin,
+            group: margin + tableColumnWidthAllocations.location,
+            defectType: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group,
+            rating: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group + tableColumnWidthAllocations.defectType,
+            photos: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group + tableColumnWidthAllocations.defectType + tableColumnWidthAllocations.rating
+          };
+
+          // Inner lambda closure encapsulating functional header re-rendering math mechanics
+          const executeTableHeaderDrawingRoutine = (yPosition) => {
+            doc.setFillColor(46, 46, 46); // Retain original matching core structural background color hue signatures
+            doc.rect(margin, yPosition, netTablePrintableWidth, 8, 'F');
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8.5);
+            doc.setTextColor(255, 255, 255);
+
+            doc.text('Location', columnXCoordinates.location + 2, yPosition + 5.5);
+            doc.text('Group', columnXCoordinates.group + 2, yPosition + 5.5);
+            doc.text('Defect Type', columnXCoordinates.defectType + 2, yPosition + 5.5);
+            doc.text('Rating', columnXCoordinates.rating + 2, yPosition + 5.5);
+            doc.text('Photos', columnXCoordinates.photos + 2, yPosition + 5.5);
+            
+            return yPosition + 8;
+          };
+
+          // Initial invocation on entry sheet page initialization point
+          currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
+
+          // Iterate sorted structural inspection elements data sequence vectors
+          for (const d of tabularSortedDefects) {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+
+            // Compute lines wrapping constraints for multi-line layout blocks calculations
+            const parsedLocLines = doc.splitTextToSize(d.location || '', tableColumnWidthAllocations.location - 4);
+            const parsedGrpLines = doc.splitTextToSize(d.group || '', tableColumnWidthAllocations.group - 4);
+            const parsedRatLines = doc.splitTextToSize(d.rating || '', tableColumnWidthAllocations.rating - 4);
+            
+            const parsedDefTypeTitleLines = doc.splitTextToSize(d.defectType || '', tableColumnWidthAllocations.defectType - 4);
+            const rawInspectorCommentsText = d.comments || '';
+            const parsedCommentsItalicLines = rawInspectorCommentsText ? doc.splitTextToSize(rawInspectorCommentsText, tableColumnWidthAllocations.defectType - 4) : [];
+
+            // Compute height allocations requirements needed for Column 3 Text Blocks
+            const textLineStepSpacing = 4.0;
+            let totalColumnThreeTextHeight = parsedDefTypeTitleLines.length * textLineStepSpacing + 4; // Add baseline padding element bounds
+            if (parsedCommentsItalicLines.length > 0) {
+              totalColumnThreeTextHeight += (parsedCommentsItalicLines.length * 3.6) + 2; // Incremental spacing allocation parameter for comments section
+            }
+
+            // Compute layout size demands metrics calculations for square multi-photos rendering columns
+            const uniformSquareImageThumbnailSize = 16; 
+            const imagesCount = d.photos ? d.photos.length : 0;
+            const computedPhotoRowsNeeded = Math.ceil(imagesCount / 2); // Split layout matching 2 structural matrix cards side-by-side
+            const totalPhotosColumnHeightNeeded = computedPhotoRowsNeeded > 0 ? (computedPhotoRowsNeeded * (uniformSquareImageThumbnailSize + 2.5) + 3.5) : 6;
+
+            // Determine absolute row height peak allocation ceiling constraint dimension parameters
+            const baselineCalculatedRowCellHeight = Math.max(
+              parsedLocLines.length * textLineStepSpacing + 4,
+              parsedGrpLines.length * textLineStepSpacing + 4,
+              totalColumnThreeTextHeight,
+              parsedRatLines.length * textLineStepSpacing + 4,
+              totalPhotosColumnHeightNeeded
+            );
+
+            // Hard page break limit metric tracking analysis check (276mm leaves precise structural space margins for bottom footers)
+            if (currentTableY + baselineCalculatedRowCellHeight > 276) {
+              // Seal open active table bottom baseline vector edge layout path line prior to sheet transition jump operations
+              doc.setDrawColor(210, 210, 210);
+              doc.setLineWidth(0.2);
+              doc.line(margin, currentTableY, margin + netTablePrintableWidth, currentTableY);
+
+              doc.addPage();
+              appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+              
+              // Reset baseline index position tracking metrics context variable constraints definitions bounds coordinates
+              currentTableY = 20; 
+              currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
+            }
+
+            // Draw structural cell bounding box dividers lines wireframe grid layout profile outline vectors
+            doc.setDrawColor(210, 210, 210);
+            doc.setLineWidth(0.2);
+            
+            // Draw baseline cross bounding edge line segments row trace anchors
+            doc.line(margin, currentTableY + baselineCalculatedRowCellHeight, margin + netTablePrintableWidth, currentTableY + baselineCalculatedRowCellHeight);
+            
+            // Draw row side vertical divider lines columns boundaries vectors
+            doc.line(columnXCoordinates.location, currentTableY, columnXCoordinates.location, currentTableY + baselineCalculatedRowCellHeight);
+            doc.line(columnXCoordinates.group, currentTableY, columnXCoordinates.group, currentTableY + baselineCalculatedRowCellHeight);
+            doc.line(columnXCoordinates.defectType, currentTableY, columnXCoordinates.defectType, currentTableY + baselineCalculatedRowCellHeight);
+            doc.line(columnXCoordinates.rating, currentTableY, columnXCoordinates.rating, currentTableY + baselineCalculatedRowCellHeight);
+            doc.line(columnXCoordinates.photos, currentTableY, columnXCoordinates.photos, currentTableY + baselineCalculatedRowCellHeight);
+            doc.line(columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY, columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY + baselineCalculatedRowCellHeight);
+
+            // Populate row cell content data text segments blocks tracking positioning metrics
+            doc.setTextColor(30, 30, 30);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+
+            // Column 1: Location Field Row Population
+            let textPrintYCursor = currentTableY + 4.5;
+            parsedLocLines.forEach(line => { doc.text(line, columnXCoordinates.location + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
+
+            // Column 2: Elemental Group Field Row Population
+            textPrintYCursor = currentTableY + 4.5;
+            parsedGrpLines.forEach(line => { doc.text(line, columnXCoordinates.group + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
+
+            // Column 3: Defect Type Title + Nested Italic Inspector Comments
+            textPrintYCursor = currentTableY + 4.5;
+            parsedDefTypeTitleLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
+
+            if (parsedCommentsItalicLines.length > 0) {
+              textPrintYCursor += 0.5; // Inject subtle line element padding trace
+              doc.setFont('helvetica', 'italic');
+              doc.setFontSize(7.5);
+              doc.setTextColor(100, 100, 100); // Shift text contrast signature shade profiles slightly lower for italic comments
+              parsedCommentsItalicLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += 3.4; });
+            }
+
+            // Column 4: Severity Rating Level Population
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            // Apply contextual color highlights directly onto raw alphanumeric severity tags matches
+            if(d.rating === 'High') doc.setTextColor(190, 40, 60);
+            else if(d.rating === 'Medium') doc.setTextColor(180, 130, 20);
+            else doc.setTextColor(20, 140, 120);
+            
+            textPrintYCursor = currentTableY + 4.5;
+            parsedRatLines.forEach(line => { doc.text(line, columnXCoordinates.rating + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
+
+            // Column 5: Photos Subgrid Processing Engine System Vector Module (Strict 1:1 Squares)
+            if (d.photos && d.photos.length > 0) {
+              d.photos.forEach((base64ImageElementDataString, imageIndex) => {
+                const rowPositionIndex = Math.floor(imageIndex / 2);
+                const columnPositionIndex = imageIndex % 2;
+                
+                const drawTargetCoordinateX = columnXCoordinates.photos + 2.5 + columnPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
+                const drawTargetCoordinateY = currentTableY + 3 + rowPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
+
+                try {
+                  doc.addImage(base64ImageElementDataString, 'JPEG', drawTargetCoordinateX, drawTargetCoordinateY, uniformSquareImageThumbnailSize, uniformSquareImageThumbnailSize, undefined, 'FAST');
+                } catch (imageInclusionError) {
+                  console.error("Critical image matrix draw bypass exception tracking context logs loop:", imageInclusionError);
+                }
+              });
+            }
+
+            // Progress active table vertical page positioning track loop reference variable pointers
+            currentTableY += baselineCalculatedRowCellHeight;
+          }
+        } else {
+          // Fallback context structure processing execution if zero defects are logged in database vectors
+          doc.addPage();
+          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(10);
+          doc.setTextColor(120, 120, 120);
+          doc.text('No core element property defects logged during this structural inspection timeline.', margin, 40);
+        }
+
+        // ----------------------------------------------------------------------
+        // PHASE 3: DEDICATED FULL PAGE SCANNED CHECKLIST IMAGE ATTACHMENT SHEET
+        // ----------------------------------------------------------------------
+        // Executes exactly right before the statistics summary analytics visualization sheet blocks
+        if (state.checklistImage) {
+          doc.addPage();
+          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(14);
+          doc.setTextColor(30, 30, 30);
+          doc.text('Sanitary & Electrical Installation Checklist', margin, 22);
+
+          // Compute absolute maximal aspect scaling layout boundaries matrices inside active report sheet page framework constraints
+          const maximalAvailableContentWidth = W - (margin * 2); // 180mm
+          const maximalAvailableContentHeight = H - 42; // Leaves explicit structural room allocations for header labels and footers elements
+          
+          try {
+            // Draw scanned checklist single image layout attachment sheet structure full scale bounded neatly within net content space margins
+            doc.addImage(state.checklistImage, 'JPEG', margin, 27, maximalAvailableContentWidth, maximalAvailableContentHeight, undefined, 'FAST');
+          } catch (checklistAttachmentRenderError) {
+            console.error("Checklist layout parsing failure override error logs trace context:", checklistAttachmentRenderError);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9.5);
+            doc.setTextColor(180, 50, 50);
+            doc.text('Pipeline Framework Exception: Scanned Image rendering bypass error tracing file allocation logs mismatch tracking links.', margin, 36);
+          }
+        }
+
+        // ----------------------------------------------------------------------
+        // PHASE 4: COMPILATION METRICS ANALYTICS SUMMARY FINALE DASHBOARD SHEET
+        // ----------------------------------------------------------------------
+        doc.addPage();
+        appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(20);
+        doc.setTextColor(30, 30, 30);
+        doc.text('Executive Metrics Summary Analysis', margin, 35);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(90, 90, 90);
+        doc.text('Condensed quantitative evaluation of architectural system deficiencies.', margin, 43);
+
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.3);
+        doc.line(margin, 49, W - margin, 49);
+
+        // Core aggregate statistics calculation logic computations run loop
+        let totalLowFaultsCount = 0, totalMediumFaultsCount = 0, totalHighFaultsCount = 0;
+        state.defects.forEach(defectElementItem => {
+          if (defectElementItem.rating === 'Low') totalLowFaultsCount++;
+          else if (defectElementItem.rating === 'Medium') totalMediumFaultsCount++;
+          else if (defectElementItem.rating === 'High') totalHighFaultsCount++;
+        });
+        const grossTotalDefectsSummedValue = state.defects.length;
+
+        // Render structured visual tabular data metrics summary scorecard layouts modules grid cards
+        let scoreYOffset = 62;
+        
+        // Total Gross Deficiencies Sum Block Row
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, scoreYOffset, W - (margin * 2), 12, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Gross Total Deficiencies Identified Across Inspected Zones:', margin + 4, scoreYOffset + 7.5);
+        doc.setFontSize(12);
+        doc.text(grossTotalDefectsSummedValue.toString(), W - margin - 12, scoreYOffset + 8.5, { align: 'right' });
+
+        // Low Severity Items Metrics Block Row
+        scoreYOffset += 18;
+        doc.setFillColor(248, 253, 252);
+        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
+        doc.setFont('helvetica', 'medium');
+        doc.setFontSize(9.5);
+        doc.setTextColor(60, 60, 60);
+        doc.text('Minor Functional / Cosmetic Imperfections (Low Risk Profile):', margin + 4, scoreYOffset + 7);
+        doc.setTextColor(20, 140, 120);
+        doc.setFont('helvetica', 'bold');
+        doc.text(totalLowFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
+
+        // Medium Severity Items Metrics Block Row
+        scoreYOffset += 15;
+        doc.setFillColor(254, 253, 247);
+        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
+        doc.setFont('helvetica', 'medium');
+        doc.setTextColor(60, 60, 60);
+        doc.text('Moderate Actionable System Vulnerabilities (Medium Risk Profile):', margin + 4, scoreYOffset + 7);
+        doc.setTextColor(180, 130, 20);
+        doc.setFont('helvetica', 'bold');
+        doc.text(totalMediumFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
+
+        // High Severity Items Metrics Block Row
+        scoreYOffset += 15;
+        doc.setFillColor(254, 248, 249);
+        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
+        doc.setFont('helvetica', 'medium');
+        doc.setTextColor(60, 60, 60);
+        doc.text('Critical Structural Faults / Safety Hazards (High Urgent Action Profile):', margin + 4, scoreYOffset + 7);
+        doc.setTextColor(190, 40, 60);
+        doc.setFont('helvetica', 'bold');
+        doc.text(totalHighFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
+
+        // Document Closure End-Of-Report Advisory Notice Callout Panel
+        scoreYOffset += 24;
+        doc.setFillColor(250, 250, 250);
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.2);
+        doc.rect(margin, scoreYOffset, W - (margin * 2), 26, 'FD');
+        
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(40, 40, 40);
+        doc.text('Advisory Notice Notes Guidance Notes', margin + 6, scoreYOffset + 6);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        const advisoryTextParagraphStringsBlock = doc.splitTextToSize("This structural document data matrix report presents a snap-shot compilation summary review analysis mapping conditions present on the explicitly targeted date timeline of inspection operations tracking only. Reruns, structural settling actions, secondary environment degradation profiles, or implicit system anomalies manifested after the core operations timeframe require supplementary secondary engineering assessments.", W - (margin * 2) - 12);
+        
+        let advisoryTextLineYCursor = scoreYOffset + 11.5;
+        advisoryTextParagraphStringsBlock.forEach(lineString => {
+          doc.text(lineString, margin + 6, advisoryTextLineYCursor);
+          advisoryTextLineYCursor += 3.6;
+        });
+
+        // ----------------------------------------------------------------------
+        // PHASE 5: DOCUMENT SERIALIZATION STREAM FILE SAVE LIFECYCLE DISPATCH
+        // ----------------------------------------------------------------------
+        const masterGeneratedReportFilenameString = (state.cover.refno || 'AFH-Report') + '_' + (state.cover.date || new Date().toISOString().split('T')[0]) + '.pdf';
+        doc.save(masterGeneratedReportFilenameString);
+        triggerToastAlertMessage('PDF Document Compiled Successfully: ' + masterGeneratedReportFilenameString);
+
+      } catch (masterCompilationGlobalErrorFaultContext) {
+        console.error("PDF engine crash context breakdown stack log:", masterCompilationGlobalErrorFaultContext);
+        triggerToastAlertMessage('PDF Compilation Engine Fault Error Exception: ' + masterCompilationGlobalErrorFaultContext.message);
+      }
+      document.getElementById('pdfLoader').classList.remove('open');
+    }
+
+    // Retained Master Page Footer Drawing System Element Logic Architecture Block
+    function appendMasterPageFooterElement(doc, W, H, margin, refno) {
+      doc.setFillColor(46, 46, 46);
+      doc.rect(0, H - 10, W, 10, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(140, 140, 140);
+      doc.text('AF Home Inspection  ·  Professional Inspection Report  ·  ' + (refno || 'N/A'), W / 2, H - 4, { align: 'center' });
+    }
+  </script>
 </body>
 </html>
