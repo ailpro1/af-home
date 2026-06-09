@@ -823,6 +823,14 @@ input[type="range"].thickness {
     <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
     <div id="checklistWrap"></div>
   </div>
+
+  <div class="card">
+    <div class="card-title">Sanitary & Electrical Attachment</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Upload a scanned, annotated checklist page to include in the report.</p>
+    <label for="checklistFileInput" class="photo-upload-btn">📄 Upload Scanned Page</label>
+    <input type="file" id="checklistFileInput" accept="image/*,image/jpeg,image/png,application/pdf" onchange="handleChecklistUpload(event)">
+    <div class="photo-preview-wrap" id="checklistPreviewWrap"></div>
+  </div>
 </div>
 
 <!-- ======================== PAGE: DEFECTS ======================== -->
@@ -1581,6 +1589,19 @@ function setSeverity(n) {
 let currentPhotoDataURL = null;
 let pendingPhotoDataURL = null;
 let annotationHistory = [];
+let scannedChecklistDataURL = null; // New variable for checklist
+
+function handleChecklistUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    scannedChecklistDataURL = e.target.result;
+    document.getElementById('checklistPreviewWrap').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:8px; border:1px solid var(--border);">`;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
 let currentTool = 'circle';
 let isDrawing = false;
 let startX, startY;
@@ -2016,6 +2037,94 @@ function loadFromFile(event) {
 }
 
 // ======= PDF GENERATION =======
+Here is the step-by-step guide and the code updates required to implement your requested formatting and features.
+
+You will need to make **three** copy-paste replacements in your `AFH Inspect.html` file.
+
+### Step 1: Add the UI for the Checklist Upload
+
+Find the `<div class="page" id="page-inspect">` section in your HTML. Scroll to the bottom of that section, right before the `</div>` or `<div class="page" id="page-defects">` tag, and paste this new card.
+
+**Find this code:**
+
+```html
+  <div class="card">
+    <div class="card-title">Inspection Checklist</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
+    <div id="checklistWrap"></div>
+  </div>
+</div>
+
+```
+
+**Replace it with this:**
+
+```html
+  <div class="card">
+    <div class="card-title">Inspection Checklist</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Standard inspection compliance checklist</p>
+    <div id="checklistWrap"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sanitary & Electrical Attachment</div>
+    <p style="font-size:0.82rem;color:var(--grey);margin-bottom:10px;">Upload a scanned, annotated checklist page to include in the report.</p>
+    <label for="checklistFileInput" class="photo-upload-btn">📄 Upload Scanned Page</label>
+    <input type="file" id="checklistFileInput" accept="image/*,image/jpeg,image/png,application/pdf" onchange="handleChecklistUpload(event)">
+    <div class="photo-preview-wrap" id="checklistPreviewWrap"></div>
+  </div>
+</div>
+
+```
+
+---
+
+### Step 2: Add the Javascript for the Checklist File Handler
+
+Find where the photo and annotation variables are declared in the `<script>` section.
+
+**Find this code:**
+
+```javascript
+let currentPhotoDataURL = null;
+let pendingPhotoDataURL = null;
+let annotationHistory = [];
+
+```
+
+**Replace it with this:**
+
+```javascript
+let currentPhotoDataURL = null;
+let pendingPhotoDataURL = null;
+let annotationHistory = [];
+let scannedChecklistDataURL = null; // New variable for checklist
+
+function handleChecklistUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    scannedChecklistDataURL = e.target.result;
+    document.getElementById('checklistPreviewWrap').innerHTML = `<img src="${e.target.result}" style="width:100%; border-radius:8px; border:1px solid var(--border);">`;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+```
+
+---
+
+### Step 3: Replace the `generatePDF()` Function
+
+This completely rewrites the PDF generation to apply your white backgrounds, the new cover format, the tabular defect list, and the appended checklist.
+
+**Find the entire `async function generatePDF() { ... }` block** (it starts around line 1025 and ends around line 1330).
+
+**Replace the entire function with this:**
+
+```javascript
 async function generatePDF() {
   document.getElementById('pdfLoader').classList.add('open');
   await new Promise(r => setTimeout(r, 100));
@@ -2023,51 +2132,28 @@ async function generatePDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
     const W = 210, H = 297;
-    const margin = 20;
+    const margin = 15;
 
     // ---- COVER PAGE ----
-    // White background
     doc.setFillColor(255,255,255);
-    doc.rect(0, 0, W, H, 'F');
+    doc.rect(0, 0, W, H, 'F'); // All white background
 
-    // Tan accent bar at top
-    doc.setFillColor(181,169,154);
-    doc.rect(0, 0, W, 6, 'F');
-    // Tan accent bar at bottom
-    doc.setFillColor(181,169,154);
-    doc.rect(0, H-6, W, 6, 'F');
-
-    // Logo
-    const logoImg = new Image();
-    logoImg.src = document.getElementById('summaryLogo').src;
-    await new Promise(r => { logoImg.onload = r; logoImg.onerror = r; });
-    if(logoImg.complete) {
-      try { doc.addImage(logoImg, 'PNG', W/2-30, 24, 60, 30); } catch(e){}
-    }
-
-    // Company name
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(9);
-    doc.setTextColor(140,126,113);
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    const companyStr = 'A F   H O M E   I N S P E C T I O N';
-    const companyW = doc.getTextWidth(companyStr);
-    doc.text(companyStr, (W - companyW) / 2, 62);
+    // Main Title: BUILDING DEFECT INSPECTION
+    doc.setFont('times','bold');
+    doc.setFontSize(22);
+    doc.setTextColor(46,46,46);
+    doc.text('BUILDING DEFECT INSPECTION', W/2, 60, {align:'center'});
 
     // Divider
-    doc.setDrawColor(181,169,154,0.5);
-    doc.setLineWidth(0.3);
-    doc.line(W/2-30, 67, W/2+30, 67);
+    doc.setDrawColor(181,169,154);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 68, W-margin, 68);
 
-    // Report title — centered, wraps if long
+    // Sub Title
     doc.setFont('times','bold');
-    doc.setFontSize(15);
-    doc.setTextColor(46,46,46);
-    const titleText = (state.cover.title || 'INSPECTION REPORT').toUpperCase();
-    const titleLines = doc.splitTextToSize(titleText, W - margin*2);
-    let titleY = 78;
-    titleLines.forEach(line => { doc.text(line, W/2, titleY, {align:'center'}); titleY += 7; });
+    doc.setFontSize(14);
+    const subTitleText = (state.cover.title || 'INSPECTION REPORT').toUpperCase();
+    doc.text(subTitleText, W/2, 78, {align:'center'});
 
     // Cover info table
     const infoItems = [
@@ -2079,469 +2165,240 @@ async function generatePDF() {
       ['Inspection Date', state.cover.date],
       ['Inspection Time', state.cover.time],
       ['Weather Condition', state.cover.weather],
-      ['Temperature', state.cover.temp ? state.cover.temp + ' °C' : null],
       ['Inspection Stage', state.cover.stage],
       ['Report Reference No.', state.cover.refno],
       ['Inspector Name', state.cover.inspector],
-      ['Inspector Contact', state.cover.inspcontact],
     ].filter(r => r[1]);
 
     let yy = 92;
-    // Draw table border
-    const tableTop = yy - 6;
     const rowH = 9;
-    const tableH = infoItems.length * rowH + 2;
     doc.setDrawColor(220,212,204);
     doc.setLineWidth(0.3);
-    doc.roundedRect(margin-2, tableTop, W-margin*2+4, tableH, 2, 2, 'D');
+    doc.rect(margin, yy-6, W-margin*2, infoItems.length * rowH);
+    
     infoItems.forEach((row, i) => {
-      // Alternating light fills — very subtle
-      if(i % 2 === 0) {
-        doc.setFillColor(250, 247, 244);
-      } else {
-        doc.setFillColor(255, 255, 255);
-      }
-      doc.rect(margin-2, yy-6, W-margin*2+4, rowH, 'F');
-      // Label
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(140,126,113);
-      doc.text(row[0].toUpperCase(), margin+2, yy);
-      // Value — right-aligned
-      doc.setFont('helvetica','normal');
-      doc.setTextColor(46,46,46);
+      if(i % 2 === 0) doc.setFillColor(250, 247, 244);
+      else doc.setFillColor(255, 255, 255);
+      doc.rect(margin, yy-6, W-margin*2, rowH, 'F');
+      
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+      doc.text(row[0].toUpperCase(), margin+3, yy);
+      
+      doc.setFont('helvetica','normal'); doc.setTextColor(46,46,46);
       const safeVal = String(row[1]).replace(/[^\x00-\x7E]/g, '').trim();
-      const maxValW = W/2 - 4;
-      const valLines = doc.splitTextToSize(safeVal, maxValW);
-      doc.text(valLines[0], W-margin-2, yy, {align:'right'});
-      // Thin row divider
+      doc.text(safeVal, W-margin-3, yy, {align:'right'});
+      
       if(i < infoItems.length-1) {
-        doc.setDrawColor(235,228,220);
-        doc.setLineWidth(0.2);
-        doc.line(margin-2, yy+3, W-margin+2, yy+3);
+        doc.setDrawColor(235,228,220); doc.setLineWidth(0.2);
+        doc.line(margin, yy+3, W-margin, yy+3);
       }
       yy += rowH;
     });
 
-    // Scope of inspection
-    if(state.cover.scope) {
-      yy += 4;
-      doc.setDrawColor(181,169,154);
-      doc.setLineWidth(0.2);
-      doc.line(margin, yy, W-margin, yy);
-      yy += 7;
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(140,126,113);
-      doc.text('SCOPE OF INSPECTION', margin, yy);
-      yy += 6;
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8);
-      doc.setTextColor(80,80,80);
-      const scopeLines = doc.splitTextToSize(state.cover.scope, W-margin*2);
-      scopeLines.slice(0,6).forEach(line => { doc.text(line, margin, yy); yy += 5; });
-    }
-
-    // Professional badge
-    doc.setFillColor(181,169,154,0.15);
-    doc.roundedRect(margin, H-42, W-margin*2, 16, 3, 3, 'F');
-    doc.setFont('helvetica','bold');
-    doc.setFontSize(8);
-    doc.setTextColor(181,169,154);
-    doc.text('PROFESSIONAL HOME INSPECTION REPORT', W/2, H-31, {align:'center'});
-
-    // Bottom tan bar
-    doc.setFillColor(181,169,154);
-    doc.rect(0, H-6, W, 6, 'F');
-
-    // Page footer
-    doc.setFillColor(245,241,237);
-    doc.rect(0, H-14, W, 8, 'F');
-    doc.setFont('helvetica','normal');
-    doc.setFontSize(6.5);
-    doc.setTextColor(120,120,120);
-    doc.text('Generated by AF Home Inspection Report System  -  ' + new Date().toLocaleDateString('en-MY'), W/2, H-9, {align:'center'});
-
-    // ---- DISCLAIMER / HOW TO READ PAGE ----
+    addPageFooter(doc, W, H, margin, state.cover.refno);
+    
+    // ---- REPORT GUIDE PAGE ----
     doc.addPage();
     doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
-    doc.setFillColor(181,169,154); doc.rect(0,0,W,5,'F');
-    doc.setFillColor(46,46,46); doc.rect(0,5,W,18,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(12);
-    doc.setTextColor(255,255,255);
-    doc.text('REPORT GUIDE & DISCLAIMER', W/2, 18, {align:'center'});
+    doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(255,255,255);
+    doc.text('REPORT GUIDE & LEGEND', margin, 11);
 
-    let gy = 34;
-    // How to read section
-    doc.setFillColor(248,246,243); doc.roundedRect(margin-2, gy-4, W-margin*2+4, 72, 3,3,'F');
-    doc.setDrawColor(220,212,204); doc.setLineWidth(0.3);
-    doc.roundedRect(margin-2, gy-4, W-margin*2+4, 72, 3,3,'D');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(140,126,113);
-    doc.text('HOW TO READ THIS REPORT', margin+2, gy+2);
-    gy += 8;
+    let gy = 30;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
+    doc.text('HOW TO READ THE DEFECT TABLE', margin, gy); gy+=8;
+    
     const howTo = [
-      ['Report Structure', 'This report is organised into: Cover Page > Report Guide > Defect Findings > Summary & Statistics.'],
-      ['Defect Organisation', 'All defects are sorted by Category (Interior / Exterior), then by Group (e.g. Floor, Wall, Ceiling), then by Location (e.g. Bedroom 1, Kitchen).'],
-      ['Item Numbering', 'Each defect item is numbered sequentially across the full report for easy cross-referencing with the developer or contractor.'],
-      ['Severity Level', 'Each defect is assigned a severity level: 1 Minor | 2 Low | 3 Moderate | 4 Serious | 5 Critical. Higher levels require priority attention.'],
-      ['Quality Rating', 'A rating of 1-5 reflects the overall workmanship quality for that specific item, where 1 is Poor and 5 is Excellent.'],
-      ['Photo Evidence', 'Where provided, photos are annotated to highlight the exact defect location. Photos are taken at time of inspection only.'],
+      ['Table Structure', 'Defects are formatted in columns by Location, Group, Defect Type, Rating, and Photo.'],
+      ['Inspector Comments', 'Specific remarks or recommendations are placed in italics directly below the defect type.'],
+      ['Severity & Rating', 'Severity indicates urgency (1=Minor to 5=Critical). Rating indicates workmanship (1=Poor to 5=Excellent).'],
     ];
     howTo.forEach(([label, text]) => {
-      doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(46,46,46);
-      doc.text(label + ':', margin+4, gy);
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(46,46,46);
+      doc.text(label + ':', margin, gy);
       doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-      const lines = doc.splitTextToSize(text, W-margin*2-16);
-      lines.forEach(ln => { doc.text(ln, margin+4, gy+5); gy+=5; });
-      gy += 3;
-    });
-
-    gy += 6;
-    // Severity legend
-    doc.setFillColor(248,246,243); doc.roundedRect(margin-2, gy-4, W-margin*2+4, 36, 3,3,'F');
-    doc.setDrawColor(220,212,204); doc.roundedRect(margin-2, gy-4, W-margin*2+4, 36, 3,3,'D');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(140,126,113);
-    doc.text('SEVERITY LEVEL LEGEND', margin+2, gy+2); gy+=8;
-    const sevLegend = [
-      ['1 - Minor','#27ae60','Cosmetic only. Does not affect function. Rectify at convenience.'],
-      ['2 - Low','#8bc34a','Minor functional impact. Rectify within normal DLP process.'],
-      ['3 - Moderate','#f1c40f','Affects function or finish noticeably. Rectify promptly.'],
-      ['4 - Serious','#e67e22','Significant defect affecting use or safety. Priority rectification required.'],
-      ['5 - Critical','#c0392b','Safety or structural risk. Immediate action required before occupation.'],
-    ];
-    const colW = (W-margin*2) / sevLegend.length;
-    sevLegend.forEach(([label, color, desc], i) => {
-      const rgb = hexToRgb(color);
-      if(rgb) doc.setFillColor(rgb.r,rgb.g,rgb.b); doc.roundedRect(margin + i*colW, gy-2, colW-2, 6, 1,1,'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(255,255,255);
-      doc.text(label, margin + i*colW + (colW-2)/2, gy+3, {align:'center'});
-    });
-    gy += 10;
-    sevLegend.forEach(([label, color, desc], i) => {
-      doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(80,80,80);
-      const dlines = doc.splitTextToSize(desc, colW-4);
-      dlines.forEach((ln,li) => doc.text(ln, margin+i*colW+1, gy+li*4));
-    });
-
-    gy += 22;
-    // Disclaimer box
-    doc.setFillColor(253,248,244); doc.roundedRect(margin-2, gy-4, W-margin*2+4, 52, 3,3,'F');
-    doc.setDrawColor(181,169,154); doc.setLineWidth(0.4);
-    doc.roundedRect(margin-2, gy-4, W-margin*2+4, 52, 3,3,'D');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(140,126,113);
-    doc.text('DISCLAIMER', margin+2, gy+2); gy+=8;
-    const disclaimer = [
-      'This inspection report has been prepared based on a visual assessment conducted at the above-mentioned property on the date stated on the cover page. The findings reflect the observable condition of the property at the time of inspection only.',
-      'This report does not constitute a structural engineering assessment, a legal document, or a guarantee of the property condition. The inspector does not assume liability for defects that were concealed, inaccessible, or not visible at the time of inspection.',
-      'All defect findings are recorded based on observable evidence and professional judgment. Rectification works should be carried out by suitably qualified contractors appointed by the developer or owner.',
-      'This report is prepared for the exclusive use of the client named on the cover page and shall not be reproduced or distributed without prior written consent of AF Home Inspection.',
-    ];
-    disclaimer.forEach(para => {
-      doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(60,60,60);
-      const lines = doc.splitTextToSize(para, W-margin*2-4);
-      lines.forEach(ln => { doc.text(ln, margin+2, gy); gy+=4.5; });
-      gy+=2;
+      const lines = doc.splitTextToSize(text, W-margin*2-25);
+      lines.forEach(ln => { doc.text(ln, margin+25, gy); gy+=5; });
+      gy += 2;
     });
 
     addPageFooter(doc, W, H, margin, state.cover.refno);
-    
-    // ---- DEFECT PAGES: Category → Group → Location → Items ----
+
+    // ---- DEFECT TABLE PAGES ----
+    const drawTableHeader = (yPos) => {
+      doc.setFillColor(46,46,46);
+      doc.rect(margin, yPos, W-margin*2, 10, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+      doc.text('LOCATION', margin+2, yPos+6);
+      doc.text('GROUP', margin+32, yPos+6);
+      doc.text('DEFECT TYPE & COMMENTS', margin+62, yPos+6);
+      doc.text('RATING', margin+122, yPos+6);
+      doc.text('PHOTO', margin+147, yPos+6);
+      return yPos + 10;
+    };
+
     const pdfSorted = [...state.defects].sort((a,b)=>
-      (a.categoryOrder||99)-(b.categoryOrder||99)||
-      (a.groupOrder||99)-(b.groupOrder||99)||
       (a.locationOrder||99)-(b.locationOrder||99)||
+      (a.groupOrder||99)-(b.groupOrder||99)||
       a.ts-b.ts
     );
-    const pdfCatMap = {};
-    pdfSorted.forEach(d => {
-      const cat = d.category||'General';
-      const catOrd = d.categoryOrder||99;
-      const grp = d.groupName||d.group||'General';
-      const grpOrd = d.groupOrder||99;
-      if(!pdfCatMap[cat]) pdfCatMap[cat]={order:catOrd,groups:{}};
-      if(!pdfCatMap[cat].groups[grp]) pdfCatMap[cat].groups[grp]={order:grpOrd,items:[]};
-      pdfCatMap[cat].groups[grp].items.push(d);
-    });
-    const pdfCatKeys = Object.keys(pdfCatMap).sort((a,b)=>pdfCatMap[a].order-pdfCatMap[b].order);
 
-    if(pdfCatKeys.length > 0) {
-      let globalItemNum = 0;
-      for(const cat of pdfCatKeys) {
-        const catData = pdfCatMap[cat];
-        const grpKeys = Object.keys(catData.groups).sort((a,b)=>catData.groups[a].order-catData.groups[b].order);
+    if (pdfSorted.length > 0) {
+      doc.addPage();
+      doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F'); // White bg
+      doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+      doc.text('DEFECT FINDINGS', margin, 11);
 
-        for(const grp of grpKeys) {
-          const grpData = catData.groups[grp];
-          doc.addPage();
+      let y = 25;
+      y = drawTableHeader(y);
 
-          // Page header
-          doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-          doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
-          doc.setFont('helvetica','bold'); doc.setFontSize(8);
-          doc.setTextColor(181,169,154);
-          doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
-          doc.setTextColor(150,140,130);
-          doc.text(state.cover.date||'', W-margin, 10, {align:'right'});
+      for (let i = 0; i < pdfSorted.length; i++) {
+        const d = pdfSorted[i];
+        
+        // Calculate text lines for row height
+        doc.setFontSize(8);
+        const locLines = doc.splitTextToSize(d.locationName || '-', 26);
+        const grpLines = doc.splitTextToSize(d.groupName || d.group || '-', 26);
+        const typeStr = d.defectType === 'Other (Custom)' ? (d.customDefect||'-') : (d.defectType||'-');
+        const typeLines = doc.splitTextToSize(typeStr, 56);
+        const commentLines = d.comment ? doc.splitTextToSize(d.comment, 56) : [];
 
-          // Category banner
-          doc.setFillColor(46,46,46);
-          doc.rect(margin-2, 20, W-margin*2+4, 8, 'F');
-          doc.setFont('helvetica','bold'); doc.setFontSize(7.5);
-          doc.setTextColor(181,169,154);
-          doc.text(cat.toUpperCase(), margin+2, 26);
+        // Required Height Calculation
+        const textH = Math.max(
+          locLines.length * 4.5,
+          grpLines.length * 4.5,
+          (typeLines.length * 4.5) + (commentLines.length > 0 ? (commentLines.length * 4.5) + 3 : 0)
+        ) + 6;
+        
+        const photoSize = 28; // 1:1 ratio uniform size in mm
+        const rowH = Math.max(textH, d.photo ? photoSize + 6 : 0);
 
-          // Group header
-          doc.setFillColor(62,53,48);
-          doc.rect(margin-2, 28, W-margin*2+4, 11, 'F');
-          doc.setFont('helvetica','bold'); doc.setFontSize(10);
-          doc.setTextColor(255,255,255);
-          doc.text(grp.toUpperCase(), margin+2, 36);
-          doc.setFont('helvetica','normal'); doc.setFontSize(8);
-          doc.setTextColor(181,169,154);
-          doc.text(grpData.items.length + ' defect' + (grpData.items.length!==1?'s':''), W-margin, 36, {align:'right'});
-
-          let y = 46;
-
-          for(const d of grpData.items) {
-            globalItemNum++;
-            const photoHeight = d.photo ? 55 : 0;
-            const locLine = d.locationName ? 1 : 0;
-            const commentLines = d.comment ? doc.splitTextToSize(d.comment, W-margin*2-14).length : 0;
-            const photoH = d.photo ? 52 : 0;
-            const boxH = 14 + locLine*6 + (d.category?5:0) + (d.groupName?5:0) + commentLines*5 + photoH + (d.rating?6:0) + 8;
-
-            if(y + boxH > H - 22) {
-              addPageFooter(doc, W, H, margin, state.cover.refno);
-              doc.addPage();
-              doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-              doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
-              doc.setFont('helvetica','bold'); doc.setFontSize(8);
-              doc.setTextColor(181,169,154);
-              doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
-              doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
-              doc.setFont('helvetica','bold'); doc.setFontSize(9);
-              doc.setTextColor(255,255,255);
-              doc.text(cat.toUpperCase() + ' / ' + grp.toUpperCase() + ' (continued)', margin+2, 26);
-              y = 35;
-            }
-
-          // ── Two-column defect box ──
-          const PHOTO_COL_W = d.photo ? 58 : 0;
-          const LABEL_W = 22; // fixed label column width for alignment
-          const detailX = margin + (d.photo ? PHOTO_COL_W + 6 : 2);
-          const detailW = W - margin*2 - (d.photo ? PHOTO_COL_W + 6 : 2) - 4;
-
-          // Pre-calculate right-column height
-          const fieldLines = (d.category?1:0)+(d.groupName?1:0)+(d.locationName?1:0);
-          const dnameStr = d.defectType==='Other (Custom)' ? d.customDefect : d.defectType;
-          const dnameW = detailW - LABEL_W - 2;
-          const dnameLineCount = doc.splitTextToSize(dnameStr, dnameW).length;
-          const commentLineCount = d.comment ? doc.splitTextToSize(d.comment, detailW).length : 0;
-          const rightH = 6 + fieldLines*5.5 + dnameLineCount*5 + (d.severity?5.5:0) + (d.rating?5.5:0) + (d.comment ? commentLineCount*4.5+4 : 0) + 6;
-
-          // Photo height
-          let imgObj = null, iw = 0, ih = 0;
-          if(d.photo) {
-            try {
-              imgObj = new Image(); imgObj.src = d.photo;
-              await new Promise(r => { imgObj.onload=r; imgObj.onerror=r; });
-              if(imgObj.complete && imgObj.naturalWidth > 0) {
-                const maxH = Math.max(rightH - 4, 40);
-                const ratio = Math.min(PHOTO_COL_W / imgObj.naturalWidth, maxH / imgObj.naturalHeight);
-                iw = imgObj.naturalWidth * ratio;
-                ih = imgObj.naturalHeight * ratio;
-              }
-            } catch(e){}
-          }
-
-          const totalBoxH = Math.max(rightH, ih + 8) + 4;
-
-          // Check page space
-          if(y + totalBoxH > H - 22) {
-            addPageFooter(doc, W, H, margin, state.cover.refno);
-            doc.addPage();
-            doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-            doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(8);
-            doc.setTextColor(181,169,154);
-            doc.text('AF HOME INSPECTION  -  ' + (state.cover.refno||'').toUpperCase(), 10, 10);
-            doc.setFillColor(62,53,48); doc.rect(margin-2,18,W-margin*2+4,10,'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(9);
-            doc.setTextColor(255,255,255);
-            doc.text(cat.toUpperCase() + ' / ' + grp.toUpperCase() + ' (continued)', margin+2, 26);
-            y = 35;
-          }
-
-          // Draw box
-          doc.setDrawColor(220,212,204); doc.setLineWidth(0.3);
-          doc.setFillColor(250,249,247);
-          doc.roundedRect(margin-2, y-2, W-margin*2+4, totalBoxH, 2, 2, 'FD');
-
-          // ── LEFT: Photo ──
-          if(imgObj && iw > 0) {
-            doc.addImage(imgObj, 'JPEG', margin+2, y+2, iw, ih);
-
-            // Divider line between photo and text
-            doc.setDrawColor(220,212,204); doc.setLineWidth(0.2);
-            doc.line(margin+PHOTO_COL_W+3, y, margin+PHOTO_COL_W+3, y+totalBoxH-2);
-          }
-
-          // Item number circle — drawn after photo so it sits on top
-          const sCol2 = SEVERITY_COLORS[d.severity||0]||'#888888';
-          const rgb2 = hexToRgb(sCol2);
-          if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
-          doc.circle(margin+6, y+6, 5, 'F');
-          doc.setDrawColor(255,255,255); doc.setLineWidth(0.6);
-          doc.circle(margin+6, y+6, 5, 'S');
-          doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-          doc.text(globalItemNum.toString(), margin+6, y+8.5, {align:'center'});
-
-
-          // ── RIGHT: Aligned field labels and values ──
-          let dY = y + 3;
-          const labelCol = detailX;
-          const valueCol = detailX + LABEL_W;
-
-          const drawField = (label, value, bold=false) => {
-            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,126,113);
-            doc.text(label, labelCol, dY);
-            doc.text(':', labelCol + doc.getTextWidth(label), dY);
-            doc.setFont('helvetica', bold?'bold':'normal'); doc.setFontSize(7); doc.setTextColor(60,60,60);
-            doc.text(String(value), valueCol, dY);
-            dY += 5.5;
-          };
-
-          if(d.category) drawField('Category', d.category);
-          if(d.groupName) drawField('Group', d.groupName);
-          if(d.locationName) drawField('Location', d.locationName);
-
-          // Defect name (larger, spans full detail width)
-          dY += 1;
-          doc.setFont('helvetica','bold'); doc.setFontSize(9.5); doc.setTextColor(46,46,46);
-          const dnLines = doc.splitTextToSize(dnameStr, detailW);
-          dnLines.forEach(ln => { doc.text(ln, labelCol, dY); dY+=5; });
-          dY += 1;
-
-          // Severity badge inline
-          if(d.severity) {
-            if(rgb2) doc.setFillColor(rgb2.r,rgb2.g,rgb2.b); else doc.setFillColor(140,140,140);
-            const sevLabel = SEVERITY_LABELS[d.severity].toUpperCase();
-            const sevW = doc.getTextWidth('Severity  ' + sevLabel) + 4;
-            doc.roundedRect(labelCol, dY-3, sevW, 6, 1,1,'F');
-            doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(255,255,255);
-            doc.text('Severity ' + d.severity + '  ' + sevLabel, labelCol+2, dY+1.5);
-            dY += 6;
-          }
-
-          if(d.rating) drawField('Rating', '[' + d.rating + ' / 5]');
-
-          // Comment
-          if(d.comment) {
-            dY += 1;
-            doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(140,126,113);
-            doc.text('Remarks :', labelCol, dY); dY += 5;
-            doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
-            const cLines = doc.splitTextToSize(d.comment, detailW);
-            cLines.forEach(ln => { doc.text(ln, labelCol, dY); dY+=4.5; });
-          }
-
-          y += totalBoxH + 6;
-          }
+        // Page Break Logic (Retain Header)
+        if (y + rowH > H - 20) {
           addPageFooter(doc, W, H, margin, state.cover.refno);
+          doc.addPage();
+          doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
+          doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+          doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+          doc.text('DEFECT FINDINGS (CONT.)', margin, 11);
+          y = 25;
+          y = drawTableHeader(y);
         }
+
+        // Draw Row Boundaries
+        doc.setDrawColor(220,220,220); doc.setLineWidth(0.2);
+        doc.line(margin, y+rowH, W-margin, y+rowH); // Bottom line
+
+        // Draw Texts
+        doc.setFont('helvetica','bold'); doc.setTextColor(60,60,60);
+        doc.text(locLines, margin+2, y+5);
+        doc.text(grpLines, margin+32, y+5);
+
+        doc.setFont('helvetica','bold'); doc.setTextColor(46,46,46);
+        doc.text(typeLines, margin+62, y+5);
+        
+        if (commentLines.length > 0) {
+          doc.setFont('helvetica','italic'); doc.setTextColor(100,100,100);
+          doc.text(commentLines, margin+62, y+5 + (typeLines.length * 4.5) + 1);
+        }
+
+        doc.setFont('helvetica','normal'); doc.setTextColor(60,60,60);
+        let rY = y+5;
+        if(d.rating) { doc.text(`R: ${d.rating}/5`, margin+122, rY); rY+=5; }
+        if(d.severity) { doc.text(`Sev: ${d.severity}`, margin+122, rY); }
+
+        // Draw Photo 1:1 Scale
+        if (d.photo) {
+          try {
+            // Drawn strictly as a square to satisfy uniform 1:1 scale requirement
+            doc.addImage(d.photo, 'JPEG', margin+147, y+3, photoSize, photoSize);
+          } catch(e) {}
+        }
+
+        y += rowH;
       }
+      addPageFooter(doc, W, H, margin, state.cover.refno);
     }
 
-    // Summary page
+    // ---- SANITARY & ELECTRICAL CHECKLIST PAGE (Before Summary) ----
+    if (scannedChecklistDataURL) {
+      doc.addPage();
+      doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
+      doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+      doc.text('SANITARY & ELECTRICAL ATTACHMENT', margin, 11);
+      
+      try {
+        const chkImg = new Image(); chkImg.src = scannedChecklistDataURL;
+        await new Promise(r => { chkImg.onload=r; chkImg.onerror=r; });
+        if(chkImg.complete && chkImg.naturalWidth > 0) {
+          const maxW = W - margin*2;
+          const maxH = H - 35;
+          const ratio = Math.min(maxW / chkImg.naturalWidth, maxH / chkImg.naturalHeight);
+          const iw = chkImg.naturalWidth * ratio;
+          const ih = chkImg.naturalHeight * ratio;
+          doc.addImage(chkImg, 'JPEG', margin + (maxW-iw)/2, 22, iw, ih);
+        }
+      } catch(e) {}
+      addPageFooter(doc, W, H, margin, state.cover.refno);
+    }
+
+    // ---- SUMMARY PAGE ----
     doc.addPage();
+    doc.setFillColor(255,255,255); doc.rect(0,0,W,H,'F');
     doc.setFillColor(46,46,46); doc.rect(0,0,W,16,'F');
-    doc.setFillColor(181,169,154); doc.rect(0,0,4,16,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(181,169,154);
-    doc.text('AF HOME INSPECTION  -  SUMMARY', 10, 10);
-    doc.setFont('times','bold'); doc.setFontSize(14); doc.setTextColor(46,46,46);
-    doc.text('Inspection Summary & Statistics', margin, 30);
-    doc.setDrawColor(181,169,154); doc.setLineWidth(0.5); doc.line(margin,33,W-margin,33);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+    doc.text('INSPECTION SUMMARY & STATISTICS', margin, 11);
 
     const totalD = state.defects.length;
     const critD = state.defects.filter(d=>d.severity>=4).length;
-    const modD = state.defects.filter(d=>d.severity===3).length;
-    const minD = state.defects.filter(d=>d.severity<=2 && d.severity>0).length;
-
-    const intD = state.defects.filter(d=>d.category==='Interior').length;
-    const extD = state.defects.filter(d=>d.category==='Exterior').length;
+    
+    let sy = 30;
     const statCols = [
       ['Total Defects', totalD, '#636363'],
       ['Critical / Serious', critD, '#c0392b'],
-      ['Interior', intD, '#7b6c5e'],
-      ['Exterior', extD, '#27ae60'],
     ];
     let sx = margin;
     statCols.forEach(col => {
-      const cw = (W-margin*2)/4;
-      const rgb = hexToRgb(col[2]);
-      if(rgb) doc.setFillColor(Math.round(rgb.r*0.12+255*0.88), Math.round(rgb.g*0.12+255*0.88), Math.round(rgb.b*0.12+255*0.88));
-      else doc.setFillColor(248,248,248);
-      doc.roundedRect(sx, 40, cw-4, 22, 2,2,'F');
-      doc.setDrawColor(col[2]||'#ccc'); doc.setLineWidth(0.5);
-      doc.roundedRect(sx, 40, cw-4, 22, 2,2,'D');
-      if(rgb) doc.setTextColor(rgb.r,rgb.g,rgb.b); else doc.setTextColor(100,100,100);
-      doc.setFont('helvetica','bold'); doc.setFontSize(16);
-      doc.text(col[1].toString(), sx + (cw-4)/2, 55, {align:'center'});
-      doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(100,100,100);
-      doc.text(col[0], sx + (cw-4)/2, 59.5, {align:'center'});
-      sx += cw;
+      const cw = 60;
+      doc.setDrawColor(200,200,200); doc.setLineWidth(0.5);
+      doc.roundedRect(sx, sy, cw, 22, 2,2,'D');
+      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(46,46,46);
+      doc.text(col[1].toString(), sx + cw/2, sy+12, {align:'center'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(100,100,100);
+      doc.text(col[0], sx + cw/2, sy+18, {align:'center'});
+      sx += cw + 10;
     });
 
-    // Breakdown by location
-    let sy = 76;
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(46,46,46);
+    sy += 40;
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
     doc.text('DEFECTS BY AREA', margin, sy); sy+=6;
     doc.setDrawColor(210,200,190); doc.setLineWidth(0.2); doc.line(margin,sy,W-margin,sy); sy+=5;
 
     const grpCounts = {};
     state.defects.forEach(d => {
-      const key = (d.category||'') + ' / ' + (d.groupName||d.group||'General');
+      const key = d.locationName || 'General Area';
       grpCounts[key] = (grpCounts[key]||0) + 1;
     });
     const grpEntries = Object.entries(grpCounts).sort((a,b)=>b[1]-a[1]);
     grpEntries.forEach(([grp, cnt]) => {
       doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(60,60,60);
       doc.text(grp, margin, sy);
-      const barW = (cnt / (totalD||1)) * (W-margin*2-50);
-      doc.setFillColor(181,169,154);
-      doc.rect(W-margin-50, sy-5, barW, 5, 'F');
       doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(80,80,80);
       doc.text(cnt.toString(), W-margin, sy, {align:'right'});
       sy += 8;
-      if(sy > H-70) { sy = H-70; } // guard
     });
 
-    // Overall rating
     if(state.overallRating) {
-      sy += 6;
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(46,46,46);
+      sy += 10;
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(46,46,46);
       doc.text('OVERALL QUALITY RATING', margin, sy); sy+=7;
       doc.setFont('helvetica','normal'); doc.setFontSize(12); doc.setTextColor(240,165,0);
       doc.text('[' + state.overallRating + ' / 5]', margin, sy);
       doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(100,100,100);
       doc.text(RATING_LABELS[state.overallRating], margin + 28, sy);
     }
-
-    // Inspector signature block
-    sy = H - 65;
-    doc.setDrawColor(200,190,180); doc.setLineWidth(0.3); doc.line(margin, sy, W-margin, sy); sy+=6;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(100,100,100);
-    doc.text('INSPECTOR\'S DECLARATION', margin, sy); sy+=6;
-    doc.setFont('helvetica','normal'); doc.setFontSize(7.5); doc.setTextColor(120,120,120);
-    doc.text('This report has been prepared based on a visual inspection conducted on the above-mentioned property in accordance with', margin, sy); sy+=5;
-    doc.text('accepted industry standards and best practices. This report reflects the condition of the property at the time of', margin, sy); sy+=5;
-    doc.text('inspection only. The inspector does not assume liability for defects that were not visible or accessible.', margin, sy); sy+=10;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(46,46,46);
-    doc.text('Inspector: ' + (state.cover.inspector||'_______________________'), margin, sy);
-    doc.text('Signature: ___________________________', W/2+10, sy);
-    sy += 8;
-    doc.text('Date: ' + (state.cover.date||'__________'), margin, sy);
-    doc.text('Company: ' + (state.cover.company||'AF Home Inspection'), W/2+10, sy);
 
     addPageFooter(doc, W, H, margin, state.cover.refno);
 
