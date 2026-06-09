@@ -29,21 +29,21 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
-  body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+  body { background-color: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-  /* Sidebar styling */
-  .sidebar { width: 260px; background-color: #0a0a0a; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; shrink: 0; }
-  .brand { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px 24px; border-bottom: 1px solid var(--border-color); }
+  /* Navigation Bar Top-placement styling */
+  .sidebar { width: 100%; background-color: #0a0a0a; border-bottom: 1px solid var(--border-color); border-right: none; display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 10px 20px; shrink: 0; }
+  .brand { display: flex; align-items: center; gap: 12px; padding: 0; border-bottom: none; }
   .brand img { width: 36px; height: 36px; border-radius: 6px; }
   .brand span { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-  .nav-tabs { display: flex; flex-direction: column; gap: 6px; padding: 20px 12px; flex-grow: 1; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; font-size: 14px; font-weight: 500; }
+  .nav-tabs { display: flex; flex-direction: row; gap: 8px; padding: 0; flex-grow: 0; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; font-size: 13px; font-weight: 500; white-space: nowrap; }
   .nav-item:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
-  .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: 3px solid var(--accent); padding-left: 13px; }
+  .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: none; border-bottom: 3px solid var(--accent); padding-left: 14px; padding-bottom: 7px; border-radius: 8px 8px 0 0; }
 
   /* Main frame styling */
   .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
-  .tab-pane { display: none; padding: 32px; max-width: 900px; width: 100%; margin: 0 auto; }
+  .tab-pane { display: none; padding: 24px; max-width: 900px; width: 100%; margin: 0 auto; }
   .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -78,7 +78,7 @@
   .defect-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
   .badge-low { background-color: rgba(3,218,198,0.15); color: var(--success); }
   .badge-medium { background-color: rgba(212,175,55,0.15); color: var(--accent); }
-  .badge-high { background-color: rgba(207,102,121,0.15); color: var(--danger); }
+  .badge-high { background-color: rgba(207, 102, 121, 0.15); color: var(--danger); }
   .defect-photos-preview { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .defect-photos-preview img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
 
@@ -87,7 +87,8 @@
   .preview-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
   .preview-thumb { position: relative; width: 80px; height: 80px; }
   .preview-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
-  .preview-thumb .remove-img-btn { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .preview-thumb .remove-img-btn { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .preview-thumb .edit-img-btn { position: absolute; bottom: -6px; right: -6px; background: var(--accent); color: #000; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
 
   /* Loader Modal Overlay */
   .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 10000; }
@@ -98,6 +99,14 @@
   /* Toast notification */
   .toast { position: fixed; bottom: 24px; right: 24px; background-color: #fff; color: #000; padding: 14px 24px; border-radius: 8px; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 99999; }
   .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* Responsive Adjustments for Mobile screen scaling */
+  @media (max-width: 768px) {
+    .sidebar { flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px; }
+    .nav-tabs { width: 100%; overflow-x: auto; padding-bottom: 4px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full-width { grid-column: span 1; }
+  }
 </style>
 </head>
 <body>
@@ -108,9 +117,10 @@
       <span>AF Inspect</span>
     </div>
     <div class="nav-tabs">
-      <div class="nav-item active" onclick="switchTab('cover')"><i class="fa-solid fa-file-invoice"></i>Cover Page</div>
-      <div class="nav-item" onclick="switchTab('defects')"><i class="fa-solid fa-triangle-exclamation"></i>Defect Entries</div>
-      <div class="nav-item" onclick="switchTab('summary')"><i class="fa-solid fa-square-poll-horizontal"></i>Summary & Export</div>
+      <div class="nav-item active" onclick="switchTab('cover')"><i class="fa-solid fa-file-invoice"></i>Cover</div>
+      <div class="nav-item" onclick="switchTab('defects')"><i class="fa-solid fa-triangle-exclamation"></i>Defects</div>
+      <div class="nav-item" onclick="switchTab('summary')"><i class="fa-solid fa-square-poll-horizontal"></i>Summary</div>
+      <div class="nav-item" onclick="switchTab('storage')"><i class="fa-solid fa-database"></i>Save/Load</div>
     </div>
   </div>
 
@@ -152,11 +162,23 @@
       <p class="subtitle">Log structural, architectural, engineering and general property conditions items.</p>
       
       <div class="card">
-        <h3><i class="fa-solid fa-square-plus"></i>Add Inspection Entry Item</h3>
+        <h3><i class="fa-solid fa-square-plus"></i>Add / Edit Inspection Entry Item</h3>
         <div class="form-grid">
           <div class="form-group">
             <label>Location / Room Zone</label>
-            <input type="text" id="defLocation" placeholder="e.g. Living Room, Master Bedroom">
+            <select id="defLocationSelect" onchange="handleDropdownSelection('defLocationSelect', 'defLocationContainer')">
+              <option value="Living Room">Living Room</option>
+              <option value="Master Bedroom">Master Bedroom</option>
+              <option value="Bedroom 2">Bedroom 2</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Bathroom">Bathroom</option>
+              <option value="Balcony">Balcony</option>
+              <option value="Yard / Exterior">Yard / Exterior</option>
+              <option value="Others">Others</option>
+            </select>
+            <div id="defLocationContainer" style="display: none; margin-top: 8px;">
+              <input type="text" id="defLocation" placeholder="e.g. Living Room, Master Bedroom">
+            </div>
           </div>
           <div class="form-group">
             <label>Defect Category Class</label>
@@ -167,11 +189,34 @@
           </div>
           <div class="form-group">
             <label>Elemental Group / System</label>
-            <input type="text" id="defGroup" placeholder="e.g. Ceiling, Wall, Floor, Doors">
+            <select id="defGroupSelect" onchange="handleDropdownSelection('defGroupSelect', 'defGroupContainer')">
+              <option value="Ceiling">Ceiling</option>
+              <option value="Wall">Wall</option>
+              <option value="Floor">Floor</option>
+              <option value="Doors">Doors</option>
+              <option value="Windows">Windows</option>
+              <option value="Electrical">Electrical</option>
+              <option value="Plumbing">Plumbing</option>
+              <option value="Others">Others</option>
+            </select>
+            <div id="defGroupContainer" style="display: none; margin-top: 8px;">
+              <input type="text" id="defGroup" placeholder="e.g. Ceiling, Wall, Floor, Doors">
+            </div>
           </div>
           <div class="form-group">
             <label>Defect Type Title</label>
-            <input type="text" id="defType" placeholder="e.g. Hairline Crack, Paint Peeling, Unevenness">
+            <select id="defTypeSelect" onchange="handleDropdownSelection('defTypeSelect', 'defTypeContainer')">
+              <option value="Hairline Crack">Hairline Crack</option>
+              <option value="Paint Peeling">Paint Peeling</option>
+              <option value="Unevenness">Unevenness</option>
+              <option value="Water Leakage">Water Leakage</option>
+              <option value="Hollow Tiles">Hollow Tiles</option>
+              <option value="Damaged / Broken">Damaged / Broken</option>
+              <option value="Others">Others</option>
+            </select>
+            <div id="defTypeContainer" style="display: none; margin-top: 8px;">
+              <input type="text" id="defType" placeholder="e.g. Hairline Crack, Paint Peeling, Unevenness">
+            </div>
           </div>
           <div class="form-group full-width">
             <label>Severity Rating Classification</label>
@@ -192,8 +237,9 @@
             <div class="preview-strip" id="defectPhotoPreviewStrip"></div>
           </div>
         </div>
-        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px; text-align: right;">
-          <button class="btn btn-primary" onclick="addNewDefectItem()"><i class="fa-solid fa-plus"></i> Save Defect Entry Row</button>
+        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+          <button id="cancelEditBtn" class="btn btn-secondary" style="display: none;" onclick="clearDefectForm()"><i class="fa-solid fa-xmark"></i> Cancel Edit</button>
+          <button id="saveDefectBtn" class="btn btn-primary" onclick="addNewDefectItem()"><i class="fa-solid fa-plus"></i> Save Defect Entry Row</button>
         </div>
       </div>
 
@@ -251,6 +297,57 @@
       </div>
     </div>
 
+    <div id="storageTab" class="tab-pane">
+      <h2>Save / Load State Data</h2>
+      <p class="subtitle">Export your raw data configuration arrays or import existing JSON template structures.</p>
+      <div class="card">
+        <h3><i class="fa-solid fa-file-export"></i> Backup State File</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Download the active data vectors schema layout as a JSON file to local mobile storage.</p>
+        <button class="btn btn-primary" onclick="exportDataStateJSON()"><i class="fa-solid fa-download"></i> Save Data to JSON</button>
+      </div>
+      <div class="card">
+        <h3><i class="fa-solid fa-file-import"></i> Restore State Data</h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Select and load a previously formatted internal JSON report template database back onto runtime states.</p>
+        <input type="file" id="importJSONStateInput" accept=".json" style="display:none;" onchange="importDataStateJSON(event)">
+        <button class="btn btn-secondary" onclick="document.getElementById('importJSONStateInput').click()"><i class="fa-solid fa-upload"></i> Load Data from JSON</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="loader-overlay" id="annotationWorkspaceModal" style="padding: 16px;">
+    <div class="card" style="width: 100%; max-width: 640px; margin: 0 auto; overflow-y: auto; max-height: 90vh;">
+      <h3 style="margin-bottom: 12px;"><i class="fa-solid fa-pen-ruler"></i> Annotate Selected Photographic Evidence</h3>
+      
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; background: #121212; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+        <button class="btn btn-secondary" style="padding: 8px 12px; font-size:12px;" onclick="setActiveAnnotationTool('draw')"><i class="fa-solid fa-pencil"></i> Draw</button>
+        <button class="btn btn-secondary" style="padding: 8px 12px; font-size:12px;" onclick="setActiveAnnotationTool('circle')"><i class="fa-regular fa-circle"></i> Circle</button>
+        <button class="btn btn-secondary" style="padding: 8px 12px; font-size:12px;" onclick="setActiveAnnotationTool('arrow')"><i class="fa-solid fa-arrow-right"></i> Arrow</button>
+        <button class="btn btn-secondary" style="padding: 8px 12px; font-size:12px;" onclick="setActiveAnnotationTool('line')"><i class="fa-solid fa-grip-lines"></i> Line</button>
+        
+        <select id="annoColorPicker" style="width: auto; padding: 6px; font-size:12px;" onchange="updateAnnotationBrushSettings()">
+          <option value="#cf6679">Red</option>
+          <option value="#d4af37">Yellow</option>
+          <option value="#03dac6">Green</option>
+          <option value="#3700b3">Blue</option>
+        </select>
+        
+        <select id="annoThicknessPicker" style="width: auto; padding: 6px; font-size:12px;" onchange="updateAnnotationBrushSettings()">
+          <option value="2">2px Thickness</option>
+          <option value="5" selected>5px Thickness</option>
+          <option value="9">9px Thickness</option>
+        </select>
+      </div>
+
+      <div style="position: relative; background: #000; border-radius: 8px; min-height: 280px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        <canvas id="annotationCanvas" style="max-width: 100%; max-height: 55vh; display: block; cursor: crosshair;"></canvas>
+      </div>
+
+      <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-secondary" onclick="closeAnnotationWorkspace()"><i class="fa-solid fa-xmark"></i> Dismiss</button>
+        <button class="btn btn-primary" onclick="commitAnnotationWorkspace()"><i class="fa-solid fa-check"></i> Apply Changes</button>
+      </div>
+    </div>
   </div>
 
   <div class="loader-overlay" id="pdfLoader">
@@ -270,6 +367,20 @@
 
     // Buffer array holding base64 strings of currently staging photos for active input session
     let internalStagingPhotos = [];
+    let currentEditingDefectId = null;
+
+    // Annotation Workspace Global Module Pointers Context Variables
+    let activeAnnotationIndex = null;
+    let canvasElement = null;
+    let canvasContext = null;
+    let isDrawingStateActive = false;
+    let drawAnchorStartX = 0;
+    let drawAnchorStartY = 0;
+    let activeAnnotationTool = 'draw';
+    let activeBrushColor = '#cf6679';
+    let activeBrushThickness = 5;
+    let canvasSnapshotFrame = null;
+    let annotationImageInstance = null;
 
     // On Load Initialization Lifecycle Event Linkage Hook
     window.addEventListener('DOMContentLoaded', () => {
@@ -291,6 +402,9 @@
         document.querySelector('.nav-tabs .nav-item:nth-child(3)').classList.add('active');
         document.getElementById('summaryTab').classList.add('active');
         calculateSummaryAnalyticsMetrics();
+      } else if(tabId === 'storage') {
+        document.querySelector('.nav-tabs .nav-item:nth-child(4)').classList.add('active');
+        document.getElementById('storageTab').classList.add('active');
       }
     }
 
@@ -333,6 +447,17 @@
       syncSaveStateToLocalStorageStore();
     }
 
+    // Prefix field layout handler mapping engine configurations functions
+    function handleDropdownSelection(selectElementId, customContainerInputId) {
+      const dropdown = document.getElementById(selectElementId);
+      const customContainer = document.getElementById(customContainerInputId);
+      if (dropdown.value === 'Others') {
+        customContainer.style.display = 'block';
+      } else {
+        customContainer.style.display = 'none';
+      }
+    }
+
     // Process Photographic File Array Selection Buffering Pipeline
     function handleDefectPhotos(event) {
       const files = Array.from(event.target.files);
@@ -341,11 +466,9 @@
       files.forEach(file => {
         const reader = new FileReader();
         reader.onload = function(e) {
-          // Process image using HTML5 Canvas to safely scale/compress data footprint
           const img = new Image();
           img.onload = function() {
             const canvas = document.createElement('canvas');
-            // Maintain layout parity compression bounds square/rect size optimization
             let maxW = 800;
             let maxH = 800;
             let width = img.width;
@@ -369,7 +492,7 @@
         };
         reader.readAsDataURL(file);
       });
-      event.target.value = ''; // flush input field frame loop anchor bounds
+      event.target.value = '';
     }
 
     function rebuildStagingPhotosThumbStrip() {
@@ -381,6 +504,7 @@
         div.innerHTML = `
           <img src="${base64}">
           <button class="remove-img-btn" onclick="removeStagingPhotoIndex(${index})"><i class="fa-solid fa-xmark"></i></button>
+          <button class="edit-img-btn" onclick="launchPhotoAnnotationWorkspace(${index})"><i class="fa-solid fa-pen"></i></button>
         `;
         container.appendChild(div);
       });
@@ -391,11 +515,159 @@
       rebuildStagingPhotosThumbStrip();
     }
 
+    // Interactive Photo Canvas Editing Workbench Infrastructure Rules Loop
+    function launchPhotoAnnotationWorkspace(index) {
+      activeAnnotationIndex = index;
+      const modal = document.getElementById('annotationWorkspaceModal');
+      modal.classList.add('open');
+      
+      canvasElement = document.getElementById('annotationCanvas');
+      canvasContext = canvasElement.getContext('2d');
+      
+      annotationImageInstance = new Image();
+      annotationImageInstance.onload = function() {
+        canvasElement.width = annotationImageInstance.width;
+        canvasElement.height = annotationImageInstance.height;
+        canvasContext.drawImage(annotationImageInstance, 0, 0);
+        captureCanvasSnapshotTrackState();
+        bindCanvasAnnotationMouseTouchGestures();
+      };
+      annotationImageInstance.src = internalStagingPhotos[index];
+    }
+
+    function setActiveAnnotationTool(tool) {
+      activeAnnotationTool = tool;
+    }
+
+    function updateAnnotationBrushSettings() {
+      activeBrushColor = document.getElementById('annoColorPicker').value;
+      activeBrushThickness = parseInt(document.getElementById('annoThicknessPicker').value);
+    }
+
+    function captureCanvasSnapshotTrackState() {
+      canvasSnapshotFrame = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+    }
+
+    function restoreCanvasSnapshotTrackState() {
+      if (canvasSnapshotFrame) {
+        canvasContext.putImageData(canvasSnapshotFrame, 0, 0);
+      }
+    }
+
+    function resolveCoordinateMetricsFromEvent(e) {
+      const box = canvasElement.getBoundingClientRect();
+      return {
+        x: ((e.clientX - box.left) / box.width) * canvasElement.width,
+        y: ((e.clientY - box.top) / box.height) * canvasElement.height
+      };
+    }
+
+    function bindCanvasAnnotationMouseTouchGestures() {
+      canvasElement.onmousedown = initiateDrawSegmentPointer;
+      canvasElement.onmousemove = mapMoveDrawSegmentPointer;
+      canvasElement.onmouseup = severDrawSegmentPointer;
+
+      canvasElement.ontouchstart = (e) => { const pointer = e.touches[0]; const coords = resolveCoordinateMetricsFromEvent(pointer); drawAnchorStartX = coords.x; drawAnchorStartY = coords.y; startInternalDrawPipeline(coords.x, coords.y); e.preventDefault(); };
+      canvasElement.ontouchmove = (e) => { const pointer = e.touches[0]; const coords = resolveCoordinateMetricsFromEvent(pointer); processInternalDrawPipeline(coords.x, coords.y); e.preventDefault(); };
+      canvasElement.ontouchend = (e) => { finishInternalDrawPipeline(); e.preventDefault(); };
+    }
+
+    function initiateDrawSegmentPointer(e) {
+      const coords = resolveCoordinateMetricsFromEvent(e);
+      drawAnchorStartX = coords.x;
+      drawAnchorStartY = coords.y;
+      startInternalDrawPipeline(coords.x, coords.y);
+    }
+
+    function mapMoveDrawSegmentPointer(e) {
+      const coords = resolveCoordinateMetricsFromEvent(e);
+      processInternalDrawPipeline(coords.x, coords.y);
+    }
+
+    function severDrawSegmentPointer() {
+      finishInternalDrawPipeline();
+    }
+
+    function startInternalDrawPipeline(x, y) {
+      isDrawingStateActive = true;
+      captureCanvasSnapshotTrackState();
+      canvasContext.strokeStyle = activeBrushColor;
+      canvasContext.lineWidth = activeBrushThickness;
+      canvasContext.lineCap = 'round';
+      canvasContext.lineJoin = 'round';
+      
+      if (activeAnnotationTool === 'draw') {
+        canvasContext.beginPath();
+        canvasContext.moveTo(x, y);
+      }
+    }
+
+    function processInternalDrawPipeline(x, y) {
+      if (!isDrawingStateActive) return;
+      if (activeAnnotationTool === 'draw') {
+        canvasContext.lineTo(x, y);
+        canvasContext.stroke();
+      } else {
+        restoreCanvasSnapshotTrackState();
+        canvasContext.strokeStyle = activeBrushColor;
+        canvasContext.lineWidth = activeBrushThickness;
+        canvasContext.beginPath();
+        
+        if (activeAnnotationTool === 'line') {
+          canvasContext.moveTo(drawAnchorStartX, drawAnchorStartY);
+          canvasContext.lineTo(x, y);
+          canvasContext.stroke();
+        } else if (activeAnnotationTool === 'circle') {
+          const r = Math.sqrt(Math.pow(x - drawAnchorStartX, 2) + Math.pow(y - drawAnchorStartY, 2));
+          canvasContext.arc(drawAnchorStartX, drawAnchorStartY, r, 0, 2 * Math.PI);
+          canvasContext.stroke();
+        } else if (activeAnnotationTool === 'arrow') {
+          canvasContext.moveTo(drawAnchorStartX, drawAnchorStartY);
+          canvasContext.lineTo(x, y);
+          canvasContext.stroke();
+          
+          const angle = Math.atan2(y - drawAnchorStartY, x - drawAnchorStartX);
+          const size = 16;
+          canvasContext.beginPath();
+          canvasContext.moveTo(x, y);
+          canvasContext.lineTo(x - size * Math.cos(angle - Math.PI / 6), y - size * Math.sin(angle - Math.PI / 6));
+          canvasContext.moveTo(x, y);
+          canvasContext.lineTo(x - size * Math.cos(angle + Math.PI / 6), y - size * Math.sin(angle + Math.PI / 6));
+          canvasContext.stroke();
+        }
+      }
+    }
+
+    function finishInternalDrawPipeline() {
+      if (!isDrawingStateActive) return;
+      isDrawingStateActive = false;
+      captureCanvasSnapshotTrackState();
+    }
+
+    function closeAnnotationWorkspace() {
+      document.getElementById('annotationWorkspaceModal').classList.remove('open');
+    }
+
+    function commitAnnotationWorkspace() {
+      const compiledDataUrlString = canvasElement.toDataURL('image/jpeg', 0.85);
+      internalStagingPhotos[activeAnnotationIndex] = compiledDataUrlString;
+      rebuildStagingPhotosThumbStrip();
+      closeAnnotationWorkspace();
+      triggerToastAlertMessage("Annotation markup layered successfully.");
+    }
+
     function addNewDefectItem() {
-      const loc = document.getElementById('defLocation').value.trim();
+      const locSel = document.getElementById('defLocationSelect').value;
+      const loc = locSel === 'Others' ? document.getElementById('defLocation').value.trim() : locSel;
+      
       const cat = document.getElementById('defCategory').value;
-      const grp = document.getElementById('defGroup').value.trim();
-      const typ = document.getElementById('defType').value.trim();
+      
+      const grpSel = document.getElementById('defGroupSelect').value;
+      const grp = grpSel === 'Others' ? document.getElementById('defGroup').value.trim() : grpSel;
+      
+      const typSel = document.getElementById('defTypeSelect').value;
+      const typ = typSel === 'Others' ? document.getElementById('defType').value.trim() : typSel;
+      
       const rat = document.getElementById('defRating').value;
       const com = document.getElementById('defComments').value.trim();
 
@@ -404,30 +676,106 @@
         return;
       }
 
-      const newItem = {
-        id: Date.now() + Math.random().toString(36).substr(2, 5),
-        location: loc,
-        category: cat,
-        group: grp,
-        defectType: typ,
-        rating: rat,
-        comments: com,
-        photos: [...internalStagingPhotos]
-      };
+      if (currentEditingDefectId !== null) {
+        const itemIdx = state.defects.findIndex(d => d.id === currentEditingDefectId);
+        if (itemIdx !== -1) {
+          state.defects[itemIdx].location = loc;
+          state.defects[itemIdx].category = cat;
+          state.defects[itemIdx].group = grp;
+          state.defects[itemIdx].defectType = typ;
+          state.defects[itemIdx].rating = rat;
+          state.defects[itemIdx].comments = com;
+          state.defects[itemIdx].photos = [...internalStagingPhotos];
+          triggerToastAlertMessage("Defect row updated successfully.");
+        }
+      } else {
+        const newItem = {
+          id: Date.now() + Math.random().toString(36).substr(2, 5),
+          location: loc,
+          category: cat,
+          group: grp,
+          defectType: typ,
+          rating: rat,
+          comments: com,
+          photos: [...internalStagingPhotos]
+        };
+        state.defects.push(newItem);
+        triggerToastAlertMessage("Defect row logged successfully.");
+      }
 
-      state.defects.push(newItem);
       syncSaveStateToLocalStorageStore();
-      
-      // Flush Active Entry Fields Form Content State Variables Block Loop
+      clearDefectForm();
+      rebuildUIDefectsListMatrix();
+    }
+
+    function clearDefectForm() {
+      currentEditingDefectId = null;
+      document.getElementById('defLocationSelect').value = 'Living Room';
       document.getElementById('defLocation').value = '';
+      document.getElementById('defLocationContainer').style.display = 'none';
+      
+      document.getElementById('defGroupSelect').value = 'Ceiling';
       document.getElementById('defGroup').value = '';
+      document.getElementById('defGroupContainer').style.display = 'none';
+      
+      document.getElementById('defTypeSelect').value = 'Hairline Crack';
       document.getElementById('defType').value = '';
+      document.getElementById('defTypeContainer').style.display = 'none';
+      
       document.getElementById('defComments').value = '';
       internalStagingPhotos = [];
       document.getElementById('defectPhotoPreviewStrip').innerHTML = '';
       
-      rebuildUIDefectsListMatrix();
-      triggerToastAlertMessage("Defect row logged successfully.");
+      document.getElementById('saveDefectBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Save Defect Entry Row`;
+      document.getElementById('cancelEditBtn').style.display = 'none';
+    }
+
+    function editDefectItem(id) {
+      const defect = state.defects.find(d => d.id === id);
+      if (!defect) return;
+
+      currentEditingDefectId = id;
+      
+      setDropdownFieldMatchValue('defLocationSelect', 'defLocation', 'defLocationContainer', defect.location);
+      setDropdownFieldMatchValue('defGroupSelect', 'defGroup', 'defGroupContainer', defect.group);
+      setDropdownFieldMatchValue('defTypeSelect', 'defType', 'defTypeContainer', defect.defectType);
+      
+      document.getElementById('defCategory').value = defect.category;
+      document.getElementById('defRating').value = defect.rating;
+      document.getElementById('defComments').value = defect.comments || '';
+      
+      internalStagingPhotos = [...(defect.photos || [])];
+      rebuildStagingPhotosThumbStrip();
+      
+      document.getElementById('saveDefectBtn').innerHTML = `<i class="fa-solid fa-check"></i> Update Defect Entry Row`;
+      document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+      
+      document.getElementById('defectsTab').scrollTop = 0;
+      triggerToastAlertMessage("Defect record parsed onto configuration interface workspace.");
+    }
+
+    function setDropdownFieldMatchValue(selectId, customInputId, containerId, targetValue) {
+      const dropdown = document.getElementById(selectId);
+      const customInput = document.getElementById(customInputId);
+      const container = document.getElementById(containerId);
+      
+      let targetExists = false;
+      for (let i = 0; i < dropdown.options.length; i++) {
+        if (dropdown.options[i].value === targetValue) {
+          targetExists = true;
+          break;
+        }
+      }
+
+      if (targetExists) {
+        dropdown.value = targetValue;
+        container.style.display = 'none';
+        customInput.value = '';
+      } else {
+        dropdown.value = 'Others';
+        container.style.display = 'block';
+        customInput.value = targetValue;
+      }
     }
 
     function removeDefectItem(id) {
@@ -447,7 +795,6 @@
         return;
       }
 
-      // Render items ordered directly by creation timing logic framework map
       state.defects.forEach((d) => {
         const item = document.createElement('div');
         item.className = 'defect-item';
@@ -460,13 +807,16 @@
         }
 
         item.innerHTML = `
-          <div class="defect-info">
+          <div class="defect-info" style="flex-grow:1;">
             <h4>${d.location} &mdash; ${d.group} : <span style="color:var(--accent);">${d.defectType}</span></h4>
             <p style="margin-top:4px;"><span class="defect-badge badge-${d.rating.toLowerCase()}">${d.rating}</span> <span style="color:#888; font-size:12px; margin-left:8px;">Scope Class: ${d.category}</span></p>
             ${d.comments ? `<p style="font-style:italic; margin-top:8px; color:#ccc; background:#222; padding:8px; border-radius:4px; font-size:12.5px;">&ldquo; ${d.comments} &rdquo;</p>` : ''}
             ${photoThumbnailsHtml}
           </div>
-          <button class="btn btn-danger" style="padding: 8px 12px; shrink:0;" onclick="removeDefectItem('${d.id}')"><i class="fa-solid fa-trash-can"></i></button>
+          <div style="display:flex; flex-direction:column; gap:8px; shrink:0; margin-left:12px;">
+            <button class="btn btn-secondary" style="padding: 8px 12px;" onclick="editDefectItem('${d.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button class="btn btn-danger" style="padding: 8px 12px;" onclick="removeDefectItem('${d.id}')"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
         `;
         container.appendChild(item);
       });
@@ -484,7 +834,6 @@
       document.getElementById('statHighCount').innerText = high;
     }
 
-    // Secondary Binary Attachment Handler Matrix: Scanned Image Page Parser
     function processChecklistUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -494,7 +843,6 @@
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          // Scale bounds set slightly wider/higher to maximize document clarity profiles
           let maxDimension = 1600; 
           let width = img.width;
           let height = img.height;
@@ -530,32 +878,61 @@
       triggerToastAlertMessage("Checklist document link decoupled.");
     }
 
+    // JSON Local Storage State Backup Module Handlers
+    function exportDataStateJSON() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const dlLink = document.createElement("a");
+      dlLink.download = `InspectionState_${state.cover.refno || 'Backup'}.json`;
+      dlLink.href = URL.createObjectURL(blob);
+      dlLink.click();
+      triggerToastAlertMessage("JSON Data package generated successfully.");
+    }
+
+    function importDataStateJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const contents = JSON.parse(e.target.result);
+          if (contents && contents.cover && contents.defects) {
+            state = contents;
+            syncSaveStateToLocalStorageStore();
+            // Re-update the form contents UI
+            document.getElementById('metaRef').value = state.cover.refno || '';
+            document.getElementById('metaDate').value = state.cover.date || '';
+            document.getElementById('metaClient').value = state.cover.client || '';
+            document.getElementById('metaInspector').value = state.cover.inspector || '';
+            document.getElementById('metaProperty').value = state.cover.property || '';
+            if (state.checklistImage) {
+              document.getElementById('checklistPreviewImg').src = state.checklistImage;
+              document.getElementById('checklistPreviewBox').style.display = 'block';
+            } else {
+              document.getElementById('checklistPreviewBox').style.display = 'none';
+            }
+            triggerToastAlertMessage("JSON schema state restored successfully.");
+            switchTab('cover');
+          } else {
+            triggerToastAlertMessage("Validation Exception: Data schema structural fault mismatch.");
+          }
+        } catch(err) {
+          triggerToastAlertMessage("Parse Exception: File elements syntax failure.");
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
     /* ================================================================================
       PDF RENDERING CORE COMPLIANCE ENGINE
       ================================================================================
-      Specifications Fulfilled:
-      - All White Page Background Document Flow Architecture.
-      - Retains exact header and footer drawing formatting logic layouts.
-      - Removed last client/inspector signatory sections blocks completely.
-      - Cover Page changes: Stripped logo and company text string; renders optimized 
-        bold header string: 'BUILDING DEFECT INSPECTION'.
-      - Table Columns Layout Array: ['location', 'Group', 'defect type', 'rating', 'Photos']
-      - Complex Sort Hierarchy Ordering: Location -> Group -> Defect Type.
-      - Conditional inspector comments injection nested inside Column 3 using *Italics*.
-      - Skips 'Category' string completely from compilation tables.
-      - Automatically forces all photographic cell attachments into strict uniform 1:1 squares.
-      - Re-evaluates exact row height bounds metrics dynamic text lines wrapping to 
-        safely re-render the master table headers on cross-page overflows.
-      - Appends dedicated checklist scan sheets page full scale directly before summary block.
     */
     async function buildReportPDF() {
       document.getElementById('pdfLoader').classList.add('open');
-      // Yield control loop thread sequentially to ensure DOM loader animation rendering frames execute
       await new Promise(resolve => setTimeout(resolve, 250));
 
       try {
         const { jsPDF } = window.jspdf;
-        // Standard Portrait A4 Coordinate Frame System Framework Bounds Map: 210mm x 297mm
         const doc = new jsPDF('p', 'mm', 'a4');
         const W = doc.internal.pageSize.getWidth();
         const H = doc.internal.pageSize.getHeight();
@@ -564,28 +941,25 @@
         // ----------------------------------------------------------------------
         // PHASE 1: MASTER COVER PAGE RENDERING (All White Background Minimalist Structure)
         // ----------------------------------------------------------------------
-        // Draw document main layout banner title strings (Replaces Logo and Company Name text)
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(28);
         doc.setTextColor(30, 30, 30);
-        doc.text('BUILDING DEFECT INSPECTION', margin, 55);
+        doc.text('PROPERTY DEFECT REPORT', margin, 55);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(12);
         doc.setTextColor(110, 110, 110);
-        doc.text('PROFESSIONAL COMPREHENSIVE PROPERTY CONDITION REPORT', margin, 64);
+        doc.text('INSPECTION REPORT', margin, 64);
 
-        // Accent layout delimiter horizontal rule separator line vector
         doc.setDrawColor(46, 46, 46);
         doc.setLineWidth(0.75);
         doc.line(margin, 72, W - margin, 72);
 
-        // Metadata structural data block rendering matrix
         let sy = 120;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(120, 120, 120);
-        doc.text('REPORT METADATA PARAMETERS', margin, sy);
+        doc.text('INSPECTION DETAILS', margin, sy);
 
         doc.setDrawColor(230, 230, 230);
         doc.setLineWidth(0.25);
@@ -595,9 +969,9 @@
         const metaFieldsBlock = [
           { label: 'Reference No:', val: state.cover.refno || '__________' },
           { label: 'Inspection Date:', val: state.cover.date || '__________' },
-          { label: 'Client Profile:', val: state.cover.client || '__________' },
-          { label: 'Property Scope:', val: state.cover.property || '__________' },
-          { label: 'Lead Inspector:', val: state.cover.inspector || '__________' }
+          { label: 'Client:', val: state.cover.client || '__________' },
+          { label: 'Address:', val: state.cover.property || '__________' },
+          { label: 'Inspector:', val: state.cover.inspector || '__________' }
         ];
 
         metaFieldsBlock.forEach(item => {
@@ -610,7 +984,7 @@
           doc.setFontSize(10);
           doc.setTextColor(30, 30, 30);
 
-          if (item.label === 'Property Scope:') {
+          if (item.label === 'Address:') {
             const wrapPropertyLines = doc.splitTextToSize(item.val, W - margin - 55);
             let wrapY = sy;
             wrapPropertyLines.forEach((line, lineIndex) => {
@@ -624,7 +998,6 @@
           }
         });
 
-        // Add standard master document bottom structural block footer asset
         appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
 
         // ----------------------------------------------------------------------
@@ -632,7 +1005,6 @@
         // ----------------------------------------------------------------------
         if (state.defects && state.defects.length > 0) {
           
-          // Execute multi-tier alphanumeric relational sort algorithm sequence structure
           const tabularSortedDefects = [...state.defects].sort((a, b) => {
             const locCompare = (a.location || '').localeCompare(b.location || '', undefined, {numeric: true, sensitivity: 'base'});
             if (locCompare !== 0) return locCompare;
@@ -643,17 +1015,16 @@
             return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
           });
 
-          // Add secondary page to initialize matrix table generation
           doc.addPage();
           appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
 
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(16);
           doc.setTextColor(30, 30, 30);
-          doc.text('Defect Analysis Log Sheet Grid', margin, 22);
+          doc.text('Defect Log Table', margin, 22);
 
           let currentTableY = 28;
-          // Exact dimensional spacing map layout bounds allocation sizing constraints matching W=180mm net printable space
+          // Column sizes recalculated to expand photo footprint width matches to cell bounds boundaries 
           const tableColumnWidthAllocations = { location: 26, group: 30, defectType: 64, rating: 20, photos: 40 };
           const netTablePrintableWidth = 180;
           
@@ -665,9 +1036,8 @@
             photos: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group + tableColumnWidthAllocations.defectType + tableColumnWidthAllocations.rating
           };
 
-          // Inner lambda closure encapsulating functional header re-rendering math mechanics
           const executeTableHeaderDrawingRoutine = (yPosition) => {
-            doc.setFillColor(46, 46, 46); // Retain original matching core structural background color hue signatures
+            doc.setFillColor(46, 46, 46); 
             doc.rect(margin, yPosition, netTablePrintableWidth, 8, 'F');
 
             doc.setFont('helvetica', 'bold');
@@ -683,15 +1053,12 @@
             return yPosition + 8;
           };
 
-          // Initial invocation on entry sheet page initialization point
           currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
 
-          // Iterate sorted structural inspection elements data sequence vectors
           for (const d of tabularSortedDefects) {
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
 
-            // Compute lines wrapping constraints for multi-line layout blocks calculations
             const parsedLocLines = doc.splitTextToSize(d.location || '', tableColumnWidthAllocations.location - 4);
             const parsedGrpLines = doc.splitTextToSize(d.group || '', tableColumnWidthAllocations.group - 4);
             const parsedRatLines = doc.splitTextToSize(d.rating || '', tableColumnWidthAllocations.rating - 4);
@@ -700,20 +1067,17 @@
             const rawInspectorCommentsText = d.comments || '';
             const parsedCommentsItalicLines = rawInspectorCommentsText ? doc.splitTextToSize(rawInspectorCommentsText, tableColumnWidthAllocations.defectType - 4) : [];
 
-            // Compute height allocations requirements needed for Column 3 Text Blocks
             const textLineStepSpacing = 4.0;
-            let totalColumnThreeTextHeight = parsedDefTypeTitleLines.length * textLineStepSpacing + 4; // Add baseline padding element bounds
+            let totalColumnThreeTextHeight = parsedDefTypeTitleLines.length * textLineStepSpacing + 4; 
             if (parsedCommentsItalicLines.length > 0) {
-              totalColumnThreeTextHeight += (parsedCommentsItalicLines.length * 3.6) + 2; // Incremental spacing allocation parameter for comments section
+              totalColumnThreeTextHeight += (parsedCommentsItalicLines.length * 3.6) + 2; 
             }
 
-            // Compute layout size demands metrics calculations for square multi-photos rendering columns
-            const uniformSquareImageThumbnailSize = 16; 
+            // Expanded single file layout tracking photo cell size calculation
+            const uniformSquareImageThumbnailSize = 36; 
             const imagesCount = d.photos ? d.photos.length : 0;
-            const computedPhotoRowsNeeded = Math.ceil(imagesCount / 2); // Split layout matching 2 structural matrix cards side-by-side
-            const totalPhotosColumnHeightNeeded = computedPhotoRowsNeeded > 0 ? (computedPhotoRowsNeeded * (uniformSquareImageThumbnailSize + 2.5) + 3.5) : 6;
+            const totalPhotosColumnHeightNeeded = imagesCount > 0 ? (imagesCount * (uniformSquareImageThumbnailSize + 3) + 3) : 6;
 
-            // Determine absolute row height peak allocation ceiling constraint dimension parameters
             const baselineCalculatedRowCellHeight = Math.max(
               parsedLocLines.length * textLineStepSpacing + 4,
               parsedGrpLines.length * textLineStepSpacing + 4,
@@ -722,9 +1086,7 @@
               totalPhotosColumnHeightNeeded
             );
 
-            // Hard page break limit metric tracking analysis check (276mm leaves precise structural space margins for bottom footers)
             if (currentTableY + baselineCalculatedRowCellHeight > 276) {
-              // Seal open active table bottom baseline vector edge layout path line prior to sheet transition jump operations
               doc.setDrawColor(210, 210, 210);
               doc.setLineWidth(0.2);
               doc.line(margin, currentTableY, margin + netTablePrintableWidth, currentTableY);
@@ -732,19 +1094,15 @@
               doc.addPage();
               appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
               
-              // Reset baseline index position tracking metrics context variable constraints definitions bounds coordinates
               currentTableY = 20; 
               currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
             }
 
-            // Draw structural cell bounding box dividers lines wireframe grid layout profile outline vectors
             doc.setDrawColor(210, 210, 210);
             doc.setLineWidth(0.2);
             
-            // Draw baseline cross bounding edge line segments row trace anchors
             doc.line(margin, currentTableY + baselineCalculatedRowCellHeight, margin + netTablePrintableWidth, currentTableY + baselineCalculatedRowCellHeight);
             
-            // Draw row side vertical divider lines columns boundaries vectors
             doc.line(columnXCoordinates.location, currentTableY, columnXCoordinates.location, currentTableY + baselineCalculatedRowCellHeight);
             doc.line(columnXCoordinates.group, currentTableY, columnXCoordinates.group, currentTableY + baselineCalculatedRowCellHeight);
             doc.line(columnXCoordinates.defectType, currentTableY, columnXCoordinates.defectType, currentTableY + baselineCalculatedRowCellHeight);
@@ -752,35 +1110,29 @@
             doc.line(columnXCoordinates.photos, currentTableY, columnXCoordinates.photos, currentTableY + baselineCalculatedRowCellHeight);
             doc.line(columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY, columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY + baselineCalculatedRowCellHeight);
 
-            // Populate row cell content data text segments blocks tracking positioning metrics
             doc.setTextColor(30, 30, 30);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
 
-            // Column 1: Location Field Row Population
             let textPrintYCursor = currentTableY + 4.5;
             parsedLocLines.forEach(line => { doc.text(line, columnXCoordinates.location + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
 
-            // Column 2: Elemental Group Field Row Population
             textPrintYCursor = currentTableY + 4.5;
             parsedGrpLines.forEach(line => { doc.text(line, columnXCoordinates.group + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
 
-            // Column 3: Defect Type Title + Nested Italic Inspector Comments
             textPrintYCursor = currentTableY + 4.5;
             parsedDefTypeTitleLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
 
             if (parsedCommentsItalicLines.length > 0) {
-              textPrintYCursor += 0.5; // Inject subtle line element padding trace
+              textPrintYCursor += 0.5; 
               doc.setFont('helvetica', 'italic');
               doc.setFontSize(7.5);
-              doc.setTextColor(100, 100, 100); // Shift text contrast signature shade profiles slightly lower for italic comments
+              doc.setTextColor(100, 100, 100); 
               parsedCommentsItalicLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += 3.4; });
             }
 
-            // Column 4: Severity Rating Level Population
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
-            // Apply contextual color highlights directly onto raw alphanumeric severity tags matches
             if(d.rating === 'High') doc.setTextColor(190, 40, 60);
             else if(d.rating === 'Medium') doc.setTextColor(180, 130, 20);
             else doc.setTextColor(20, 140, 120);
@@ -788,28 +1140,23 @@
             textPrintYCursor = currentTableY + 4.5;
             parsedRatLines.forEach(line => { doc.text(line, columnXCoordinates.rating + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
 
-            // Column 5: Photos Subgrid Processing Engine System Vector Module (Strict 1:1 Squares)
+            // Expanded Full cell grid scale tracking photo mapping engine loop
             if (d.photos && d.photos.length > 0) {
               d.photos.forEach((base64ImageElementDataString, imageIndex) => {
-                const rowPositionIndex = Math.floor(imageIndex / 2);
-                const columnPositionIndex = imageIndex % 2;
-                
-                const drawTargetCoordinateX = columnXCoordinates.photos + 2.5 + columnPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
-                const drawTargetCoordinateY = currentTableY + 3 + rowPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
+                const drawTargetCoordinateX = columnXCoordinates.photos + 2.0;
+                const drawTargetCoordinateY = currentTableY + 3 + imageIndex * (uniformSquareImageThumbnailSize + 3);
 
                 try {
                   doc.addImage(base64ImageElementDataString, 'JPEG', drawTargetCoordinateX, drawTargetCoordinateY, uniformSquareImageThumbnailSize, uniformSquareImageThumbnailSize, undefined, 'FAST');
                 } catch (imageInclusionError) {
-                  console.error("Critical image matrix draw bypass exception tracking context logs loop:", imageInclusionError);
+                  console.error("Image draw bypass exception loop:", imageInclusionError);
                 }
               });
             }
 
-            // Progress active table vertical page positioning track loop reference variable pointers
             currentTableY += baselineCalculatedRowCellHeight;
           }
         } else {
-          // Fallback context structure processing execution if zero defects are logged in database vectors
           doc.addPage();
           appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
           doc.setFont('helvetica', 'italic');
@@ -821,7 +1168,6 @@
         // ----------------------------------------------------------------------
         // PHASE 3: DEDICATED FULL PAGE SCANNED CHECKLIST IMAGE ATTACHMENT SHEET
         // ----------------------------------------------------------------------
-        // Executes exactly right before the statistics summary analytics visualization sheet blocks
         if (state.checklistImage) {
           doc.addPage();
           appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
@@ -831,19 +1177,13 @@
           doc.setTextColor(30, 30, 30);
           doc.text('Sanitary & Electrical Installation Checklist', margin, 22);
 
-          // Compute absolute maximal aspect scaling layout boundaries matrices inside active report sheet page framework constraints
-          const maximalAvailableContentWidth = W - (margin * 2); // 180mm
-          const maximalAvailableContentHeight = H - 42; // Leaves explicit structural room allocations for header labels and footers elements
+          const maximalAvailableContentWidth = W - (margin * 2); 
+          const maximalAvailableContentHeight = H - 42; 
           
           try {
-            // Draw scanned checklist single image layout attachment sheet structure full scale bounded neatly within net content space margins
             doc.addImage(state.checklistImage, 'JPEG', margin, 27, maximalAvailableContentWidth, maximalAvailableContentHeight, undefined, 'FAST');
           } catch (checklistAttachmentRenderError) {
-            console.error("Checklist layout parsing failure override error logs trace context:", checklistAttachmentRenderError);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9.5);
-            doc.setTextColor(180, 50, 50);
-            doc.text('Pipeline Framework Exception: Scanned Image rendering bypass error tracing file allocation logs mismatch tracking links.', margin, 36);
+            console.error("Checklist layout parsing failure:", checklistAttachmentRenderError);
           }
         }
 
@@ -856,18 +1196,17 @@
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(20);
         doc.setTextColor(30, 30, 30);
-        doc.text('Executive Metrics Summary Analysis', margin, 35);
+        doc.text('Summary of Findings', margin, 35);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
         doc.setTextColor(90, 90, 90);
-        doc.text('Condensed quantitative evaluation of architectural system deficiencies.', margin, 43);
+        doc.text('Total number of defects found by severity level.', margin, 43);
 
         doc.setDrawColor(220, 220, 220);
         doc.setLineWidth(0.3);
         doc.line(margin, 49, W - margin, 49);
 
-        // Core aggregate statistics calculation logic computations run loop
         let totalLowFaultsCount = 0, totalMediumFaultsCount = 0, totalHighFaultsCount = 0;
         state.defects.forEach(defectElementItem => {
           if (defectElementItem.rating === 'Low') totalLowFaultsCount++;
@@ -876,54 +1215,48 @@
         });
         const grossTotalDefectsSummedValue = state.defects.length;
 
-        // Render structured visual tabular data metrics summary scorecard layouts modules grid cards
         let scoreYOffset = 62;
         
-        // Total Gross Deficiencies Sum Block Row
         doc.setFillColor(245, 245, 245);
         doc.rect(margin, scoreYOffset, W - (margin * 2), 12, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(50, 50, 50);
-        doc.text('Gross Total Deficiencies Identified Across Inspected Zones:', margin + 4, scoreYOffset + 7.5);
+        doc.text('Total Defects Found:', margin + 4, scoreYOffset + 7.5);
         doc.setFontSize(12);
         doc.text(grossTotalDefectsSummedValue.toString(), W - margin - 12, scoreYOffset + 8.5, { align: 'right' });
 
-        // Low Severity Items Metrics Block Row
         scoreYOffset += 18;
         doc.setFillColor(248, 253, 252);
         doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
         doc.setFont('helvetica', 'medium');
         doc.setFontSize(9.5);
         doc.setTextColor(60, 60, 60);
-        doc.text('Minor Functional / Cosmetic Imperfections (Low Risk Profile):', margin + 4, scoreYOffset + 7);
+        doc.text('Low Severity (Minor Issues):', margin + 4, scoreYOffset + 7);
         doc.setTextColor(20, 140, 120);
         doc.setFont('helvetica', 'bold');
         doc.text(totalLowFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
 
-        // Medium Severity Items Metrics Block Row
         scoreYOffset += 15;
         doc.setFillColor(254, 253, 247);
         doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
         doc.setFont('helvetica', 'medium');
         doc.setTextColor(60, 60, 60);
-        doc.text('Moderate Actionable System Vulnerabilities (Medium Risk Profile):', margin + 4, scoreYOffset + 7);
+        doc.text('Medium Severity (Repairs Needed):', margin + 4, scoreYOffset + 7);
         doc.setTextColor(180, 130, 20);
         doc.setFont('helvetica', 'bold');
         doc.text(totalMediumFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
 
-        // High Severity Items Metrics Block Row
         scoreYOffset += 15;
         doc.setFillColor(254, 248, 249);
         doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
         doc.setFont('helvetica', 'medium');
         doc.setTextColor(60, 60, 60);
-        doc.text('Critical Structural Faults / Safety Hazards (High Urgent Action Profile):', margin + 4, scoreYOffset + 7);
+        doc.text('High Severity (Urgent Action Required):', margin + 4, scoreYOffset + 7);
         doc.setTextColor(190, 40, 60);
         doc.setFont('helvetica', 'bold');
         doc.text(totalHighFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
 
-        // Document Closure End-Of-Report Advisory Notice Callout Panel
         scoreYOffset += 24;
         doc.setFillColor(250, 250, 250);
         doc.setDrawColor(220, 220, 220);
@@ -933,12 +1266,12 @@
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
         doc.setTextColor(40, 40, 40);
-        doc.text('Advisory Notice Notes Guidance Notes', margin + 6, scoreYOffset + 6);
+        doc.text('Important Note', margin + 6, scoreYOffset + 6);
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
-        const advisoryTextParagraphStringsBlock = doc.splitTextToSize("This structural document data matrix report presents a snap-shot compilation summary review analysis mapping conditions present on the explicitly targeted date timeline of inspection operations tracking only. Reruns, structural settling actions, secondary environment degradation profiles, or implicit system anomalies manifested after the core operations timeframe require supplementary secondary engineering assessments.", W - (margin * 2) - 12);
+        const advisoryTextParagraphStringsBlock = doc.splitTextToSize("This report shows the condition of the property on the date of the inspection only. It does not cover problems that may occur after this date or issues that were hidden at the time of inspection.", W - (margin * 2) - 12);
         
         let advisoryTextLineYCursor = scoreYOffset + 11.5;
         advisoryTextParagraphStringsBlock.forEach(lineString => {
@@ -954,13 +1287,12 @@
         triggerToastAlertMessage('PDF Document Compiled Successfully: ' + masterGeneratedReportFilenameString);
 
       } catch (masterCompilationGlobalErrorFaultContext) {
-        console.error("PDF engine crash context breakdown stack log:", masterCompilationGlobalErrorFaultContext);
+        console.error("PDF engine crash context breakdown:", masterCompilationGlobalErrorFaultContext);
         triggerToastAlertMessage('PDF Compilation Engine Fault Error Exception: ' + masterCompilationGlobalErrorFaultContext.message);
       }
       document.getElementById('pdfLoader').classList.remove('open');
     }
 
-    // Retained Master Page Footer Drawing System Element Logic Architecture Block
     function appendMasterPageFooterElement(doc, W, H, margin, refno) {
       doc.setFillColor(46, 46, 46);
       doc.rect(0, H - 10, W, 10, 'F');
