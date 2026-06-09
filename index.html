@@ -1371,6 +1371,20 @@
         // ----------------------------------------------------------------------
         // PHASE 5: DOCUMENT SERIALIZATION STREAM FILE SAVE LIFECYCLE DISPATCH
         // ----------------------------------------------------------------------
+        // Two-pass calculation loop to dynamically stamp page numbers on all pages
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          // Skip stamping the text block index if it's the Cover Page
+          if (i === 1) continue;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(6.5);
+          doc.setTextColor(140, 140, 140); // Matches the existing footer text color
+          
+          // Aligned perfectly with your right margin (W - margin) on the dark bottom bar
+          doc.text(`Page ${i} of ${totalPages}`, W - margin, H - 4, { align: 'right' });
+        }
+
         const masterGeneratedReportFilenameString = (state.cover.refno || 'AFH-Report') + '_' + (state.cover.date || new Date().toISOString().split('T')[0]) + '.pdf';
         doc.save(masterGeneratedReportFilenameString);
         triggerToastAlertMessage('PDF Document Compiled Successfully: ' + masterGeneratedReportFilenameString);
