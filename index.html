@@ -7,968 +7,1177 @@
 <meta name="apple-mobile-web-app-title" content="AF Inspect">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="/AFH/icon-180.png">
-<link rel="icon" type="image/png" href="/AFH/icon-180.png">
+<meta name="theme-color" content="#2e2e2e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  :root {
-    --bg-main: #121212;
-    --bg-card: #1e1e1e;
-    --border-color: #2d2d2d;
-    --text-main: #f5f5f5;
-    --text-muted: #aaaaaa;
-    --accent: #d4af37;
-    --accent-hover: #f3cf55;
-    --danger: #cf6679;
-    --success: #03dac6;
-  }
+:root {
+  --tan: #b5a99a;
+  --tan-light: #d4cbbf;
+  --tan-dark: #8c7e71;
+  --grey: #636363;
+  --grey-light: #9a9a9a;
+  --grey-dark: #2e2e2e;
+  --bg: #f9f7f4;
+  --bg-card: #ffffff;
+  --border: #e0d8d0;
+  --shadow: rgba(90,70,50,0.10);
+  --red: #c0392b;
+  --orange: #e67e22;
+  --yellow: #f1c40f;
+  --green: #1a7a45;
+  --accent: #7b6c5e;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
-  body { background-color: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-  /* Sidebar styling */
-  .sidebar { width: 260px; background-color: #0a0a0a; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; shrink: 0; }
-  .brand { display: flex; align-items: center; gap: 12px; padding: 0 24px 24px 24px; border-bottom: 1px solid var(--border-color); }
-  .brand img { width: 36px; height: 36px; border-radius: 6px; }
-  .brand span { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-  .nav-tabs { display: flex; flex-direction: column; gap: 6px; padding: 20px 12px; flex-grow: 1; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; font-size: 14px; font-weight: 500; }
-  .nav-item:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
-  .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: 3px solid var(--accent); padding-left: 13px; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--grey-dark);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.4;
+}
 
-  /* Main frame styling */
-  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
-  .tab-pane { display: none; padding: 32px; max-width: 900px; width: 100%; margin: 0 auto; }
-  .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+/* ===== APP NAVIGATION ===== */
+.app-header {
+  background: var(--grey-dark);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.app-header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--tan-light);
+  text-transform: uppercase;
+}
 
-  h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #fff; }
-  .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
-  .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-  .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 18px; color: var(--accent); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.tab-nav {
+  display: flex;
+  gap: 6px;
+  background: #1e1e1e;
+  padding: 10px 14px;
+  position: sticky;
+  top: 48px;
+  z-index: 99;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.6);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 38px;
+}
+.tab-btn.active {
+  background: var(--tan);
+  color: white;
+  border-color: var(--tan);
+}
 
-  /* Form Layouts */
-  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  .form-group { display: flex; flex-direction: column; gap: 8px; }
-  .form-group.full-width { grid-column: span 2; }
-  label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
-  input, select, textarea { background-color: #121212; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; transition: border-color 0.2s; width: 100%; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 80px; }
+/* ===== PAGES & CONTENT CONTROLS ===== */
+.page { display: none; padding: 16px 14px 100px; max-width: 600px; margin: 0 auto; }
+.page.active { display: block; }
 
-  /* Buttons */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
-  .btn-primary { background-color: var(--accent); color: #000; }
-  .btn-primary:hover { background-color: var(--accent-hover); }
-  .btn-secondary { background-color: #2d2d2d; color: #fff; }
-  .btn-secondary:hover { background-color: #3d3d3d; }
-  .btn-danger { background-color: rgba(207, 102, 121, 0.15); color: var(--danger); border: 1px solid rgba(207,102,121,0.2); }
-  .btn-danger:hover { background-color: rgba(207, 102, 121, 0.25); }
+.card {
+  background: var(--bg-card);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
 
-  /* Defects List Grid */
-  .defects-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-  .defect-item { background-color: #161616; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-  .defect-info h4 { font-size: 15px; color: #fff; margin-bottom: 4px; }
-  .defect-info p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-  .defect-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-  .badge-low { background-color: rgba(3,218,198,0.15); color: var(--success); }
-  .badge-medium { background-color: rgba(212,175,55,0.15); color: var(--accent); }
-  .badge-high { background-color: rgba(207,102,121,0.15); color: var(--danger); }
-  .defect-photos-preview { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .defect-photos-preview img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
+/* ===== INPUTS & CHIPS ===== */
+.form-row { margin-bottom: 14px; }
+.form-row label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--grey);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--grey-dark);
+  background: #faf9f7;
+  min-height: 44px;
+}
+.form-row textarea { resize: vertical; min-height: 80px; }
+.form-row select { appearance: auto; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  /* Photo Uploader Multi-Styler */
-  .photo-upload-container { display: flex; flex-direction: column; gap: 10px; }
-  .preview-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-  .preview-thumb { position: relative; width: 80px; height: 80px; }
-  .preview-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
-  .preview-thumb .remove-img-btn { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.other-input-wrap { margin-top: 8px; display: none; }
 
-  /* Loader Modal Overlay */
-  .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 10000; }
-  .loader-overlay.open { display: flex; }
-  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+.location-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.loc-chip {
+  padding: 10px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #faf9f7;
+  color: var(--grey);
+  font-weight: 500;
+  min-height: 44px;
+}
+.loc-chip.selected { background: var(--tan); color: white; border-color: var(--tan); }
 
-  /* Toast notification */
-  .toast { position: fixed; bottom: 24px; right: 24px; background-color: #fff; color: #000; padding: 14px 24px; border-radius: 8px; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 99999; }
-  .toast.show { transform: translateY(0); opacity: 1; }
+/* ===== DEFECT ENTRIES ===== */
+.defect-item {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.defect-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.defect-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; }
+.defect-location-badge { font-size: 0.75rem; font-weight: 700; background: var(--tan-light); padding: 3px 8px; border-radius: 6px; }
+.defect-actions { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid #f0eaee; padding-top: 8px; }
+
+/* Dynamic full width display for image evidence */
+.defect-img-container { width: 100%; margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.defect-full-img { width: 100%; max-width: 100%; height: auto; display: block; object-fit: contain; }
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+}
+.btn-primary { background: var(--grey-dark); color: white; width: 100%; }
+.btn-secondary { background: #faf9f7; color: var(--grey-dark); border: 1.5px solid var(--border); }
+.btn-danger { background: var(--red); color: white; }
+.btn-edit { background: var(--orange); color: white; }
+
+.fab {
+  position: fixed; bottom: 20px; right: 20px;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--grey-dark); color: white; font-size: 1.8rem;
+  border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center; z-index: 90;
+}
+
+/* ===== MODAL & ADVANCED ANNOTATION CANVAS ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  z-index: 200; display: none; align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white; border-radius: 20px 20px 0 0;
+  padding: 16px 16px 40px; width: 100%; max-width: 550px;
+  max-height: 88vh; overflow-y: auto;
+}
+.modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; }
+
+#canvasContainer {
+  width: 100%; position: relative; background: #eee; 
+  border-radius: 8px; overflow: hidden; margin-top: 10px; display: none;
+}
+#annotateCanvas { width: 100%; display: block; touch-action: none; }
+
+.annotation-controls { background: #f5f2ee; padding: 10px; border-radius: 8px; margin-top: 8px; }
+.tool-row, .palette-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.tool-btn {
+  padding: 6px 12px; border: 1px solid var(--border); background: white;
+  border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; min-height: 36px;
+}
+.tool-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+.color-dot {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 2px rgba(0,0,0,0.4);
+}
+.color-dot.active { border-color: var(--grey-dark); transform: scale(1.1); }
+
+/* ===== COVER PREVIEW ===== */
+.cover-preview { border: 2px solid var(--border); border-radius: 14px; background: white; margin-bottom: 16px; padding: 20px; text-align: center; }
+.cover-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; margin: 10px 0; }
+.cover-meta-line { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; border-bottom: 1px solid #f3ebe4; }
+
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  background: var(--grey-dark); color: white; padding: 8px 18px; border-radius: 20px;
+  font-size: 0.85rem; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
 </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <div class="brand">
-      <img src="/AFH/icon-180.png" alt="Logo">
-      <span>AF Inspect</span>
+<header class="app-header">
+  <h1>AF Home Inspection</h1>
+</header>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" id="tabBtn-cover" onclick="switchTab('cover')">📋 Cover Details</button>
+  <button class="tab-btn" id="tabBtn-inspect" onclick="switchTab('inspect')">🔍 Areas</button>
+  <button class="tab-btn" id="tabBtn-defects" onclick="switchTab('defects')">⚠️ Logged Defects</button>
+  <button class="tab-btn" id="tabBtn-backup" onclick="switchTab('backup')">💾 Backup &amp; Data</button>
+</nav>
+
+<div class="page active" id="page-cover">
+  <div class="cover-preview">
+    <div style="font-weight: 600; color: var(--tan-dark);">AF HOME INSPECTION</div>
+    <div class="cover-title" id="prevTitle">PROPERTY INSPECTION REPORT</div>
+    <div id="coverPreviewLines"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Project Context</div>
+    <div class="form-row">
+      <label>Inspection Heading Prefix</label>
+      <select id="f_title_prefix" onchange="handlePrefixChange('f_title_prefix', 'f_title_custom', 'f_title')">
+        <option value="Residential Property Inspection">Residential Property Inspection</option>
+        <option value="Commercial Unit Quality Audit">Commercial Unit Quality Audit</option>
+        <option value="Comprehensive Structural Walkthrough">Comprehensive Structural Walkthrough</option>
+        <option value="Others">Others (Type Custom Below)</option>
+      </select>
+      <div class="other-input-wrap" id="f_title_custom_wrap">
+        <input type="text" id="f_title_custom" placeholder="Enter custom title header" oninput="compilePrefixField('f_title_prefix', 'f_title_custom', 'f_title')">
+      </div>
+      <input type="hidden" id="f_title" value="Residential Property Inspection">
     </div>
-    <div class="nav-tabs">
-      <div class="nav-item active" onclick="switchTab('cover')"><i class="fa-solid fa-file-invoice"></i>Cover Page</div>
-      <div class="nav-item" onclick="switchTab('defects')"><i class="fa-solid fa-triangle-exclamation"></i>Defect Entries</div>
-      <div class="nav-item" onclick="switchTab('summary')"><i class="fa-solid fa-square-poll-horizontal"></i>Summary & Export</div>
+
+    <div class="form-row">
+      <label>Property Address</label>
+      <input type="text" id="f_address" placeholder="Full Location Details" oninput="updateCover()">
+    </div>
+
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Inspection Setup Stage</label>
+        <select id="f_stage" onchange="updateCover()">
+          <option>New House Handover Inspection</option>
+          <option>Home Warranty Period Inspection</option>
+          <option>Pre-Purchase Evaluation</option>
+          <option>Post-Renovation Check</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Property Type</label>
+        <input type="text" id="f_proptype" placeholder="e.g. 2-Storey Terrace" oninput="updateCover()">
+      </div>
     </div>
   </div>
 
-  <div class="main-content">
-
-    <div id="coverTab" class="tab-pane active">
-      <h2>Cover Page</h2>
-      <p class="subtitle">Enter the general parameters and project metadata configuration details below.</p>
-      
-      <div class="card">
-        <h3><i class="fa-solid fa-sliders"></i>General Meta Information</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Reference Number</label>
-            <input type="text" id="metaRef" placeholder="e.g. AFH-2026-001" oninput="updateCoverField('refno', this.value)">
-          </div>
-          <div class="form-group">
-            <label>Inspection Date</label>
-            <input type="date" id="metaDate" oninput="updateCoverField('date', this.value)">
-          </div>
-          <div class="form-group">
-            <label>Client Name</label>
-            <input type="text" id="metaClient" placeholder="e.g. John Doe" oninput="updateCoverField('client', this.value)">
-          </div>
-          <div class="form-group">
-            <label>Inspector Name</label>
-            <input type="text" id="metaInspector" placeholder="e.g. Alex Harrison" oninput="updateCoverField('inspector', this.value)">
-          </div>
-          <div class="form-group full-width">
-            <label>Property Address</label>
-            <textarea id="metaProperty" placeholder="e.g. No. 12, Jalan Ipoh, 30000 Ipoh, Perak, Malaysia" oninput="updateCoverField('property', this.value)"></textarea>
-          </div>
-        </div>
+  <div class="card">
+    <div class="card-title">Client &amp; Logistical Details</div>
+    <div class="form-row">
+      <label>Client Name</label>
+      <input type="text" id="f_owner" placeholder="Full Name" oninput="updateCover()">
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Inspection Date</label>
+        <input type="date" id="f_date" oninput="updateCover()">
+      </div>
+      <div class="form-row">
+        <label>Reference File No.</label>
+        <input type="text" id="f_refno" placeholder="e.g. AFH-2026-01" oninput="updateCover()">
       </div>
     </div>
-
-    <div id="defectsTab" class="tab-pane">
-      <h2>Defect Entries</h2>
-      <p class="subtitle">Log structural, architectural, engineering and general property conditions items.</p>
-      
-      <div class="card">
-        <h3><i class="fa-solid fa-square-plus"></i>Add Inspection Entry Item</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Location / Room Zone</label>
-            <input type="text" id="defLocation" placeholder="e.g. Living Room, Master Bedroom">
-          </div>
-          <div class="form-group">
-            <label>Defect Category Class</label>
-            <select id="defCategory">
-              <option value="Interior">Interior Space</option>
-              <option value="Exterior">Exterior Envelope</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Elemental Group / System</label>
-            <input type="text" id="defGroup" placeholder="e.g. Ceiling, Wall, Floor, Doors">
-          </div>
-          <div class="form-group">
-            <label>Defect Type Title</label>
-            <input type="text" id="defType" placeholder="e.g. Hairline Crack, Paint Peeling, Unevenness">
-          </div>
-          <div class="form-group full-width">
-            <label>Severity Rating Classification</label>
-            <select id="defRating">
-              <option value="Low">Low (Minor / Cosmetic)</option>
-              <option value="Medium" selected>Medium (Moderate Action Required)</option>
-              <option value="High">High (Major Fault / Structural Risk)</option>
-            </select>
-          </div>
-          <div class="form-group full-width">
-            <label>Inspector Technical Comments / Remarks</label>
-            <textarea id="defComments" placeholder="Describe the severity scope, root source cause or corrective suggestion instructions if required..."></textarea>
-          </div>
-          <div class="form-group full-width photo-upload-container">
-            <label>Defect Photographic Evidence</label>
-            <input type="file" id="defPhotosInput" accept="image/*" multiple style="display:none;" onchange="handleDefectPhotos(event)">
-            <button class="btn btn-secondary" style="align-self: flex-start;" onclick="document.getElementById('defPhotosInput').click()"><i class="fa-solid fa-camera"></i> Capture / Upload Photos</button>
-            <div class="preview-strip" id="defectPhotoPreviewStrip"></div>
-          </div>
-        </div>
-        <div style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 20px; text-align: right;">
-          <button class="btn btn-primary" onclick="addNewDefectItem()"><i class="fa-solid fa-plus"></i> Save Defect Entry Row</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3><i class="fa-solid fa-list-check"></i>Currently Logged Entries (<span id="defectsCountText">0</span>)</h3>
-        <div class="defects-grid" id="defectsListContainer"></div>
-      </div>
+    <div class="form-row">
+      <label>Lead Inspector Name</label>
+      <input type="text" id="f_inspector" placeholder="Inspector Name" oninput="updateCover()">
     </div>
+  </div>
+</div>
 
-    <div id="summaryTab" class="tab-pane">
-      <h2>Summary & Export</h2>
-      <p class="subtitle">Review report data metrics compilation files, attach secondary compliance checklist logs, and compile your master PDF.</p>
-      
-      <div class="card">
-        <h3><i class="fa-solid fa-chart-pie"></i>Inspection Data Analytics compilation</h3>
-        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); text-align: center;">
-          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
-            <div style="font-size:24px; font-weight:700; color:var(--success);" id="statLowCount">0</div>
-            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">Low Faults</div>
-          </div>
-          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
-            <div style="font-size:24px; font-weight:700; color:var(--accent);" id="statMedCount">0</div>
-            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">Medium Faults</div>
-          </div>
-          <div style="background:#161616; padding: 16px; border-radius: 8px; border:1px solid var(--border-color)">
-            <div style="font-size:24px; font-weight:700; color:var(--danger);" id="statHighCount">0</div>
-            <div style="font-size:11px; text-transform:uppercase; margin-top:4px; color:var(--text-muted)">High Faults</div>
-          </div>
-        </div>
-      </div>
+<div class="page" id="page-inspect">
+  <div class="card">
+    <div class="card-title">Select Active Inspection Areas</div>
+    <p style="font-size:0.85rem; color:var(--grey); margin-bottom:12px;">Toggle areas active for inclusion within the structured entries layout:</p>
+    <div class="location-grid" id="locationGrid"></div>
+  </div>
+</div>
 
-      <div class="card">
-        <h3><i class="fa-solid fa-paperclip"></i>Sanitary & Electrical Installation Checklist Attachment</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-          Upload a scanned page or annotated image copy of your compliance matrix checklist (e.g., exported via iOS Notes). This will automatically be scale-rendered onto a dedicated standalone full-size layout sheet placed precisely right before the master report statistics dashboard block.
-        </p>
-        <div style="background:#161616; padding: 20px; border-radius: 8px; border: 1px dashed var(--border-color); text-align: center;">
-          <input type="file" id="checklistUploadField" accept="image/*" style="display: none;" onchange="processChecklistUpload(event)">
-          <button class="btn btn-secondary" onclick="document.getElementById('checklistUploadField').click()">
-            <i class="fa-solid fa-file-arrow-up"></i> Choose Checklist Scanned Image
-          </button>
-          <div id="checklistPreviewBox" style="margin-top: 16px; display: none;">
-            <img id="checklistPreviewImg" src="" alt="Checklist Scanned File Sheet Grid Preview Thumbnail" style="max-width: 100%; max-height: 240px; border-radius: 6px; border: 1px solid var(--border-color); padding: 4px; background: #fff;">
-            <button class="btn btn-danger" style="margin: 12px auto 0 auto; padding: 6px 14px; font-size: 12px; display: flex;" onclick="clearChecklistUploadItem()">
-              <i class="fa-solid fa-trash-can"></i> Discard Checklist File
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align: center; margin-top: 32px; margin-bottom: 40px;">
-        <button class="btn btn-primary" style="padding: 16px 40px; font-size: 16px; width: 100%; box-shadow: 0 4px 14px rgba(212,175,55,0.25);" onclick="buildReportPDF()">
-          <i class="fa-solid fa-file-pdf"></i> Generate Professional Report Document
-        </button>
-      </div>
+<div class="page" id="page-defects">
+  <div class="card" style="display: flex; justify-content: space-between; align-items: center; background: #fefefe;">
+    <div>
+      <span style="font-weight: bold; font-size: 1.1rem;" id="defectCountText">0</span> Defects Logged
     </div>
-
+    <button class="btn btn-primary" style="width: auto; min-height: 40px;" onclick="openDefectModal()">➕ Add Defect</button>
   </div>
 
-  <div class="loader-overlay" id="pdfLoader">
-    <div class="spinner"></div>
-    <div style="color: #fff; font-size: 14px; font-weight: 500;" id="loaderStatusMessageText">Generating inspection report compilation files...</div>
+  <div id="defectEntriesContainer"></div>
+</div>
+
+<div class="page" id="page-backup">
+  <div class="card">
+    <div class="card-title">Save &amp; Load Project Backups</div>
+    <p style="font-size:0.85rem; color:var(--grey); margin-bottom:14px;">
+      Manage your project file data seamlessly here. Export current progress as an external backup file or upload a previously saved project configuration.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <button class="btn btn-primary" onclick="saveProjectDataFile()">💾 Save Progress (Export JSON)</button>
+      <label class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; cursor: pointer;">
+        📂 Load Project File (Import JSON)
+        <input type="file" id="jsonFileInput" accept=".json" style="display: none;" onchange="loadProjectDataFile(event)">
+      </label>
+    </div>
   </div>
 
-  <div class="toast" id="toastNotificationBar"></div>
+  <div class="card">
+    <div class="card-title">Generate PDF Report</div>
+    <p style="font-size:0.85rem; color:var(--grey); margin-bottom:14px;">
+      Compile clean, user-friendly documentation using simplified terms without complicated technical jargons.
+    </p>
+    <button class="btn btn-primary" style="background: var(--tan-dark);" onclick="generatePdfReport()">📄 Generate Clean PDF Document</button>
+  </div>
+</div>
 
-  <script>
-    // Initialize Master Runtime State Data Array Vector
-    let state = {
-      cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection' },
-      defects: [],
-      checklistImage: null
+<button class="fab" onclick="openDefectModal()">＋</button>
+
+<div class="modal-overlay" id="defectModal">
+  <div class="modal">
+    <div class="modal-handle" onclick="closeDefectModal()"></div>
+    <div class="modal-title" id="modalActionTitle">Log Defect Entry</div>
+
+    <div class="form-row">
+      <label>Inspection Zone / Area</label>
+      <select id="m_location"></select>
+    </div>
+
+    <div class="form-row">
+      <label>Quality Check Category Area</label>
+      <select id="m_category">
+        <option value="Structural Elements">Structural Elements (Floors, Walls &amp; Ceilings)</option>
+        <option value="Fixtures &amp; Openings">Fixtures &amp; Openings (Doors, Windows &amp; Cabinets)</option>
+        <option value="Utilities, Electrical &amp; Piping">Utilities, Electrical &amp; Piping</option>
+        <option value="Exterior Areas">Exterior Areas</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Defect Description Heading</label>
+      <select id="m_title_prefix" onchange="handlePrefixChange('m_title_prefix', 'm_title_custom', 'm_title')">
+        <option value="Hairline crack observed">Hairline crack observed</option>
+        <option value="Uneven or unlevel surface alignment">Uneven or unlevel surface alignment</option>
+        <option value="Water staining / moisture accumulation marks">Water staining / moisture accumulation marks</option>
+        <option value="Hollow sound emitted during impact test">Hollow sound emitted during impact test</option>
+        <option value="Visible gap or spacing inconsistency">Visible gap or spacing inconsistency</option>
+        <option value="Scratches or cosmetic blemish marks noted">Scratches or cosmetic blemish marks noted</option>
+        <option value="Missing component or uninstalled fitting">Missing component or uninstalled fitting</option>
+        <option value="Others">Others (Type Custom Below)</option>
+      </select>
+      <div class="other-input-wrap" id="m_title_custom_wrap">
+        <input type="text" id="m_title_custom" placeholder="Specify unique defect item description" oninput="compilePrefixField('m_title_prefix', 'm_title_custom', 'm_title')">
+      </div>
+      <input type="hidden" id="m_title" value="Hairline crack observed">
+    </div>
+
+    <div class="form-row">
+      <label>Severity Tier Rating</label>
+      <select id="m_severity">
+        <option value="🟢 Low / Minor Markings">🟢 Low / Minor Markings</option>
+        <option value="🟡 Moderate Correction Needed">🟡 Moderate Correction Needed</option>
+        <option value="🔴 Urgent Attention Required">🔴 Urgent Attention Required</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Inspector Findings &amp; Advice Prefix</label>
+      <select id="m_comment_prefix" onchange="handlePrefixChange('m_comment_prefix', 'm_comment_custom', 'm_comment')">
+        <option value="Recommend touch-up sanding and paint reapplication by contractor.">Recommend touch-up sanding and paint reapplication by contractor.</option>
+        <option value="Requires clearing debris and complete waterproofing sealant treatment.">Requires clearing debris and complete waterproofing sealant treatment.</option>
+        <option value="Advised to remove component entirely and re-align for true clearance.">Advised to remove component entirely and re-align for true clearance.</option>
+        <option value="Monitor area progress closely for subsequent moisture changes.">Monitor area progress closely for subsequent moisture changes.</option>
+        <option value="Others">Others (Type Custom Below)</option>
+      </select>
+      <div class="other-input-wrap" id="m_comment_custom_wrap">
+        <textarea id="m_comment_custom" placeholder="Type customized observation/advice description here..." oninput="compilePrefixField('m_comment_prefix', 'm_comment_custom', 'm_comment')"></textarea>
+      </div>
+      <input type="hidden" id="m_comment" value="Recommend touch-up sanding and paint reapplication by contractor.">
+    </div>
+
+    <div class="form-row">
+      <label>Photo Evidence Entry</label>
+      <input type="file" id="modalFileInput" accept="image/*" onchange="loadPhotoIntoCanvas(event)">
+      
+      <div id="canvasContainer">
+        <canvas id="annotateCanvas"></canvas>
+        <div class="annotation-controls">
+          <div style="font-size:0.75rem; font-weight:bold; margin-bottom:6px; color:var(--grey);">ANNOTATION TOOLBAR:</div>
+          <div class="tool-row">
+            <button class="tool-btn active" id="btnTool-pen" onclick="setAnnotationTool('pen')">✏️ Draw</button>
+            <button class="tool-btn" id="btnTool-circle" onclick="setAnnotationTool('circle')">⭕ Circle</button>
+            <button class="tool-btn" id="btnTool-arrow" onclick="setAnnotationTool('arrow')">➡️ Arrow</button>
+            <button class="tool-btn" id="btnTool-line" onclick="setAnnotationTool('line')">📏 Line</button>
+          </div>
+          <div class="palette-row">
+            <div class="color-dot active" style="background:#c0392b;" onclick="setAnnotationColor('#c0392b', this)"></div>
+            <div class="color-dot" style="background:#e67e22;" onclick="setAnnotationColor('#e67e22', this)"></div>
+            <div class="color-dot" style="background:#f1c40f;" onclick="setAnnotationColor('#f1c40f', this)"></div>
+            <div class="color-dot" style="background:#27ae60;" onclick="setAnnotationColor('#27ae60', this)"></div>
+            <div class="color-dot" style="background:#2980b9;" onclick="setAnnotationColor('#2980b9', this)"></div>
+            <div class="color-dot" style="background:#000000;" onclick="setAnnotationColor('#000000', this)"></div>
+            <div class="color-dot" style="background:#ffffff;" onclick="setAnnotationColor('#ffffff', this)"></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; margin-top:8px;">
+            <label style="font-size:0.75rem; font-weight:bold; color:var(--grey); text-transform:none;">Thickness:</label>
+            <input type="range" id="toolThickness" min="2" max="14" value="4" style="flex:1; min-height:auto;">
+          </div>
+          <div style="display:flex; gap:6px; margin-top:10px;">
+            <button class="tool-btn" style="flex:1;" onclick="undoLastAnnotationStep()">↩️ Undo</button>
+            <button class="tool-btn" style="flex:1;" onclick="resetCanvasImage()">♻️ Clear All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeDefectModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="saveDefectFormEntry()">Save Log Entry</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastNotification">Action Processed Successfully</div>
+
+<script>
+// Application State Engine
+let appState = {
+  cover: {
+    title: "Residential Property Inspection",
+    address: "",
+    stage: "New House Handover Inspection",
+    proptype: "",
+    owner: "",
+    date: new Date().toISOString().split('T')[0],
+    refno: "",
+    inspector: ""
+  },
+  activeAreas: ["Living Room", "Master Bedroom", "Kitchen", "Bathroom 1", "Balcony"],
+  defects: [],
+  editingDefectId: null
+};
+
+const defaultAreaOptions = [
+  "Living Room", "Dining Area", "Kitchen", "Master Bedroom", "Bedroom 2", 
+  "Bedroom 3", "Bathroom 1", "Bathroom 2", "Balcony", "Yard / Utility"
+];
+
+// Canvas Context State Variable Setup
+let canvasImageSource = null;
+let annotationHistoryStack = [];
+let drawingActive = false;
+let startTouchX = 0, startTouchY = 0;
+let selectedTool = 'pen';
+let selectedColor = '#c0392b';
+
+window.addEventListener('DOMContentLoaded', () => {
+  // Synchronize internal layout models
+  setupAreasGrid();
+  updateCover();
+  renderDefectEntriesList();
+  
+  // Set default form date value field
+  document.getElementById('f_date').value = appState.cover.date;
+  
+  // Configure Touch-Event Canvas listeners
+  const canvasElement = document.getElementById('annotateCanvas');
+  canvasElement.addEventListener('mousedown', initiateDrawStroke);
+  canvasElement.addEventListener('mousemove', commandDrawStroke);
+  canvasElement.addEventListener('mouseup', terminateDrawStroke);
+  canvasElement.addEventListener('mouseleave', terminateDrawStroke);
+  
+  canvasElement.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousedown", {
+      clientX: touch.clientX, clientY: touch.clientY
+    });
+    canvasElement.dispatchEvent(mouseEvent);
+  }, { passive: false });
+  
+  canvasElement.addEventListener('touchmove', (e) => {
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousemove", {
+      clientX: touch.clientX, clientY: touch.clientY
+    });
+    canvasElement.dispatchEvent(mouseEvent);
+    e.preventDefault();
+  }, { passive: false });
+  
+  canvasElement.addEventListener('touchend', () => {
+    const mouseEvent = new MouseEvent("mouseup", {});
+    canvasElement.dispatchEvent(mouseEvent);
+  }, { passive: false });
+});
+
+// View Navigation Layout Engine
+function switchTab(targetTabId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+  document.getElementById(`page-${targetTabId}`).classList.add('active');
+  document.getElementById(`tabBtn-${targetTabId}`).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showToast(alertMessage) {
+  const toastBox = document.getElementById('toastNotification');
+  toastBox.textContent = alertMessage;
+  toastBox.classList.add('show');
+  setTimeout(() => toastBox.classList.remove('show'), 2200);
+}
+
+// Prefixes Dropdown Switch Logic
+function handlePrefixChange(selectElementId, customInputId, hiddenTargetId) {
+  const selectionValue = document.getElementById(selectElementId).value;
+  const customInputWrap = document.getElementById(`${customInputId}_wrap`);
+  
+  if (selectionValue === "Others") {
+    customInputWrap.style.display = "block";
+    compilePrefixField(selectElementId, customInputId, hiddenTargetId);
+  } else {
+    customInputWrap.style.display = "none";
+    document.getElementById(hiddenTargetId).value = selectionValue;
+  }
+  if (selectElementId.startsWith('f_')) updateCover();
+}
+
+function compilePrefixField(selectElementId, customInputId, hiddenTargetId) {
+  const selectVal = document.getElementById(selectElementId).value;
+  if (selectVal === "Others") {
+    document.getElementById(hiddenTargetId).value = document.getElementById(customInputId).value;
+  } else {
+    document.getElementById(hiddenTargetId).value = selectVal;
+  }
+  if (selectElementId.startsWith('f_')) updateCover();
+}
+
+// Project Meta Update Framework
+function updateCover() {
+  appState.cover.title = document.getElementById('f_title').value;
+  appState.cover.address = document.getElementById('f_address').value;
+  appState.cover.stage = document.getElementById('f_stage').value;
+  appState.cover.proptype = document.getElementById('f_proptype').value;
+  appState.cover.owner = document.getElementById('f_owner').value;
+  appState.cover.date = document.getElementById('f_date').value;
+  appState.cover.refno = document.getElementById('f_refno').value;
+  appState.cover.inspector = document.getElementById('f_inspector').value;
+
+  document.getElementById('prevTitle').textContent = appState.cover.title || "PROPERTY INSPECTION REPORT";
+  
+  const displayLinesArray = [
+    ["Target Stage", appState.cover.stage],
+    ["Property Address", appState.cover.address],
+    ["Property Layout Type", appState.cover.proptype],
+    ["Client Name", appState.cover.owner],
+    ["Execution Date", appState.cover.date],
+    ["Reference Number Code", appState.cover.refno],
+    ["Assigned Inspector", appState.cover.inspector]
+  ];
+  
+  document.getElementById('coverPreviewLines').innerHTML = displayLinesArray
+    .filter(line => line[1])
+    .map(line => `<div class="cover-meta-line"><span style="color:var(--grey); font-weight:500;">${line[0]}</span><span style="font-weight:700;">${line[1]}</span></div>`)
+    .join('');
+}
+
+// Areas Selection List Setup
+function setupAreasGrid() {
+  const container = document.getElementById('locationGrid');
+  container.innerHTML = defaultAreaOptions.map(areaName => {
+    const isSelected = appState.activeAreas.includes(areaName);
+    return `<div class="loc-chip ${isSelected ? 'selected' : ''}" onclick="toggleAreaSelection('${areaName}', this)">${areaName}</div>`;
+  }).join('');
+}
+
+function toggleAreaSelection(areaName, htmlChipElement) {
+  if (appState.activeAreas.includes(areaName)) {
+    appState.activeAreas = appState.activeAreas.filter(a => a !== areaName);
+    htmlChipElement.classList.remove('selected');
+  } else {
+    appState.activeAreas.push(areaName);
+    htmlChipElement.classList.add('selected');
+  }
+}
+
+// Defect Management System (Create, Read, Update, Delete)
+function refreshModalLocationDropdown() {
+  const locationSelect = document.getElementById('m_location');
+  if (appState.activeAreas.length === 0) {
+    locationSelect.innerHTML = `<option value="General Scope Zone">General Scope Zone</option>`;
+  } else {
+    locationSelect.innerHTML = appState.activeAreas.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+  }
+}
+
+function openDefectModal() {
+  appState.editingDefectId = null;
+  document.getElementById('modalActionTitle').textContent = "Log Defect Entry";
+  refreshModalLocationDropdown();
+  
+  // Clear modal fields to defaults
+  document.getElementById('m_title_prefix').value = "Hairline crack observed";
+  document.getElementById('m_title_custom').value = "";
+  handlePrefixChange('m_title_prefix', 'm_title_custom', 'm_title');
+
+  document.getElementById('m_comment_prefix').value = "Recommend touch-up sanding and paint reapplication by contractor.";
+  document.getElementById('m_comment_custom').value = "";
+  handlePrefixChange('m_comment_prefix', 'm_comment_custom', 'm_comment');
+  
+  document.getElementById('modalFileInput').value = "";
+  document.getElementById('canvasContainer').style.display = "none";
+  canvasImageSource = null;
+  annotationHistoryStack = [];
+
+  document.getElementById('defectModal').classList.add('open');
+}
+
+function closeDefectModal() {
+  document.getElementById('defectModal').classList.remove('open');
+}
+
+function editDefectEntry(defectId) {
+  const matchedEntry = appState.defects.find(d => d.id === defectId);
+  if (!matchedEntry) return;
+
+  appState.editingDefectId = defectId;
+  document.getElementById('modalActionTitle').textContent = "Modify Logged Defect Entry";
+  refreshModalLocationDropdown();
+
+  // Load basic field information data
+  document.getElementById('m_location').value = matchedEntry.location;
+  document.getElementById('m_category').value = matchedEntry.category;
+  document.getElementById('m_severity').value = matchedEntry.severity;
+
+  // Re-establish Prefix Matching for Defect Title Field
+  const titleOptions = Array.from(document.getElementById('m_title_prefix').options).map(o => o.value);
+  if (titleOptions.includes(matchedEntry.title)) {
+    document.getElementById('m_title_prefix').value = matchedEntry.title;
+    document.getElementById('m_title_custom').value = "";
+  } else {
+    document.getElementById('m_title_prefix').value = "Others";
+    document.getElementById('m_title_custom').value = matchedEntry.title;
+  }
+  handlePrefixChange('m_title_prefix', 'm_title_custom', 'm_title');
+
+  // Re-establish Prefix Matching for Comment Recommendation Area
+  const commentOptions = Array.from(document.getElementById('m_comment_prefix').options).map(o => o.value);
+  if (commentOptions.includes(matchedEntry.comment)) {
+    document.getElementById('m_comment_prefix').value = matchedEntry.comment;
+    document.getElementById('m_comment_custom').value = "";
+  } else {
+    document.getElementById('m_comment_prefix').value = "Others";
+    document.getElementById('m_comment_custom').value = matchedEntry.comment;
+  }
+  handlePrefixChange('m_comment_prefix', 'm_comment_custom', 'm_comment');
+
+  // Initialize Canvas data reconstruction if historical screenshot exists
+  document.getElementById('modalFileInput').value = "";
+  if (matchedEntry.imageContent) {
+    const temporaryImg = new Image();
+    temporaryImg.onload = function() {
+      canvasImageSource = temporaryImg;
+      const cvs = document.getElementById('annotateCanvas');
+      const ctx = cvs.getContext('2d');
+      cvs.width = temporaryImg.naturalWidth || 600;
+      cvs.height = temporaryImg.naturalHeight || 450;
+      ctx.drawImage(temporaryImg, 0, 0);
+      
+      annotationHistoryStack = [ctx.getImageData(0, 0, cvs.width, cvs.height)];
+      document.getElementById('canvasContainer').style.display = "block";
     };
+    temporaryImg.src = matchedEntry.imageContent;
+  } else {
+    canvasImageSource = null;
+    annotationHistoryStack = [];
+    document.getElementById('canvasContainer').style.display = "none";
+  }
 
-    // Buffer array holding base64 strings of currently staging photos for active input session
-    let internalStagingPhotos = [];
+  document.getElementById('defectModal').classList.add('open');
+}
 
-    // On Load Initialization Lifecycle Event Linkage Hook
-    window.addEventListener('DOMContentLoaded', () => {
-      syncLoadStateFromLocalStorageStore();
+function removeDefectEntry(defectId) {
+  if (confirm("Are you sure you want to completely delete this entry?")) {
+    appState.defects = appState.defects.filter(d => d.id !== defectId);
+    renderDefectEntriesList();
+    showToast("Entry removed successfully.");
+  }
+}
+
+function saveDefectFormEntry() {
+  const currentTitleValue = document.getElementById('m_title').value.trim();
+  if (!currentTitleValue) {
+    alert("Please select or write a structural defect description heading.");
+    return;
+  }
+
+  let base64ImageString = "";
+  if (canvasImageSource) {
+    base64ImageString = document.getElementById('annotateCanvas').toDataURL('image/jpeg', 0.85);
+  }
+
+  if (appState.editingDefectId) {
+    // Modify existing record
+    const targetIndex = appState.defects.findIndex(d => d.id === appState.editingDefectId);
+    if (targetIndex !== -1) {
+      appState.defects[targetIndex].location = document.getElementById('m_location').value;
+      appState.defects[targetIndex].category = document.getElementById('m_category').value;
+      appState.defects[targetIndex].title = currentTitleValue;
+      appState.defects[targetIndex].severity = document.getElementById('m_severity').value;
+      appState.defects[targetIndex].comment = document.getElementById('m_comment').value;
+      appState.defects[targetIndex].imageContent = base64ImageString;
+    }
+    showToast("Log entry updated successfully.");
+  } else {
+    // Append completely new structural item record object
+    const newRecord = {
+      id: Date.now().toString(),
+      location: document.getElementById('m_location').value,
+      category: document.getElementById('m_category').value,
+      title: currentTitleValue,
+      severity: document.getElementById('m_severity').value,
+      comment: document.getElementById('m_comment').value,
+      imageContent: base64ImageString
+    };
+    appState.defects.push(newRecord);
+    showToast("New defect log appended.");
+  }
+
+  closeDefectModal();
+  renderDefectEntriesList();
+}
+
+function renderDefectEntriesList() {
+  const container = document.getElementById('defectEntriesContainer');
+  document.getElementById('defectCountText').textContent = appState.defects.length;
+  
+  if (appState.defects.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:40px; color:var(--grey-light);">No entries logged yet. Tap button above to add defects.</div>`;
+    return;
+  }
+
+  container.innerHTML = appState.defects.map(item => {
+    return `
+      <div class="defect-item">
+        <div class="defect-header">
+          <div>
+            <div class="defect-name">${item.title}</div>
+            <div style="font-size:0.8rem; color:var(--grey); margin-top:3px;">Category: ${item.category}</div>
+          </div>
+          <span class="defect-location-badge">${item.location}</span>
+        </div>
+        
+        <div style="margin-top:6px; font-size:0.85rem;">
+          <strong>Severity:</strong> ${item.severity}
+        </div>
+        
+        <div style="font-size:0.88rem; color:var(--grey-dark); background:#fcf9f5; border-left:3px solid var(--tan); padding:6px 10px; margin-top:8px; font-style:italic;">
+          "${item.comment}"
+        </div>
+        
+        ${item.imageContent ? `
+          <div class="defect-img-container">
+            <img src="${item.imageContent}" class="defect-full-img" alt="Evidence Screenshot">
+          </div>
+        ` : ''}
+
+        <div class="defect-actions">
+          <button class="btn btn-edit" style="flex:1; min-height:36px; padding:4px 10px; font-size:0.8rem;" onclick="editDefectEntry('${item.id}')">✏️ Edit</button>
+          <button class="btn btn-danger" style="flex:1; min-height:36px; padding:4px 10px; font-size:0.8rem;" onclick="removeDefectEntry('${item.id}')">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Image Loading and Canvas Canvas Interactions Engine
+function loadPhotoIntoCanvas(event) {
+  const uploadedFile = event.target.files[0];
+  if (!uploadedFile) return;
+
+  const urlReader = new FileReader();
+  urlReader.onload = function(e) {
+    const runtimeImg = new Image();
+    runtimeImg.onload = function() {
+      canvasImageSource = runtimeImg;
+      const targetCanvas = document.getElementById('annotateCanvas');
+      const targetContext = targetCanvas.getContext('2d');
+      
+      // Keep structural dynamic proportions size
+      targetCanvas.width = runtimeImg.naturalWidth || 600;
+      targetCanvas.height = runtimeImg.naturalHeight || 450;
+      
+      targetContext.drawImage(runtimeImg, 0, 0);
+      annotationHistoryStack = [targetContext.getImageData(0, 0, targetCanvas.width, targetCanvas.height)];
+      
+      document.getElementById('canvasContainer').style.display = "block";
+    };
+    runtimeImg.src = e.target.result;
+  };
+  urlReader.readAsDataURL(uploadedFile);
+}
+
+function setAnnotationTool(toolKey) {
+  selectedTool = toolKey;
+  document.querySelectorAll('.tool-btn').forEach(b => {
+    if(b.id && b.id.startsWith('btnTool-')) b.classList.remove('active');
+  });
+  document.getElementById(`btnTool-${toolKey}`).classList.add('active');
+}
+
+function setAnnotationColor(hexColor, htmlNode) {
+  selectedColor = hexColor;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  htmlNode.classList.add('active');
+}
+
+function undoLastAnnotationStep() {
+  if (annotationHistoryStack.length <= 1) return;
+  annotationHistoryStack.pop();
+  
+  const cvs = document.getElementById('annotateCanvas');
+  const ctx = cvs.getContext('2d');
+  ctx.putImageData(annotationHistoryStack[annotationHistoryStack.length - 1], 0, 0);
+}
+
+function resetCanvasImage() {
+  if (!canvasImageSource) return;
+  const cvs = document.getElementById('annotateCanvas');
+  const ctx = cvs.getContext('2d');
+  ctx.drawImage(canvasImageSource, 0, 0);
+  annotationHistoryStack = [ctx.getImageData(0, 0, cvs.width, cvs.height)];
+}
+
+// Canvas Painting Coordinate Interpolation Matrix
+function getCanvasMouseCoordinates(e) {
+  const cvs = document.getElementById('annotateCanvas');
+  const clientRect = cvs.getBoundingClientRect();
+  
+  // Account for scaling inconsistencies dynamically
+  const computedScaleX = cvs.width / clientRect.width;
+  const computedScaleY = cvs.height / clientRect.height;
+  
+  return {
+    x: (e.clientX - clientRect.left) * computedScaleX,
+    y: (e.clientY - clientRect.top) * computedScaleY
+  };
+}
+
+function initiateDrawStroke(e) {
+  drawingActive = true;
+  const coords = getCanvasMouseCoordinates(e);
+  startTouchX = coords.x;
+  startTouchY = coords.y;
+  
+  if (selectedTool === 'pen') {
+    const cvs = document.getElementById('annotateCanvas');
+    const ctx = cvs.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(startTouchX, startTouchY);
+  }
+}
+
+function commandDrawStroke(e) {
+  if (!drawingActive) return;
+  const cvs = document.getElementById('annotateCanvas');
+  const ctx = cvs.getContext('2d');
+  const coords = getCanvasMouseCoordinates(e);
+  
+  const activeThickness = document.getElementById('toolThickness').value;
+  ctx.lineWidth = activeThickness;
+  ctx.strokeStyle = selectedColor;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  
+  if (selectedTool === 'pen') {
+    ctx.lineTo(coords.x, coords.y);
+    ctx.stroke();
+  } else {
+    // Preview shapes in real-time updates
+    ctx.putImageData(annotationHistoryStack[annotationHistoryStack.length - 1], 0, 0);
+    ctx.beginPath();
+    
+    if (selectedTool === 'circle') {
+      const radiusX = Math.abs(coords.x - startTouchX);
+      const radiusY = Math.abs(coords.y - startTouchY);
+      const maxRadius = Math.max(radiusX, radiusY);
+      ctx.arc(startTouchX, startTouchY, maxRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+    } else if (selectedTool === 'line') {
+      ctx.moveTo(startTouchX, startTouchY);
+      ctx.lineTo(coords.x, coords.y);
+      ctx.stroke();
+    } else if (selectedTool === 'arrow') {
+      drawArrowGraphicElement(ctx, startTouchX, startTouchY, coords.x, coords.y, activeThickness);
+    }
+  }
+}
+
+function terminateDrawStroke(e) {
+  if (!drawingActive) return;
+  drawingActive = false;
+  
+  const cvs = document.getElementById('annotateCanvas');
+  const ctx = cvs.getContext('2d');
+  annotationHistoryStack.push(ctx.getImageData(0, 0, cvs.width, cvs.height));
+}
+
+function drawArrowGraphicElement(ctx, x1, y1, x2, y2, thickness) {
+  const headLength = Math.max(12, thickness * 3);
+  const lineAngle = Math.atan2(y2 - y1, x2 - x1);
+  
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLength * Math.cos(lineAngle - 0.4), y2 - headLength * Math.sin(lineAngle - 0.4));
+  ctx.lineTo(x2 - headLength * Math.cos(lineAngle + 0.4), y2 - headLength * Math.sin(lineAngle + 0.4));
+  ctx.closePath();
+  ctx.fillStyle = selectedColor;
+  ctx.fill();
+}
+
+// Backup File Integration Layer (JSON Save/Load)
+function saveProjectDataFile() {
+  const internalDataPayload = JSON.stringify(appState, null, 2);
+  const blobFile = new Blob([internalDataPayload], { type: "application/json" });
+  const anchorNode = document.createElement('a');
+  
+  const fileRefCode = appState.cover.refno || "Backup";
+  anchorNode.download = `AFH_Backup_${fileRefCode}_${new Date().toISOString().split('T')[0]}.json`;
+  anchorNode.href = URL.createObjectURL(blobFile);
+  anchorNode.click();
+  showToast("Backup configuration file saved.");
+}
+
+function loadProjectDataFile(event) {
+  const selectedJsonFile = event.target.files[0];
+  if (!selectedJsonFile) return;
+
+  const filePayloadReader = new FileReader();
+  filePayloadReader.onload = function(e) {
+    try {
+      const parsedConfigObj = JSON.parse(e.target.result);
+      if (parsedConfigObj.cover && parsedConfigObj.defects) {
+        appState = parsedConfigObj;
+        
+        // Re-synchronize DOM components
+        document.getElementById('f_title').value = appState.cover.title || "";
+        document.getElementById('f_address').value = appState.cover.address || "";
+        document.getElementById('f_stage').value = appState.cover.stage || "New House Handover Inspection";
+        document.getElementById('f_proptype').value = appState.cover.proptype || "";
+        document.getElementById('f_owner').value = appState.cover.owner || "";
+        document.getElementById('f_date').value = appState.cover.date || "";
+        document.getElementById('f_refno').value = appState.cover.refno || "";
+        document.getElementById('f_inspector').value = appState.cover.inspector || "";
+
+        setupAreasGrid();
+        updateCover();
+        renderDefectEntriesList();
+        
+        showToast("Project Data configuration imported successfully!");
+        switchTab('cover');
+      } else {
+        alert("Configuration error: Selected JSON signature elements are invalid.");
+      }
+    } catch(err) {
+      alert("Failed to parse JSON file template context target lines mapping.");
+    }
+  };
+  filePayloadReader.readAsText(selectedJsonFile);
+}
+
+// Clean Jargon-Free jsPDF Reporting Script Engine Routine
+function generatePdfReport() {
+  try {
+    const { jsPDF } = window.jspdf;
+    const documentPdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Page Layout Dimensions
+    const targetWidth = 210;
+    const targetHeight = 297;
+    const layoutMargins = 15;
+    let contentY = 24;
+
+    // Cover Page Render Block
+    documentPdf.setFillColor(46, 46, 46);
+    documentPdf.rect(0, 0, targetWidth, 40, 'F');
+    
+    documentPdf.setFont("helvetica", "bold");
+    documentPdf.setFontSize(16);
+    documentPdf.setTextColor(212, 203, 191);
+    documentPdf.text("AF HOME INSPECTION REPORT", targetWidth / 2, 24, { align: "center" });
+
+    documentPdf.setTextColor(46, 46, 46);
+    documentPdf.setFontSize(20);
+    contentY = 65;
+    documentPdf.text(appState.cover.title || "PROPERTY QUALITY REPORT", layoutMargins, contentY);
+    
+    documentPdf.setLineWidth(0.5);
+    documentPdf.setDrawColor(181, 169, 154);
+    documentPdf.line(layoutMargins, contentY + 4, targetWidth - layoutMargins, contentY + 4);
+
+    contentY = 85;
+    documentPdf.setFontSize(11);
+    documentPdf.setFont("helvetica", "bold");
+    
+    const contextFields = [
+      ["Inspection Purpose Type:", appState.cover.stage],
+      ["Target Address Location:", appState.cover.address],
+      ["Property Configuration:", appState.cover.proptype],
+      ["Client / Owner Registered Name:", appState.cover.owner],
+      ["Inspection Timeline Date:", appState.cover.date],
+      ["Assigned Inspector Name:", appState.cover.inspector],
+      ["Reference Tracking Code:", appState.cover.refno]
+    ];
+
+    contextFields.forEach(lineItem => {
+      if(lineItem[1]) {
+        documentPdf.setFont("helvetica", "bold");
+        documentPdf.text(lineItem[0], layoutMargins, contentY);
+        documentPdf.setFont("helvetica", "normal");
+        documentPdf.text(lineItem[1], layoutMargins + 60, contentY);
+        contentY += 9;
+      }
     });
 
-    function switchTab(tabId) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    // Appendix / Section Break Block Definition
+    contentY = 170;
+    documentPdf.setFillColor(245, 242, 238);
+    documentPdf.rect(layoutMargins, contentY, targetWidth - (layoutMargins * 2), 35, 'F');
+    documentPdf.setFont("helvetica", "italic");
+    documentPdf.setFontSize(9.5);
+    documentPdf.setTextColor(99, 99, 99);
+    
+    const noticeString = "Disclaimer Summary: This clean documentation specifies visual surface verification data assessments mapped within standard quality check areas during execution. Findings focus on simple user terms devoid of complex technical construction jargon rules.";
+    const formattedLines = documentPdf.splitTextToSize(noticeString, targetWidth - (layoutMargins * 2) - 10);
+    documentPdf.text(formattedLines, layoutMargins + 5, contentY + 10);
+
+    addDocumentFooterElement(documentPdf, targetWidth, targetHeight);
+
+    // Logged Defect Summary Pages Render Execution Sequence
+    if (appState.defects.length > 0) {
+      documentPdf.addPage();
+      contentY = 25;
       
-      if(tabId === 'cover') {
-        document.querySelector('.nav-tabs .nav-item:nth-child(1)').classList.add('active');
-        document.getElementById('coverTab').classList.add('active');
-      } else if(tabId === 'defects') {
-        document.querySelector('.nav-tabs .nav-item:nth-child(2)').classList.add('active');
-        document.getElementById('defectsTab').classList.add('active');
-        rebuildUIDefectsListMatrix();
-      } else if(tabId === 'summary') {
-        document.querySelector('.nav-tabs .nav-item:nth-child(3)').classList.add('active');
-        document.getElementById('summaryTab').classList.add('active');
-        calculateSummaryAnalyticsMetrics();
-      }
-    }
+      documentPdf.setFont("helvetica", "bold");
+      documentPdf.setFontSize(14);
+      documentPdf.setTextColor(46, 46, 46);
+      documentPdf.text("DETAILED FINDINGS & ENTRIES LOG", layoutMargins, contentY);
+      contentY += 8;
 
-    function triggerToastAlertMessage(msg) {
-      const toast = document.getElementById('toastNotificationBar');
-      toast.innerText = msg;
-      toast.classList.add('show');
-      setTimeout(() => { toast.classList.remove('show'); }, 3500);
-    }
-
-    function syncSaveStateToLocalStorageStore() {
-      localStorage.setItem('afh_inspect_state_v2', JSON.stringify(state));
-    }
-
-    function syncLoadStateFromLocalStorageStore() {
-      const stored = localStorage.getItem('afh_inspect_state_v2');
-      if (stored) {
-        try {
-          state = JSON.parse(stored);
-          
-          // Populate cover form inputs UI
-          document.getElementById('metaRef').value = state.cover.refno || '';
-          document.getElementById('metaDate').value = state.cover.date || '';
-          document.getElementById('metaClient').value = state.cover.client || '';
-          document.getElementById('metaInspector').value = state.cover.inspector || '';
-          document.getElementById('metaProperty').value = state.cover.property || '';
-          
-          if (state.checklistImage) {
-            document.getElementById('checklistPreviewImg').src = state.checklistImage;
-            document.getElementById('checklistPreviewBox').style.display = 'block';
-          }
-        } catch (e) {
-          console.error("Local data ingestion fault context breakdown:", e);
+      appState.defects.forEach((defect, indexIdx) => {
+        // dynamic height validation boundaries check layout metrics buffer
+        if (contentY > targetHeight - 90) {
+          addDocumentFooterElement(documentPdf, targetWidth, targetHeight);
+          documentPdf.addPage();
+          contentY = 25;
         }
-      }
-    }
 
-    function updateCoverField(key, val) {
-      state.cover[key] = val;
-      syncSaveStateToLocalStorageStore();
-    }
-
-    // Process Photographic File Array Selection Buffering Pipeline
-    function handleDefectPhotos(event) {
-      const files = Array.from(event.target.files);
-      if(!files.length) return;
-
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          // Process image using HTML5 Canvas to safely scale/compress data footprint
-          const img = new Image();
-          img.onload = function() {
-            const canvas = document.createElement('canvas');
-            // Maintain layout parity compression bounds square/rect size optimization
-            let maxW = 800;
-            let maxH = 800;
-            let width = img.width;
-            let height = img.height;
-            
-            if (width > height) {
-              if (width > maxW) { height *= maxW / width; width = maxW; }
-            } else {
-              if (height > maxH) { width *= maxH / height; height = maxH; }
-            }
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            internalStagingPhotos.push(compressedBase64);
-            rebuildStagingPhotosThumbStrip();
-          };
-          img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-      event.target.value = ''; // flush input field frame loop anchor bounds
-    }
-
-    function rebuildStagingPhotosThumbStrip() {
-      const container = document.getElementById('defectPhotoPreviewStrip');
-      container.innerHTML = '';
-      internalStagingPhotos.forEach((base64, index) => {
-        const div = document.createElement('div');
-        div.className = 'preview-thumb';
-        div.innerHTML = `
-          <img src="${base64}">
-          <button class="remove-img-btn" onclick="removeStagingPhotoIndex(${index})"><i class="fa-solid fa-xmark"></i></button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function removeStagingPhotoIndex(idx) {
-      internalStagingPhotos.splice(idx, 1);
-      rebuildStagingPhotosThumbStrip();
-    }
-
-    function addNewDefectItem() {
-      const loc = document.getElementById('defLocation').value.trim();
-      const cat = document.getElementById('defCategory').value;
-      const grp = document.getElementById('defGroup').value.trim();
-      const typ = document.getElementById('defType').value.trim();
-      const rat = document.getElementById('defRating').value;
-      const com = document.getElementById('defComments').value.trim();
-
-      if(!loc || !grp || !typ) {
-        triggerToastAlertMessage("Validation Fault: Location, Group, and Defect Type fields required.");
-        return;
-      }
-
-      const newItem = {
-        id: Date.now() + Math.random().toString(36).substr(2, 5),
-        location: loc,
-        category: cat,
-        group: grp,
-        defectType: typ,
-        rating: rat,
-        comments: com,
-        photos: [...internalStagingPhotos]
-      };
-
-      state.defects.push(newItem);
-      syncSaveStateToLocalStorageStore();
-      
-      // Flush Active Entry Fields Form Content State Variables Block Loop
-      document.getElementById('defLocation').value = '';
-      document.getElementById('defGroup').value = '';
-      document.getElementById('defType').value = '';
-      document.getElementById('defComments').value = '';
-      internalStagingPhotos = [];
-      document.getElementById('defectPhotoPreviewStrip').innerHTML = '';
-      
-      rebuildUIDefectsListMatrix();
-      triggerToastAlertMessage("Defect row logged successfully.");
-    }
-
-    function removeDefectItem(id) {
-      state.defects = state.defects.filter(item => item.id !== id);
-      syncSaveStateToLocalStorageStore();
-      rebuildUIDefectsListMatrix();
-      triggerToastAlertMessage("Defect item deleted.");
-    }
-
-    function rebuildUIDefectsListMatrix() {
-      document.getElementById('defectsCountText').innerText = state.defects.length;
-      const container = document.getElementById('defectsListContainer');
-      container.innerHTML = '';
-
-      if(!state.defects.length) {
-        container.innerHTML = `<div style="text-align:center; padding:32px; color:var(--text-muted); font-size:13px; font-style:italic;">No structural or architectural defect listings logged currently.</div>`;
-        return;
-      }
-
-      // Render items ordered directly by creation timing logic framework map
-      state.defects.forEach((d) => {
-        const item = document.createElement('div');
-        item.className = 'defect-item';
+        documentPdf.setFillColor(252, 249, 245);
+        documentPdf.rect(layoutMargins, contentY, targetWidth - (layoutMargins * 2), 24, 'F');
         
-        let photoThumbnailsHtml = '';
-        if(d.photos && d.photos.length) {
-          photoThumbnailsHtml = `<div class="defect-photos-preview">`;
-          d.photos.forEach(p => { photoThumbnailsHtml += `<img src="${p}">`; });
-          photoThumbnailsHtml += `</div>`;
-        }
+        documentPdf.setFont("helvetica", "bold");
+        documentPdf.setFontSize(11);
+        documentPdf.setTextColor(123, 108, 94);
+        documentPdf.text(`${indexIdx + 1}. Location Zone Area: ${defect.location}`, layoutMargins + 4, contentY + 6);
+        
+        documentPdf.setFontSize(10);
+        documentPdf.setTextColor(46, 46, 46);
+        documentPdf.text(`Category Area: ${defect.category} | Tier: ${defect.severity}`, layoutMargins + 4, contentY + 13);
+        documentPdf.text(`Observation Title: ${defect.title}`, layoutMargins + 4, contentY + 19);
+        
+        contentY += 27;
+        
+        documentPdf.setFont("helvetica", "normal");
+        documentPdf.setTextColor(99, 99, 99);
+        const commentLinesArray = documentPdf.splitTextToSize(`Advice/Remedy Description: ${defect.comment}`, targetWidth - (layoutMargins * 2) - 6);
+        documentPdf.text(commentLinesArray, layoutMargins + 2, contentY);
+        contentY += (commentLinesArray.length * 5) + 4;
 
-        item.innerHTML = `
-          <div class="defect-info">
-            <h4>${d.location} &mdash; ${d.group} : <span style="color:var(--accent);">${d.defectType}</span></h4>
-            <p style="margin-top:4px;"><span class="defect-badge badge-${d.rating.toLowerCase()}">${d.rating}</span> <span style="color:#888; font-size:12px; margin-left:8px;">Scope Class: ${d.category}</span></p>
-            ${d.comments ? `<p style="font-style:italic; margin-top:8px; color:#ccc; background:#222; padding:8px; border-radius:4px; font-size:12.5px;">&ldquo; ${d.comments} &rdquo;</p>` : ''}
-            ${photoThumbnailsHtml}
-          </div>
-          <button class="btn btn-danger" style="padding: 8px 12px; shrink:0;" onclick="removeDefectItem('${d.id}')"><i class="fa-solid fa-trash-can"></i></button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function calculateSummaryAnalyticsMetrics() {
-      let low = 0, med = 0, high = 0;
-      state.defects.forEach(d => {
-        if(d.rating === 'Low') low++;
-        else if(d.rating === 'Medium') med++;
-        else if(d.rating === 'High') high++;
-      });
-      document.getElementById('statLowCount').innerText = low;
-      document.getElementById('statMedCount').innerText = med;
-      document.getElementById('statHighCount').innerText = high;
-    }
-
-    // Secondary Binary Attachment Handler Matrix: Scanned Image Page Parser
-    function processChecklistUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          // Scale bounds set slightly wider/higher to maximize document clarity profiles
-          let maxDimension = 1600; 
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDimension) { height *= maxDimension / width; width = maxDimension; }
-          } else {
-            if (height > maxDimension) { width *= maxDimension / height; height = maxDimension; }
+        if (defect.imageContent) {
+          if (contentY > targetHeight - 85) {
+            addDocumentFooterElement(documentPdf, targetWidth, targetHeight);
+            documentPdf.addPage();
+            contentY = 25;
           }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          state.checklistImage = canvas.toDataURL('image/jpeg', 0.85);
-          document.getElementById('checklistPreviewImg').src = state.checklistImage;
-          document.getElementById('checklistPreviewBox').style.display = 'block';
-          syncSaveStateToLocalStorageStore();
-          triggerToastAlertMessage("Scanned checklist document attachment loaded.");
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearChecklistUploadItem() {
-      state.checklistImage = null;
-      document.getElementById('checklistUploadField').value = '';
-      document.getElementById('checklistPreviewImg').src = '';
-      document.getElementById('checklistPreviewBox').style.display = 'none';
-      syncSaveStateToLocalStorageStore();
-      triggerToastAlertMessage("Checklist document link decoupled.");
-    }
-
-    /* ================================================================================
-      PDF RENDERING CORE COMPLIANCE ENGINE
-      ================================================================================
-      Specifications Fulfilled:
-      - All White Page Background Document Flow Architecture.
-      - Retains exact header and footer drawing formatting logic layouts.
-      - Removed last client/inspector signatory sections blocks completely.
-      - Cover Page changes: Stripped logo and company text string; renders optimized 
-        bold header string: 'BUILDING DEFECT INSPECTION'.
-      - Table Columns Layout Array: ['location', 'Group', 'defect type', 'rating', 'Photos']
-      - Complex Sort Hierarchy Ordering: Location -> Group -> Defect Type.
-      - Conditional inspector comments injection nested inside Column 3 using *Italics*.
-      - Skips 'Category' string completely from compilation tables.
-      - Automatically forces all photographic cell attachments into strict uniform 1:1 squares.
-      - Re-evaluates exact row height bounds metrics dynamic text lines wrapping to 
-        safely re-render the master table headers on cross-page overflows.
-      - Appends dedicated checklist scan sheets page full scale directly before summary block.
-    */
-    async function buildReportPDF() {
-      document.getElementById('pdfLoader').classList.add('open');
-      // Yield control loop thread sequentially to ensure DOM loader animation rendering frames execute
-      await new Promise(resolve => setTimeout(resolve, 250));
-
-      try {
-        const { jsPDF } = window.jspdf;
-        // Standard Portrait A4 Coordinate Frame System Framework Bounds Map: 210mm x 297mm
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const W = doc.internal.pageSize.getWidth();
-        const H = doc.internal.pageSize.getHeight();
-        const margin = 15;
-
-        // ----------------------------------------------------------------------
-        // PHASE 1: MASTER COVER PAGE RENDERING (All White Background Minimalist Structure)
-        // ----------------------------------------------------------------------
-        // Draw document main layout banner title strings (Replaces Logo and Company Name text)
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(28);
-        doc.setTextColor(30, 30, 30);
-        doc.text('BUILDING DEFECT INSPECTION', margin, 55);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(12);
-        doc.setTextColor(110, 110, 110);
-        doc.text('PROFESSIONAL COMPREHENSIVE PROPERTY CONDITION REPORT', margin, 64);
-
-        // Accent layout delimiter horizontal rule separator line vector
-        doc.setDrawColor(46, 46, 46);
-        doc.setLineWidth(0.75);
-        doc.line(margin, 72, W - margin, 72);
-
-        // Metadata structural data block rendering matrix
-        let sy = 120;
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(120, 120, 120);
-        doc.text('REPORT METADATA PARAMETERS', margin, sy);
-
-        doc.setDrawColor(230, 230, 230);
-        doc.setLineWidth(0.25);
-        doc.line(margin, sy + 3, W - margin, sy + 3);
-
-        sy += 14;
-        const metaFieldsBlock = [
-          { label: 'Reference No:', val: state.cover.refno || '__________' },
-          { label: 'Inspection Date:', val: state.cover.date || '__________' },
-          { label: 'Client Profile:', val: state.cover.client || '__________' },
-          { label: 'Property Scope:', val: state.cover.property || '__________' },
-          { label: 'Lead Inspector:', val: state.cover.inspector || '__________' }
-        ];
-
-        metaFieldsBlock.forEach(item => {
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(10);
-          doc.setTextColor(80, 80, 80);
-          doc.text(item.label, margin, sy);
-
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          doc.setTextColor(30, 30, 30);
-
-          if (item.label === 'Property Scope:') {
-            const wrapPropertyLines = doc.splitTextToSize(item.val, W - margin - 55);
-            let wrapY = sy;
-            wrapPropertyLines.forEach((line, lineIndex) => {
-              doc.text(line, margin + 40, wrapY);
-              if (lineIndex < wrapPropertyLines.length - 1) wrapY += 5;
-            });
-            sy = wrapY + 10;
-          } else {
-            doc.text(item.val, margin + 40, sy);
-            sy += 9;
-          }
-        });
-
-        // Add standard master document bottom structural block footer asset
-        appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-
-        // ----------------------------------------------------------------------
-        // PHASE 2: DEFECT ENTRIES COMPILATION GRID TABLE MODULE RENDERING
-        // ----------------------------------------------------------------------
-        if (state.defects && state.defects.length > 0) {
-          
-          // Execute multi-tier alphanumeric relational sort algorithm sequence structure
-          const tabularSortedDefects = [...state.defects].sort((a, b) => {
-            const locCompare = (a.location || '').localeCompare(b.location || '', undefined, {numeric: true, sensitivity: 'base'});
-            if (locCompare !== 0) return locCompare;
-
-            const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, {numeric: true, sensitivity: 'base'});
-            if (grpCompare !== 0) return grpCompare;
-
-            return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
-          });
-
-          // Add secondary page to initialize matrix table generation
-          doc.addPage();
-          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(16);
-          doc.setTextColor(30, 30, 30);
-          doc.text('Defect Analysis Log Sheet Grid', margin, 22);
-
-          let currentTableY = 28;
-          // Exact dimensional spacing map layout bounds allocation sizing constraints matching W=180mm net printable space
-          const tableColumnWidthAllocations = { location: 26, group: 30, defectType: 64, rating: 20, photos: 40 };
-          const netTablePrintableWidth = 180;
-          
-          const columnXCoordinates = {
-            location: margin,
-            group: margin + tableColumnWidthAllocations.location,
-            defectType: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group,
-            rating: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group + tableColumnWidthAllocations.defectType,
-            photos: margin + tableColumnWidthAllocations.location + tableColumnWidthAllocations.group + tableColumnWidthAllocations.defectType + tableColumnWidthAllocations.rating
-          };
-
-          // Inner lambda closure encapsulating functional header re-rendering math mechanics
-          const executeTableHeaderDrawingRoutine = (yPosition) => {
-            doc.setFillColor(46, 46, 46); // Retain original matching core structural background color hue signatures
-            doc.rect(margin, yPosition, netTablePrintableWidth, 8, 'F');
-
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(8.5);
-            doc.setTextColor(255, 255, 255);
-
-            doc.text('Location', columnXCoordinates.location + 2, yPosition + 5.5);
-            doc.text('Group', columnXCoordinates.group + 2, yPosition + 5.5);
-            doc.text('Defect Type', columnXCoordinates.defectType + 2, yPosition + 5.5);
-            doc.text('Rating', columnXCoordinates.rating + 2, yPosition + 5.5);
-            doc.text('Photos', columnXCoordinates.photos + 2, yPosition + 5.5);
-            
-            return yPosition + 8;
-          };
-
-          // Initial invocation on entry sheet page initialization point
-          currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
-
-          // Iterate sorted structural inspection elements data sequence vectors
-          for (const d of tabularSortedDefects) {
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-
-            // Compute lines wrapping constraints for multi-line layout blocks calculations
-            const parsedLocLines = doc.splitTextToSize(d.location || '', tableColumnWidthAllocations.location - 4);
-            const parsedGrpLines = doc.splitTextToSize(d.group || '', tableColumnWidthAllocations.group - 4);
-            const parsedRatLines = doc.splitTextToSize(d.rating || '', tableColumnWidthAllocations.rating - 4);
-            
-            const parsedDefTypeTitleLines = doc.splitTextToSize(d.defectType || '', tableColumnWidthAllocations.defectType - 4);
-            const rawInspectorCommentsText = d.comments || '';
-            const parsedCommentsItalicLines = rawInspectorCommentsText ? doc.splitTextToSize(rawInspectorCommentsText, tableColumnWidthAllocations.defectType - 4) : [];
-
-            // Compute height allocations requirements needed for Column 3 Text Blocks
-            const textLineStepSpacing = 4.0;
-            let totalColumnThreeTextHeight = parsedDefTypeTitleLines.length * textLineStepSpacing + 4; // Add baseline padding element bounds
-            if (parsedCommentsItalicLines.length > 0) {
-              totalColumnThreeTextHeight += (parsedCommentsItalicLines.length * 3.6) + 2; // Incremental spacing allocation parameter for comments section
-            }
-
-            // Compute layout size demands metrics calculations for square multi-photos rendering columns
-            const uniformSquareImageThumbnailSize = 16; 
-            const imagesCount = d.photos ? d.photos.length : 0;
-            const computedPhotoRowsNeeded = Math.ceil(imagesCount / 2); // Split layout matching 2 structural matrix cards side-by-side
-            const totalPhotosColumnHeightNeeded = computedPhotoRowsNeeded > 0 ? (computedPhotoRowsNeeded * (uniformSquareImageThumbnailSize + 2.5) + 3.5) : 6;
-
-            // Determine absolute row height peak allocation ceiling constraint dimension parameters
-            const baselineCalculatedRowCellHeight = Math.max(
-              parsedLocLines.length * textLineStepSpacing + 4,
-              parsedGrpLines.length * textLineStepSpacing + 4,
-              totalColumnThreeTextHeight,
-              parsedRatLines.length * textLineStepSpacing + 4,
-              totalPhotosColumnHeightNeeded
-            );
-
-            // Hard page break limit metric tracking analysis check (276mm leaves precise structural space margins for bottom footers)
-            if (currentTableY + baselineCalculatedRowCellHeight > 276) {
-              // Seal open active table bottom baseline vector edge layout path line prior to sheet transition jump operations
-              doc.setDrawColor(210, 210, 210);
-              doc.setLineWidth(0.2);
-              doc.line(margin, currentTableY, margin + netTablePrintableWidth, currentTableY);
-
-              doc.addPage();
-              appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-              
-              // Reset baseline index position tracking metrics context variable constraints definitions bounds coordinates
-              currentTableY = 20; 
-              currentTableY = executeTableHeaderDrawingRoutine(currentTableY);
-            }
-
-            // Draw structural cell bounding box dividers lines wireframe grid layout profile outline vectors
-            doc.setDrawColor(210, 210, 210);
-            doc.setLineWidth(0.2);
-            
-            // Draw baseline cross bounding edge line segments row trace anchors
-            doc.line(margin, currentTableY + baselineCalculatedRowCellHeight, margin + netTablePrintableWidth, currentTableY + baselineCalculatedRowCellHeight);
-            
-            // Draw row side vertical divider lines columns boundaries vectors
-            doc.line(columnXCoordinates.location, currentTableY, columnXCoordinates.location, currentTableY + baselineCalculatedRowCellHeight);
-            doc.line(columnXCoordinates.group, currentTableY, columnXCoordinates.group, currentTableY + baselineCalculatedRowCellHeight);
-            doc.line(columnXCoordinates.defectType, currentTableY, columnXCoordinates.defectType, currentTableY + baselineCalculatedRowCellHeight);
-            doc.line(columnXCoordinates.rating, currentTableY, columnXCoordinates.rating, currentTableY + baselineCalculatedRowCellHeight);
-            doc.line(columnXCoordinates.photos, currentTableY, columnXCoordinates.photos, currentTableY + baselineCalculatedRowCellHeight);
-            doc.line(columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY, columnXCoordinates.photos + tableColumnWidthAllocations.photos, currentTableY + baselineCalculatedRowCellHeight);
-
-            // Populate row cell content data text segments blocks tracking positioning metrics
-            doc.setTextColor(30, 30, 30);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-
-            // Column 1: Location Field Row Population
-            let textPrintYCursor = currentTableY + 4.5;
-            parsedLocLines.forEach(line => { doc.text(line, columnXCoordinates.location + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
-
-            // Column 2: Elemental Group Field Row Population
-            textPrintYCursor = currentTableY + 4.5;
-            parsedGrpLines.forEach(line => { doc.text(line, columnXCoordinates.group + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
-
-            // Column 3: Defect Type Title + Nested Italic Inspector Comments
-            textPrintYCursor = currentTableY + 4.5;
-            parsedDefTypeTitleLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
-
-            if (parsedCommentsItalicLines.length > 0) {
-              textPrintYCursor += 0.5; // Inject subtle line element padding trace
-              doc.setFont('helvetica', 'italic');
-              doc.setFontSize(7.5);
-              doc.setTextColor(100, 100, 100); // Shift text contrast signature shade profiles slightly lower for italic comments
-              parsedCommentsItalicLines.forEach(line => { doc.text(line, columnXCoordinates.defectType + 2, textPrintYCursor); textPrintYCursor += 3.4; });
-            }
-
-            // Column 4: Severity Rating Level Population
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            // Apply contextual color highlights directly onto raw alphanumeric severity tags matches
-            if(d.rating === 'High') doc.setTextColor(190, 40, 60);
-            else if(d.rating === 'Medium') doc.setTextColor(180, 130, 20);
-            else doc.setTextColor(20, 140, 120);
-            
-            textPrintYCursor = currentTableY + 4.5;
-            parsedRatLines.forEach(line => { doc.text(line, columnXCoordinates.rating + 2, textPrintYCursor); textPrintYCursor += textLineStepSpacing; });
-
-            // Column 5: Photos Subgrid Processing Engine System Vector Module (Strict 1:1 Squares)
-            if (d.photos && d.photos.length > 0) {
-              d.photos.forEach((base64ImageElementDataString, imageIndex) => {
-                const rowPositionIndex = Math.floor(imageIndex / 2);
-                const columnPositionIndex = imageIndex % 2;
-                
-                const drawTargetCoordinateX = columnXCoordinates.photos + 2.5 + columnPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
-                const drawTargetCoordinateY = currentTableY + 3 + rowPositionIndex * (uniformSquareImageThumbnailSize + 2.5);
-
-                try {
-                  doc.addImage(base64ImageElementDataString, 'JPEG', drawTargetCoordinateX, drawTargetCoordinateY, uniformSquareImageThumbnailSize, uniformSquareImageThumbnailSize, undefined, 'FAST');
-                } catch (imageInclusionError) {
-                  console.error("Critical image matrix draw bypass exception tracking context logs loop:", imageInclusionError);
-                }
-              });
-            }
-
-            // Progress active table vertical page positioning track loop reference variable pointers
-            currentTableY += baselineCalculatedRowCellHeight;
-          }
-        } else {
-          // Fallback context structure processing execution if zero defects are logged in database vectors
-          doc.addPage();
-          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-          doc.setFont('helvetica', 'italic');
-          doc.setFontSize(10);
-          doc.setTextColor(120, 120, 120);
-          doc.text('No core element property defects logged during this structural inspection timeline.', margin, 40);
-        }
-
-        // ----------------------------------------------------------------------
-        // PHASE 3: DEDICATED FULL PAGE SCANNED CHECKLIST IMAGE ATTACHMENT SHEET
-        // ----------------------------------------------------------------------
-        // Executes exactly right before the statistics summary analytics visualization sheet blocks
-        if (state.checklistImage) {
-          doc.addPage();
-          appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(14);
-          doc.setTextColor(30, 30, 30);
-          doc.text('Sanitary & Electrical Installation Checklist', margin, 22);
-
-          // Compute absolute maximal aspect scaling layout boundaries matrices inside active report sheet page framework constraints
-          const maximalAvailableContentWidth = W - (margin * 2); // 180mm
-          const maximalAvailableContentHeight = H - 42; // Leaves explicit structural room allocations for header labels and footers elements
-          
           try {
-            // Draw scanned checklist single image layout attachment sheet structure full scale bounded neatly within net content space margins
-            doc.addImage(state.checklistImage, 'JPEG', margin, 27, maximalAvailableContentWidth, maximalAvailableContentHeight, undefined, 'FAST');
-          } catch (checklistAttachmentRenderError) {
-            console.error("Checklist layout parsing failure override error logs trace context:", checklistAttachmentRenderError);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9.5);
-            doc.setTextColor(180, 50, 50);
-            doc.text('Pipeline Framework Exception: Scanned Image rendering bypass error tracing file allocation logs mismatch tracking links.', margin, 36);
+            // Include scaled dynamic screenshots evidence representations
+            documentPdf.addImage(defect.imageContent, 'JPEG', layoutMargins, contentY, 80, 55);
+            contentY += 62;
+          } catch(errImage) {
+            contentY += 4;
           }
         }
-
-        // ----------------------------------------------------------------------
-        // PHASE 4: COMPILATION METRICS ANALYTICS SUMMARY FINALE DASHBOARD SHEET
-        // ----------------------------------------------------------------------
-        doc.addPage();
-        appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
-
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(20);
-        doc.setTextColor(30, 30, 30);
-        doc.text('Executive Metrics Summary Analysis', margin, 35);
-
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(90, 90, 90);
-        doc.text('Condensed quantitative evaluation of architectural system deficiencies.', margin, 43);
-
-        doc.setDrawColor(220, 220, 220);
-        doc.setLineWidth(0.3);
-        doc.line(margin, 49, W - margin, 49);
-
-        // Core aggregate statistics calculation logic computations run loop
-        let totalLowFaultsCount = 0, totalMediumFaultsCount = 0, totalHighFaultsCount = 0;
-        state.defects.forEach(defectElementItem => {
-          if (defectElementItem.rating === 'Low') totalLowFaultsCount++;
-          else if (defectElementItem.rating === 'Medium') totalMediumFaultsCount++;
-          else if (defectElementItem.rating === 'High') totalHighFaultsCount++;
-        });
-        const grossTotalDefectsSummedValue = state.defects.length;
-
-        // Render structured visual tabular data metrics summary scorecard layouts modules grid cards
-        let scoreYOffset = 62;
-        
-        // Total Gross Deficiencies Sum Block Row
-        doc.setFillColor(245, 245, 245);
-        doc.rect(margin, scoreYOffset, W - (margin * 2), 12, 'F');
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(10);
-        doc.setTextColor(50, 50, 50);
-        doc.text('Gross Total Deficiencies Identified Across Inspected Zones:', margin + 4, scoreYOffset + 7.5);
-        doc.setFontSize(12);
-        doc.text(grossTotalDefectsSummedValue.toString(), W - margin - 12, scoreYOffset + 8.5, { align: 'right' });
-
-        // Low Severity Items Metrics Block Row
-        scoreYOffset += 18;
-        doc.setFillColor(248, 253, 252);
-        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
-        doc.setFont('helvetica', 'medium');
-        doc.setFontSize(9.5);
-        doc.setTextColor(60, 60, 60);
-        doc.text('Minor Functional / Cosmetic Imperfections (Low Risk Profile):', margin + 4, scoreYOffset + 7);
-        doc.setTextColor(20, 140, 120);
-        doc.setFont('helvetica', 'bold');
-        doc.text(totalLowFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
-
-        // Medium Severity Items Metrics Block Row
-        scoreYOffset += 15;
-        doc.setFillColor(254, 253, 247);
-        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
-        doc.setFont('helvetica', 'medium');
-        doc.setTextColor(60, 60, 60);
-        doc.text('Moderate Actionable System Vulnerabilities (Medium Risk Profile):', margin + 4, scoreYOffset + 7);
-        doc.setTextColor(180, 130, 20);
-        doc.setFont('helvetica', 'bold');
-        doc.text(totalMediumFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
-
-        // High Severity Items Metrics Block Row
-        scoreYOffset += 15;
-        doc.setFillColor(254, 248, 249);
-        doc.rect(margin, scoreYOffset, W - (margin * 2), 11, 'F');
-        doc.setFont('helvetica', 'medium');
-        doc.setTextColor(60, 60, 60);
-        doc.text('Critical Structural Faults / Safety Hazards (High Urgent Action Profile):', margin + 4, scoreYOffset + 7);
-        doc.setTextColor(190, 40, 60);
-        doc.setFont('helvetica', 'bold');
-        doc.text(totalHighFaultsCount.toString(), W - margin - 12, scoreYOffset + 7.5, { align: 'right' });
-
-        // Document Closure End-Of-Report Advisory Notice Callout Panel
-        scoreYOffset += 24;
-        doc.setFillColor(250, 250, 250);
-        doc.setDrawColor(220, 220, 220);
-        doc.setLineWidth(0.2);
-        doc.rect(margin, scoreYOffset, W - (margin * 2), 26, 'FD');
-        
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.setTextColor(40, 40, 40);
-        doc.text('Advisory Notice Notes Guidance Notes', margin + 6, scoreYOffset + 6);
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(100, 100, 100);
-        const advisoryTextParagraphStringsBlock = doc.splitTextToSize("This structural document data matrix report presents a snap-shot compilation summary review analysis mapping conditions present on the explicitly targeted date timeline of inspection operations tracking only. Reruns, structural settling actions, secondary environment degradation profiles, or implicit system anomalies manifested after the core operations timeframe require supplementary secondary engineering assessments.", W - (margin * 2) - 12);
-        
-        let advisoryTextLineYCursor = scoreYOffset + 11.5;
-        advisoryTextParagraphStringsBlock.forEach(lineString => {
-          doc.text(lineString, margin + 6, advisoryTextLineYCursor);
-          advisoryTextLineYCursor += 3.6;
-        });
-
-        // ----------------------------------------------------------------------
-        // PHASE 5: DOCUMENT SERIALIZATION STREAM FILE SAVE LIFECYCLE DISPATCH
-        // ----------------------------------------------------------------------
-        const masterGeneratedReportFilenameString = (state.cover.refno || 'AFH-Report') + '_' + (state.cover.date || new Date().toISOString().split('T')[0]) + '.pdf';
-        doc.save(masterGeneratedReportFilenameString);
-        triggerToastAlertMessage('PDF Document Compiled Successfully: ' + masterGeneratedReportFilenameString);
-
-      } catch (masterCompilationGlobalErrorFaultContext) {
-        console.error("PDF engine crash context breakdown stack log:", masterCompilationGlobalErrorFaultContext);
-        triggerToastAlertMessage('PDF Compilation Engine Fault Error Exception: ' + masterCompilationGlobalErrorFaultContext.message);
-      }
-      document.getElementById('pdfLoader').classList.remove('open');
+        contentY += 5;
+      });
+      addDocumentFooterElement(documentPdf, targetWidth, targetHeight);
     }
 
-    // Retained Master Page Footer Drawing System Element Logic Architecture Block
-    function appendMasterPageFooterElement(doc, W, H, margin, refno) {
-      doc.setFillColor(46, 46, 46);
-      doc.rect(0, H - 10, W, 10, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6.5);
-      doc.setTextColor(140, 140, 140);
-      doc.text('AF Home Inspection  ·  Professional Inspection Report  ·  ' + (refno || 'N/A'), W / 2, H - 4, { align: 'center' });
-    }
-  </script>
+    const outputFileNameString = (appState.cover.refno || "AFH_Report") + ".pdf";
+    documentPdf.save(outputFileNameString);
+    showToast("Clean PDF Generated Successfully.");
+  } catch(errorPdfEngine) {
+    console.error(errorPdfEngine);
+    alert("PDF generation processing failed: " + errorPdfEngine.message);
+  }
+}
+
+function addDocumentFooterElement(docObj, wWidth, hHeight) {
+  docObj.setFillColor(46, 46, 46);
+  docObj.rect(0, hHeight - 12, wWidth, 12, 'F');
+  docObj.setFont("helvetica", "normal");
+  docObj.setFontSize(8);
+  docObj.setTextColor(212, 203, 191);
+  docObj.text("AF Home Inspection  ·  Clean Jargon-Free Summary Report", wWidth / 2, hHeight - 5, { align: "center" });
+}
+</script>
 </body>
 </html>
