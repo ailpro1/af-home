@@ -136,10 +136,10 @@
   <div class="main-content">
     <div id="coverTab" class="tab-pane active">
       <h2>Cover Page</h2>
-      <p class="subtitle">Enter the general parameters and project metadata configuration details below.</p>
+      <p class="subtitle">Enter the general information and project details below.</p>
       
       <div class="card">
-        <h3><i class="fa-solid fa-sliders"></i>General Meta Information</h3>
+        <h3><i class="fa-solid fa-sliders"></i>General Information</h3>
         <div class="form-grid">
           <div class="form-group">
             <label>Reference Number</label>
@@ -159,19 +159,26 @@
           </div>
           <div class="form-group full-width" style="margin-top: 10px;">
             <label>Cover Page Photo (Optional)</label>
-            <input type="file" id="coverPhotoField" accept="image/*" style="display: none;" onchange="processCoverPhotoUpload(event)">
+            <input type="file" id="coverPhotoField" accept="image/*" style="display: none;" onchange="openCoverPhotoCropper(event)">
             <button class="btn btn-secondary" onclick="document.getElementById('coverPhotoField').click()" style="align-self: flex-start;">
               <i class="fa-solid fa-camera"></i> Choose Cover Image
             </button>
             <div id="coverPhotoPreviewBox" style="margin-top: 16px; display: none;">
               <img id="coverPhotoPreviewImg" src="" alt="Cover Photo Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); padding: 4px; background: #222;">
-              <button class="btn btn-danger" style="margin-top: 8px; padding: 6px 14px; font-size: 12px; display: inline-flex;" onclick="clearCoverPhotoItem()">
-                <i class="fa-solid fa-trash-can"></i> Remove Cover Photo
-              </button>
+              <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="reCropExistingCoverPhoto()">
+                  <i class="fa-solid fa-crop-simple"></i> Re-Crop Photo
+                </button>
+                <button class="btn btn-danger" style="padding: 6px 14px; font-size: 12px;" onclick="clearCoverPhotoItem()">
+                  <i class="fa-solid fa-trash-can"></i> Remove Cover Photo
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+
     <div id="defectsTab" class="tab-pane">
       <h2>Defect Entries</h2>
       <p class="subtitle">Log structural, architectural, engineering and general property conditions items.</p>
@@ -485,10 +492,7 @@
           document.getElementById('metaRef').value = state.cover.refno || '';
           document.getElementById('metaDate').value = state.cover.date || '';
           document.getElementById('metaClient').value = state.cover.client || '';
-          const inspectorEl = document.getElementById('metaInspector');
-          if (inspectorEl) {
-            inspectorEl.value = state.cover.inspector || '';
-          }
+          document.getElementById('metaInspector').value = state.cover.inspector || '';
           document.getElementById('metaProperty').value = state.cover.property || '';
           if (state.cover.coverPhoto) {
             document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
@@ -508,78 +512,6 @@
     function updateCoverField(key, val) {
       state.cover[key] = val;
       syncSaveStateToLocalStorageStore();
-    }
-
-    let activeCropperInstance = null;
-
-    function openCoverPhotoCropper(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const cropperImg = document.getElementById('cropperSourceImage');
-        cropperImg.src = e.target.result;
-        
-        document.getElementById('cropperModal').classList.add('open');
-        
-        if (activeCropperInstance) {
-          activeCropperInstance.destroy();
-        }
-        
-        // Lock aspect geometry to matching 180:68 ratios perfectly
-        activeCropperInstance = new Cropper(cropperImg, {
-          aspectRatio: 180 / 68,
-          viewMode: 1,
-          background: false,
-          responsive: true,
-          autoCropArea: 1,
-          movable: true,
-          zoomable: true,
-          rotatable: false,
-          scalable: false
-        });
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function closeCropperModal() {
-      document.getElementById('cropperModal').classList.remove('open');
-      document.getElementById('coverPhotoField').value = '';
-      if (activeCropperInstance) {
-        activeCropperInstance.destroy();
-        activeCropperInstance = null;
-      }
-    }
-
-    function executeCroppingComputation() {
-      if (!activeCropperInstance) return;
-
-      // Extract high resolution canvas output mapping standard layout requirements
-      const croppedCanvas = activeCropperInstance.getCroppedCanvas({
-        width: 1440,
-        height: 544,
-        imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high'
-      });
-
-      state.cover.coverPhoto = croppedCanvas.toDataURL('image/jpeg', 0.85);
-      
-      document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
-      document.getElementById('coverPhotoPreviewBox').style.display = 'block';
-      
-      syncSaveStateToLocalStorageStore();
-      closeCropperModal();
-      triggerToastAlertMessage("Cover photo framed and customized successfully.");
-    }
-
-    function clearCoverPhotoItem() {
-      state.cover.coverPhoto = null;
-      document.getElementById('coverPhotoField').value = '';
-      document.getElementById('coverPhotoPreviewImg').src = '';
-      document.getElementById('coverPhotoPreviewBox').style.display = 'none';
-      syncSaveStateToLocalStorageStore();
-      triggerToastAlertMessage("Cover photo removed.");
     }
     
     function processCoverPhotoUpload(event) {
@@ -702,6 +634,90 @@
       } else {
         customContainer.style.display = 'none';
       }
+    }
+
+    let activeCropperInstance = null;
+
+    function openCoverPhotoCropper(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const cropperImg = document.getElementById('cropperSourceImage');
+        cropperImg.src = e.target.result;
+        
+        document.getElementById('cropperModal').classList.add('open');
+        
+        if (activeCropperInstance) {
+          activeCropperInstance.destroy();
+        }
+        
+        // Locking configuration parameters to match the precise aspect footprint geometry rules (180:68)
+        activeCropperInstance = new Cropper(cropperImg, {
+          aspectRatio: 180 / 68,
+          viewMode: 1,
+          background: false,
+          responsive: true,
+          autoCropArea: 1,
+          movable: true,
+          zoomable: true,
+          rotatable: false,
+          scalable: false
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function closeCropperModal() {
+      document.getElementById('cropperModal').classList.remove('open');
+      document.getElementById('coverPhotoField').value = '';
+      if (activeCropperInstance) {
+        activeCropperInstance.destroy();
+        activeCropperInstance = null;
+      }
+    }
+
+    function reCropExistingCoverPhoto() {
+      if (!state.cover.coverPhoto) return;
+      const cropperImg = document.getElementById('cropperSourceImage');
+      cropperImg.src = state.cover.coverPhoto;
+      document.getElementById('cropperModal').classList.add('open');
+      if (activeCropperInstance) {
+        activeCropperInstance.destroy();
+      }
+      activeCropperInstance = new Cropper(cropperImg, {
+        aspectRatio: 180 / 68,
+        viewMode: 1,
+        background: false,
+        responsive: true,
+        autoCropArea: 1,
+        movable: true,
+        zoomable: true,
+        rotatable: false,
+        scalable: false
+      });
+    }
+
+    function executeCroppingComputation() {
+      if (!activeCropperInstance) return;
+
+      // Output resolution dimension boundary maps (High fidelity 1440px maintains perfect layout density metrics)
+      const croppedCanvas = activeCropperInstance.getCroppedCanvas({
+        width: 1440,
+        height: 544,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high'
+      });
+
+      state.cover.coverPhoto = croppedCanvas.toDataURL('image/jpeg', 0.85);
+      
+      document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
+      document.getElementById('coverPhotoPreviewBox').style.display = 'block';
+      
+      syncSaveStateToLocalStorageStore();
+      closeCropperModal();
+      triggerToastAlertMessage("Cover photo framed and customized successfully.");
     }
 
     // Process Photographic File Array Selection Buffering Pipeline
@@ -1215,7 +1231,6 @@
             console.error("Cover photo injection pipeline breakdown tracer context exception:", coverPhotoError);
           }
         }
-        
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
         doc.setTextColor(120, 120, 120);
@@ -1226,7 +1241,6 @@
         doc.line(margin, sy + 3, W - margin, sy + 3);
 
         sy += 14;
-        
         const metaFieldsBlock = [
           { label: 'Reference No:', val: state.cover.refno || '__________' },
           { label: 'Inspection Date:', val: state.cover.date || '__________' },
