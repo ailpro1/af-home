@@ -484,7 +484,10 @@
           document.getElementById('metaRef').value = state.cover.refno || '';
           document.getElementById('metaDate').value = state.cover.date || '';
           document.getElementById('metaClient').value = state.cover.client || '';
-          document.getElementById('metaInspector').value = state.cover.inspector || '';
+          const inspectorEl = document.getElementById('metaInspector');
+          if (inspectorEl) {
+            inspectorEl.value = state.cover.inspector || '';
+          }
           document.getElementById('metaProperty').value = state.cover.property || '';
           if (state.cover.coverPhoto) {
             document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
