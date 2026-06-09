@@ -42,7 +42,7 @@
   .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: none; border-bottom: 3px solid var(--accent); padding-left: 14px; padding-bottom: 7px; border-radius: 8px 8px 0 0; }
 
   /* Main frame styling */
-  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
+  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; position: relative; }
   .tab-pane { display: none; padding: 24px; max-width: 900px; width: 100%; margin: 0 auto; }
   .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -125,6 +125,9 @@
   </div>
 
   <div class="main-content">
+    <button class="btn btn-danger" style="position: absolute; top: 32px; right: 32px; z-index: 1000; padding: 10px 18px; font-size: 13px;" onclick="resetInspection()">
+      <i class="fa-solid fa-file-circle-plus"></i> New Inspection
+    </button>
 
     <div id="coverTab" class="tab-pane active">
       <h2>Cover Page</h2>
@@ -145,10 +148,6 @@
             <label>Client Name</label>
             <input type="text" id="metaClient" placeholder="e.g. John Doe" oninput="updateCoverField('client', this.value)">
           </div>
-          <div class="form-group">
-            <label>Inspector Name</label>
-            <input type="text" id="metaInspector" placeholder="e.g. Alex Harrison" oninput="updateCoverField('inspector', this.value)">
-          </div>
           <div class="form-group full-width">
             <label>Property Address</label>
             <textarea id="metaProperty" placeholder="e.g. No. 12, Jalan Ipoh, 30000 Ipoh, Perak, Malaysia" oninput="updateCoverField('property', this.value)"></textarea>
@@ -167,14 +166,35 @@
           <div class="form-group">
             <label>Location / Room Zone</label>
             <select id="defLocationSelect" onchange="handleDropdownSelection('defLocationSelect', 'defLocationContainer')">
-              <option value="Living Room">Living Room</option>
-              <option value="Master Bedroom">Master Bedroom</option>
-              <option value="Bedroom 2">Bedroom 2</option>
-              <option value="Kitchen">Kitchen</option>
-              <option value="Bathroom">Bathroom</option>
-              <option value="Balcony">Balcony</option>
-              <option value="Yard / Exterior">Yard / Exterior</option>
-              <option value="Others">Others</option>
+            <option value="Car Porch">Car Porch</option>
+            <option value="Apron / Perimeter Drain">Apron / Perimeter Drain</option>
+            <option value="Driveway / Entrance Gate">Driveway / Entrance Gate</option>
+            <option value="External Boundary Wall / Fencing">External Boundary Wall / Fencing</option>
+            <option value="Roof / Attic Space">Roof / Attic Space</option>
+            
+            <option value="Foyer / Entrance Lobby">Foyer / Entrance Lobby</option>
+            <option value="Living Room">Living Room</option>
+            <option value="Dining Area">Dining Area</option>
+            <option value="Hallway / Corridor">Hallway / Corridor</option>
+            <option value="Staircase">Staircase</option>
+            
+            <option value="Dry Kitchen">Dry Kitchen</option>
+            <option value="Wet Kitchen">Wet Kitchen</option>
+            <option value="Yard / Laundry Area">Yard / Laundry Area</option>
+            <option value="Store Room">Store Room</option>
+            <option value="Balcony">Balcony</option>
+            
+            <option value="Master Bedroom">Master Bedroom</option>
+            <option value="Bedroom 1">Bedroom 1</option>
+            <option value="Bedroom 2">Bedroom 2</option>
+            <option value="Bedroom 3">Bedroom 3</option>
+            <option value="Guest Room">Guest Room</option>
+            
+            <option value="Master Bathroom">Master Bathroom</option>
+            <option value="Bathroom 2">Bathroom 2</option>
+            <option value="Bathroom 3">Bathroom 3</option>
+            <option value="Toilet">Toilet</option>
+            <option value="Others">Others</option>
             </select>
             <div id="defLocationContainer" style="display: none; margin-top: 8px;">
               <input type="text" id="defLocation" placeholder="e.g. Living Room, Master Bedroom">
@@ -183,8 +203,8 @@
           <div class="form-group">
             <label>Defect Category Class</label>
             <select id="defCategory">
-              <option value="Interior">Interior Space</option>
-              <option value="Exterior">Exterior Envelope</option>
+              <option value="Interior">Interior</option>
+              <option value="Exterior">Exterior</option>
             </select>
           </div>
           <div class="form-group">
@@ -445,6 +465,74 @@
     function updateCoverField(key, val) {
       state.cover[key] = val;
       syncSaveStateToLocalStorageStore();
+    }
+    
+    function resetInspection() {
+      if (!confirm("Are you sure you want to initialize a new inspection? This will permanently wipe all current draft data row items and cover layouts.")) {
+        return;
+      }
+
+      // 1. Reset Master Runtime State Dictionary Vector
+      state = {
+        cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection' },
+        defects: [],
+        checklistImage: null
+      };
+
+      // 2. Commit flushed empty footprint back to LocalStorage
+      syncSaveStateToLocalStorageStore();
+
+      // 3. Reset Cover Tab UI Form Inputs
+      document.getElementById('metaRef').value = '';
+      document.getElementById('metaDate').value = '';
+      document.getElementById('metaClient').value = '';
+      document.getElementById('metaProperty').value = '';
+      
+      // Safe check condition to clear Inspector Input field text state only if it still exists in DOM
+      const inspectorInput = document.getElementById('metaInspector');
+      if (inspectorInput) inspectorInput.value = '';
+
+      // 4. Reset Defect Entry Input Elements
+      const locationField = document.getElementById('defLocation');
+      if (locationField) {
+        if (locationField.tagName === 'SELECT') {
+          locationField.selectedIndex = 0;
+        } else {
+          locationField.value = '';
+        }
+      }
+      
+      // Clear conditional 'Other' text elements if implemented
+      const locationOtherField = document.getElementById('defLocationOther');
+      if (locationOtherField) {
+        locationOtherField.value = '';
+        locationOtherField.style.display = 'none';
+      }
+
+      document.getElementById('defGroup').value = '';
+      document.getElementById('defType').value = '';
+      document.getElementById('defComments').value = '';
+      document.getElementById('defRating').selectedIndex = 1; // Resets back to Medium default option selection
+      
+      const categoryField = document.getElementById('defCategory');
+      if (categoryField) categoryField.selectedIndex = 0;
+
+      // 5. Clear Photographic Buffers & Thumbnail Previews Strip Layouts
+      internalStagingPhotos = [];
+      document.getElementById('defectPhotoPreviewStrip').innerHTML = '';
+
+      // 6. Detach Binary Scanned Checklist Images Attachments Matrix
+      document.getElementById('checklistUploadField').value = '';
+      document.getElementById('checklistPreviewImg').src = '';
+      document.getElementById('checklistPreviewBox').style.display = 'none';
+
+      // 7. Refresh Dynamic App Layout Framework Engines
+      rebuildUIDefectsListMatrix();
+      calculateSummaryAnalyticsMetrics();
+
+      // 8. Return View Port Tab State Safely back to Cover Page Start
+      switchTab('cover');
+      triggerToastAlertMessage("Application reset successfully. Ready for new client entries.");
     }
 
     // Prefix field layout handler mapping engine configurations functions
@@ -971,7 +1059,6 @@
           { label: 'Inspection Date:', val: state.cover.date || '__________' },
           { label: 'Client:', val: state.cover.client || '__________' },
           { label: 'Address:', val: state.cover.property || '__________' },
-          { label: 'Inspector:', val: state.cover.inspector || '__________' }
         ];
 
         metaFieldsBlock.forEach(item => {
