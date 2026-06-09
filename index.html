@@ -42,7 +42,7 @@
   .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: none; border-bottom: 3px solid var(--accent); padding-left: 14px; padding-bottom: 7px; border-radius: 8px 8px 0 0; }
 
   /* Main frame styling */
-  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; position: relative; }
+  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
   .tab-pane { display: none; padding: 24px; max-width: 900px; width: 100%; margin: 0 auto; }
   .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -125,10 +125,6 @@
   </div>
 
   <div class="main-content">
-    <button class="btn btn-danger" style="position: absolute; top: 32px; right: 32px; z-index: 1000; padding: 10px 18px; font-size: 13px;" onclick="resetInspection()">
-      <i class="fa-solid fa-file-circle-plus"></i> New Inspection
-    </button>
-
     <div id="coverTab" class="tab-pane active">
       <h2>Cover Page</h2>
       <p class="subtitle">Enter the general parameters and project metadata configuration details below.</p>
@@ -330,6 +326,12 @@
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Select and load a previously formatted internal JSON report template database back onto runtime states.</p>
         <input type="file" id="importJSONStateInput" accept=".json" style="display:none;" onchange="importDataStateJSON(event)">
         <button class="btn btn-secondary" onclick="document.getElementById('importJSONStateInput').click()"><i class="fa-solid fa-upload"></i> Load Data from JSON</button>
+        
+        <div style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+          <button class="btn btn-danger" style="width: 100%; justify-content: center;" onclick="resetInspection()">
+            <i class="fa-solid fa-file-circle-plus"></i> New Inspection
+          </button>
+        </div>
       </div>
     </div>
 
