@@ -136,10 +136,10 @@
   <div class="main-content">
     <div id="coverTab" class="tab-pane active">
       <h2>Cover Page</h2>
-      <p class="subtitle">Enter the general information and project details below.</p>
+      <p class="subtitle">Enter the general parameters and project metadata configuration details below.</p>
       
       <div class="card">
-        <h3><i class="fa-solid fa-sliders"></i>General Information</h3>
+        <h3><i class="fa-solid fa-sliders"></i>General Meta Information</h3>
         <div class="form-grid">
           <div class="form-group">
             <label>Reference Number</label>
@@ -479,7 +479,11 @@
     }
 
     function syncSaveStateToLocalStorageStore() {
-      localStorage.setItem('afh_inspect_state_v2', JSON.stringify(state));
+      try {
+        localStorage.setItem('afh_inspect_state_v2', JSON.stringify(state));
+      } catch (quotaError) {
+        triggerToastAlertMessage("Storage Warning: Data too large for device cache. Use Save to JSON instead.");
+      }
     }
 
     function syncLoadStateFromLocalStorageStore() {
@@ -1166,6 +1170,12 @@
             document.getElementById('metaClient').value = state.cover.client || '';
             document.getElementById('metaInspector').value = state.cover.inspector || '';
             document.getElementById('metaProperty').value = state.cover.property || '';
+            if (state.cover.coverPhoto) {
+              document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
+              document.getElementById('coverPhotoPreviewBox').style.display = 'block';
+            } else {
+              document.getElementById('coverPhotoPreviewBox').style.display = 'none';
+            }
             if (state.checklistImage) {
               document.getElementById('checklistPreviewImg').src = state.checklistImage;
               document.getElementById('checklistPreviewBox').style.display = 'block';
