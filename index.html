@@ -116,6 +116,24 @@
   .cropper-box-area { max-height: 55vh; width: 100%; overflow: hidden; background: #000; border-radius: 6px; }
   .cropper-box-area img { max-width: 100%; display: block; }
   .cropper-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+
+  /* Searchable Defect Type Select Component */
+  .searchable-select-wrapper { position: relative; }
+  .searchable-select-display { background-color: #121212; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; transition: border-color 0.2s; user-select: none; }
+  .searchable-select-display:hover, .searchable-select-wrapper.open .searchable-select-display { border-color: var(--accent); }
+  .searchable-select-display span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .searchable-select-display i { font-size: 11px; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .searchable-select-wrapper.open .searchable-select-display i { transform: rotate(180deg); }
+  .searchable-select-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--border-color); border-radius: 8px; z-index: 2000; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+  .searchable-select-panel input { border-radius: 0; border: none; border-bottom: 1px solid var(--border-color); background: #161616; font-size: 13px; padding: 10px 14px; width: 100%; color: #fff; }
+  .searchable-select-panel input:focus { border-bottom-color: var(--accent); outline: none; }
+  .searchable-select-options { max-height: 220px; overflow-y: auto; }
+  .searchable-option { padding: 9px 16px; font-size: 13px; color: var(--text-main); cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .searchable-option:hover { background: rgba(212,175,55,0.1); color: var(--accent); }
+  .searchable-option.selected { background: rgba(212,175,55,0.12); color: var(--accent); font-weight: 600; }
+  .searchable-option-group { padding: 7px 16px 5px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); background: #161616; font-weight: 700; border-top: 1px solid var(--border-color); }
+  .searchable-option-group:first-child { border-top: none; }
+  .no-options-msg { padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; }
 </style>
 </head>
 <body>
@@ -248,17 +266,19 @@
           </div>
           <div class="form-group">
             <label>Defect Type Title</label>
-            <select id="defTypeSelect" onchange="handleDropdownSelection('defTypeSelect', 'defTypeContainer')">
-              <option value="Hairline Crack">Hairline Crack</option>
-              <option value="Paint Peeling">Paint Peeling</option>
-              <option value="Unevenness">Unevenness</option>
-              <option value="Water Leakage">Water Leakage</option>
-              <option value="Hollow Tiles">Hollow Tiles</option>
-              <option value="Damaged / Broken">Damaged / Broken</option>
-              <option value="Others">Others</option>
-            </select>
+            <div class="searchable-select-wrapper" id="defTypeWrapper">
+              <div class="searchable-select-display" onclick="toggleDefectTypeDropdown()">
+                <span id="defTypeSelectedLabel">Hairline Crack</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </div>
+              <div class="searchable-select-panel" id="defTypePanel" style="display:none;">
+                <input type="text" id="defTypeSearchInput" placeholder="🔍 Search defect type..." oninput="filterDefectTypeOptions(this.value)" onclick="event.stopPropagation()">
+                <div class="searchable-select-options" id="defTypeOptionsList"></div>
+              </div>
+            </div>
+            <input type="hidden" id="defTypeSelect" value="Hairline Crack">
             <div id="defTypeContainer" style="display: none; margin-top: 8px;">
-              <input type="text" id="defType" placeholder="e.g. Hairline Crack, Paint Peeling, Unevenness">
+              <input type="text" id="defType" placeholder="Describe custom defect type...">
             </div>
           </div>
           <div class="form-group full-width">
@@ -630,6 +650,179 @@
     }
 
     // Prefix field layout handler mapping engine configurations functions
+    const DEFECT_TYPE_OPTIONS = [
+      { group: 'General', value: 'Hairline Crack' },
+      { group: 'General', value: 'Paint Peeling' },
+      { group: 'General', value: 'Unevenness' },
+      { group: 'General', value: 'Water Leakage' },
+      { group: 'General', value: 'Hollow Tiles' },
+      { group: 'General', value: 'Damaged / Broken' },
+      { group: 'Internal Finishes (Floor)', value: 'Surface uneven and out of tolerance [≤3mm per 1.2m]' },
+      { group: 'Internal Finishes (Floor)', value: 'Falls in wet areas in wrong direction' },
+      { group: 'Internal Finishes (Floor)', value: 'Staircase tread/riser length variance out of tolerance [≤5mm]' },
+      { group: 'Internal Finishes (Floor)', value: 'Joints misaligned with skirting/wall tiles' },
+      { group: 'Internal Finishes (Floor)', value: 'Joints misaligned between tiles' },
+      { group: 'Internal Finishes (Floor)', value: 'Lippage out of tolerance [≤1mm]' },
+      { group: 'Internal Finishes (Floor)', value: 'Protrusion/tripping hazard observed' },
+      { group: 'Internal Finishes (Floor)', value: 'Visible damage observed (chipping, cracks, scratches)' },
+      { group: 'Internal Finishes (Floor)', value: 'Warpage or sagging observed' },
+      { group: 'Internal Finishes (Floor)', value: 'Loose floor panels or rocking observed' },
+      { group: 'Internal Finishes (Floor)', value: 'Hollow/drumming sound on tapping' },
+      { group: 'Internal Finishes (Floor)', value: 'Delamination observed' },
+      { group: 'Internal Finishes (Floor)', value: 'Timber strips not resting firmly' },
+      { group: 'Internal Finishes (Internal Wall)', value: 'Surface uneven and out of tolerance [≤3mm over 1.2m]' },
+      { group: 'Internal Finishes (Internal Wall)', value: 'Wall verticality out of tolerance [≤3mm over 1.2m]' },
+      { group: 'Internal Finishes (Internal Wall)', value: 'Wall right angle out of tolerance [≤4mm over 300mm]' },
+      { group: 'Internal Finishes (Internal Wall)', value: 'Joints misaligned between tiles (wall)' },
+      { group: 'Internal Finishes (Internal Wall)', value: 'Lippage out of tolerance [≤1mm] (wall)' },
+      { group: 'Ceiling', value: 'Stain mark (leakage/excess paint) observed' },
+      { group: 'Ceiling', value: 'Inconsistent color tone observed' },
+      { group: 'Ceiling', value: 'Poor paintwork (brush marks, pin holes, blistering, trowel marks) observed' },
+      { group: 'Ceiling', value: 'Surface uneven, wavy, or sagging observed' },
+      { group: 'Ceiling', value: 'Panels not level' },
+      { group: 'Ceiling', value: 'Edges/grids misaligned' },
+      { group: 'Ceiling', value: 'Panels warped or not neatly laid' },
+      { group: 'Ceiling', value: 'Visible damages (spalling, chipped panels, cracks) observed' },
+      { group: 'Ceiling', value: 'Corrosion observed (grids/metal panels)' },
+      { group: 'Ceiling', value: 'Rough surface/patchy touch-up work observed' },
+      { group: 'Ceiling', value: 'Cold joints or formwork joints not ground smooth' },
+      { group: 'Ceiling', value: 'Joints (ceiling/wall, tee/panel, access opening) not neat/consistent' },
+      { group: 'Door', value: 'Corners not at right angles [L-square 200mm x 300mm]' },
+      { group: 'Door', value: 'Rattling sound on closing' },
+      { group: 'Door', value: 'Visible damages/stain marks observed' },
+      { group: 'Door', value: 'Panel sagging or warped' },
+      { group: 'Door', value: 'Joints/nail holes not filled or properly sanded' },
+      { group: 'Door', value: 'Additional timber strips detected' },
+      { group: 'Door', value: 'Glazing not clean/sealed' },
+      { group: 'Door', value: 'Corrosion observed' },
+      { group: 'Door', value: 'Poor paintwork (drips, brush marks, pin holes, blistering)' },
+      { group: 'Door', value: 'Functionality (opening, closing, locking) obstructed' },
+      { group: 'Door', value: 'Squeaky sound detected' },
+      { group: 'Door', value: 'Lockset not functional' },
+      { group: 'Door', value: 'Accessories misaligned, poor fit, stained, or corroded' },
+      { group: 'Door', value: 'Missing/defective parts/accessories' },
+      { group: 'Door', value: 'Screws over-tightened or defective' },
+      { group: 'Windows', value: 'Patchy paintwork from touch-up work observed' },
+      { group: 'Windows', value: 'Functionality (opening, closing, locking) obstructed (window)' },
+      { group: 'Windows', value: 'Squeaky sound detected (window)' },
+      { group: 'Windows', value: 'Leakage observed' },
+      { group: 'Windows', value: 'Lock sets misaligned/poor fit' },
+      { group: 'Windows', value: 'Accessories misaligned, poor fit, stained, or corroded (window)' },
+      { group: 'Windows', value: 'Missing/defective parts/accessories (window)' },
+      { group: 'Windows', value: 'Screws over-tightened or defective (window)' },
+      { group: 'External Drain', value: 'Drain grating not safely/securely fixed' },
+      { group: 'External Drain', value: 'Stain mark observed' },
+      { group: 'External Drain', value: 'Surface excessively rough/patchy' },
+      { group: 'External Drain', value: 'Finishes uneven, not level, or misaligned' },
+      { group: 'External Drain', value: 'Visible cracks/damages observed' },
+      { group: 'External Drain', value: 'Not free-flowing, ponding, or siltation observed' },
+      { group: 'External Drain', value: 'Not securely fixed/unsafe' },
+      { group: 'External Drain', value: 'Joints inconsistent or messy' },
+      { group: 'External Drain', value: 'Gap between covers out of tolerance [5–10mm]' },
+      { group: 'External Drain', value: 'Gap between drain sides out of tolerance [5–10mm]' },
+      { group: 'External Drain', value: 'Inspection chambers not level or protrusion out of tolerance [20mm]' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Stain mark observed (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Inconsistent color or poor paintwork (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Surface rough/patchy (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Surface uneven or edges not straight' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Piers, gate, or vertical elements misaligned' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Gate not parallel/aligned' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Visible damages/defects observed (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Missing/defective accessories (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Sign of corrosion observed' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Not securely fixed, functional, or safe (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'Joints inconsistent or messy (external)' },
+      { group: 'Roadwork, Footpath, Fence & Gate', value: 'M&E fittings with visible gaps' },
+      { group: 'Roofing', value: 'Sign of leakage observed (roof)' },
+      { group: 'Roofing', value: 'Protrusion not properly dressed' },
+      { group: 'Roofing', value: 'Sign of clogging or ponding observed' },
+      { group: 'Roofing', value: 'Openings not sealed to prevent pest invasion' },
+      { group: 'Roofing', value: 'RWDP inlet not lower than surrounding gutter invert level' },
+      { group: 'Roofing', value: 'Gutter or RWDP inlet not covered to prevent blockage' },
+      { group: 'Roofing', value: 'Installation of fixtures not neat or secure' },
+      { group: 'Roofing', value: 'Inconsistent joint width or messy joints (roof)' },
+      { group: 'Roofing', value: 'Poor laps at joints or improper vertical abutment details' },
+      { group: '', value: 'Others' }
+    ];
+
+    function buildDefectTypeOptionsList(filter) {
+      const list = document.getElementById('defTypeOptionsList');
+      list.innerHTML = '';
+      const currentVal = document.getElementById('defTypeSelect').value;
+      const lowerFilter = (filter || '').toLowerCase().trim();
+      let lastGroup = null;
+      let count = 0;
+
+      DEFECT_TYPE_OPTIONS.forEach(opt => {
+        if (lowerFilter && !opt.value.toLowerCase().includes(lowerFilter)) return;
+        if (!lowerFilter && opt.group && opt.group !== lastGroup) {
+          lastGroup = opt.group;
+          const groupEl = document.createElement('div');
+          groupEl.className = 'searchable-option-group';
+          groupEl.textContent = opt.group;
+          list.appendChild(groupEl);
+        }
+        const el = document.createElement('div');
+        el.className = 'searchable-option' + (opt.value === currentVal ? ' selected' : '');
+        el.textContent = opt.value;
+        el.onclick = () => selectDefectType(opt.value);
+        list.appendChild(el);
+        count++;
+      });
+
+      if (count === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'no-options-msg';
+        msg.textContent = 'No matching defect types found.';
+        list.appendChild(msg);
+      }
+    }
+
+    function toggleDefectTypeDropdown() {
+      const panel = document.getElementById('defTypePanel');
+      const wrapper = document.getElementById('defTypeWrapper');
+      if (panel.style.display === 'none') {
+        wrapper.classList.add('open');
+        panel.style.display = 'block';
+        document.getElementById('defTypeSearchInput').value = '';
+        buildDefectTypeOptionsList('');
+        setTimeout(() => document.getElementById('defTypeSearchInput').focus(), 50);
+      } else {
+        closeDefectTypeDropdown();
+      }
+    }
+
+    function closeDefectTypeDropdown() {
+      const wrapper = document.getElementById('defTypeWrapper');
+      const panel = document.getElementById('defTypePanel');
+      if (wrapper) wrapper.classList.remove('open');
+      if (panel) panel.style.display = 'none';
+    }
+
+    function filterDefectTypeOptions(val) {
+      buildDefectTypeOptionsList(val);
+    }
+
+    function selectDefectType(value) {
+      document.getElementById('defTypeSelect').value = value;
+      document.getElementById('defTypeSelectedLabel').textContent = value;
+      closeDefectTypeDropdown();
+      const container = document.getElementById('defTypeContainer');
+      if (value === 'Others') {
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+        document.getElementById('defType').value = '';
+      }
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrapper = document.getElementById('defTypeWrapper');
+      if (wrapper && !wrapper.contains(e.target)) {
+        closeDefectTypeDropdown();
+      }
+    });
+
     function handleDropdownSelection(selectElementId, customContainerInputId) {
       const dropdown = document.getElementById(selectElementId);
       const customContainer = document.getElementById(customContainerInputId);
@@ -984,9 +1177,7 @@
       document.getElementById('defGroup').value = '';
       document.getElementById('defGroupContainer').style.display = 'none';
       
-      document.getElementById('defTypeSelect').value = 'Hairline Crack';
-      document.getElementById('defType').value = '';
-      document.getElementById('defTypeContainer').style.display = 'none';
+      selectDefectType('Hairline Crack');
       
       document.getElementById('defComments').value = '';
       internalStagingPhotos = [];
@@ -1021,6 +1212,18 @@
     }
 
     function setDropdownFieldMatchValue(selectId, customInputId, containerId, targetValue) {
+      if (selectId === 'defTypeSelect') {
+        const exists = DEFECT_TYPE_OPTIONS.some(o => o.value === targetValue);
+        if (exists) {
+          selectDefectType(targetValue);
+        } else {
+          selectDefectType('Others');
+          document.getElementById('defType').value = targetValue;
+          document.getElementById('defTypeContainer').style.display = 'block';
+        }
+        return;
+      }
+
       const dropdown = document.getElementById(selectId);
       const customInput = document.getElementById(customInputId);
       const container = document.getElementById(containerId);
@@ -1051,51 +1254,6 @@
       triggerToastAlertMessage("Defect item deleted.");
     }
 
-        const LOCATION_SORT_ORDER = [
-      'Apron / Perimeter Drain',
-      'Driveway / Entrance Gate',
-      'External Boundary Wall / Fencing',
-      'Car Porch',
-      'Foyer / Entrance Lobby',
-      'Living Room',
-      'Dining Area',
-      'Dry Kitchen',
-      'Wet Kitchen',
-      'Yard / Laundry Area',
-      'Store Room',
-      'Hallway / Corridor',
-      'Staircase',
-      'Master Bedroom',
-      'Master Bathroom',
-      'Bedroom 1',
-      'Bedroom 2',
-      'Bedroom 3',
-      'Guest Room',
-      'Bathroom 2',
-      'Bathroom 3',
-      'Toilet',
-      'Balcony',
-      'Roof / Attic Space',
-      'Others'
-    ];
-
-    function getSortedDefects(defects) {
-      return [...defects].sort((a, b) => {
-        const aLoc = a.location || '';
-        const bLoc = b.location || '';
-        let aIdx = LOCATION_SORT_ORDER.indexOf(aLoc);
-        let bIdx = LOCATION_SORT_ORDER.indexOf(bLoc);
-        if (aIdx === -1) aIdx = LOCATION_SORT_ORDER.length;
-        if (bIdx === -1) bIdx = LOCATION_SORT_ORDER.length;
-        if (aIdx !== bIdx) return aIdx - bIdx;
-        const locCompare = aLoc.localeCompare(bLoc, undefined, { sensitivity: 'base' });
-        if (locCompare !== 0) return locCompare;
-        const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, { sensitivity: 'base' });
-        if (grpCompare !== 0) return grpCompare;
-        return (a.defectType || '').localeCompare(b.defectType || '', undefined, { sensitivity: 'base' });
-      });
-    }
-
     function rebuildUIDefectsListMatrix() {
       document.getElementById('defectsCountText').innerText = state.defects.length;
       const container = document.getElementById('defectsListContainer');
@@ -1106,7 +1264,7 @@
         return;
       }
 
-        getSortedDefects(state.defects).forEach((d) => {
+      state.defects.forEach((d) => {
         const item = document.createElement('div');
         item.className = 'defect-item';
         
@@ -1334,7 +1492,15 @@
         // ----------------------------------------------------------------------
         if (state.defects && state.defects.length > 0) {
           
-        const tabularSortedDefects = getSortedDefects(state.defects);
+          const tabularSortedDefects = [...state.defects].sort((a, b) => {
+            const locCompare = (a.location || '').localeCompare(b.location || '', undefined, {numeric: true, sensitivity: 'base'});
+            if (locCompare !== 0) return locCompare;
+
+            const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, {numeric: true, sensitivity: 'base'});
+            if (grpCompare !== 0) return grpCompare;
+
+            return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
+          });
 
           doc.addPage();
           appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
