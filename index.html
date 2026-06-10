@@ -1488,6 +1488,85 @@
         appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
 
         // ----------------------------------------------------------------------
+        // DISCLAIMER & DEFECT RATING LEGEND STANDALONE PAGE
+        // ----------------------------------------------------------------------
+        doc.addPage();
+        appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
+      
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.setTextColor(30, 30, 30);
+        doc.text('Disclaimer & Rating Standards', margin, 26);
+      
+        // Disclaimer Section
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Terms of Disclaimer', margin, 40);
+      
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(80, 80, 80);
+        const disclaimerBodyText = "This property defect inspection report is prepared exclusively for the specified client and relies on a non-destructive visual assessment of accessible areas conducted at the time of inspection. It does not constitute a structural guarantee, operational warranty, or insurance policy. Latent, hidden, or inaccessible defects behind walls, under floors, or covered by finishes are strictly excluded from the scope of this review.";
+        const wrappedDisclaimer = doc.splitTextToSize(disclaimerBodyText, W - (margin * 2));
+        doc.text(wrappedDisclaimer, margin, 47, { lineHeightFactor: 1.4 });
+      
+        // Defect Severity Legend Section
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(50, 50, 50);
+        doc.text('Defect Severity Legend Matrix', margin, 85);
+      
+        let legendY = 92;
+      
+        // Low Rating Card
+        doc.setFillColor(242, 249, 248); 
+        doc.setDrawColor(3, 218, 198);
+        doc.setLineWidth(0.2);
+        doc.rect(margin, legendY, W - (margin * 2), 22, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(15, 140, 125);
+        doc.text('Low (Minor / Cosmetic)', margin + 5, legendY + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(90, 90, 90);
+        const lowDesc = "Superficial flaws, minor paint touch-ups, or micro-cracks that do not jeopardize functional performance or structural stability. Typically resolved via routine cosmetic maintenance.";
+        doc.text(doc.splitTextToSize(lowDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
+      
+        legendY += 28;
+      
+        // Medium Rating Card
+        doc.setFillColor(254, 252, 243); 
+        doc.setDrawColor(212, 175, 55);
+        doc.rect(margin, legendY, W - (margin * 2), 22, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(160, 125, 25);
+        doc.text('Medium (Moderate Action Required)', margin + 5, legendY + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(90, 90, 90);
+        const medDesc = "Noticeable degradation, functional failure of items, or localized water tracking requiring timely remedial repair or monitoring to avert progressive deterioration or compounding damage.";
+        doc.text(doc.splitTextToSize(medDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
+      
+        legendY += 28;
+      
+        // High Rating Card
+        doc.setFillColor(253, 244, 245); 
+        doc.setDrawColor(207, 102, 121);
+        doc.rect(margin, legendY, W - (margin * 2), 22, 'FD');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(185, 55, 70);
+        doc.text('High (Major Fault / Structural Risk)', margin + 5, legendY + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(90, 90, 90);
+        const highDesc = "Critical engineering anomalies, severe safety hazards, immediate structural integrity risks, or active system breaches. Demands immediate expert diagnostic intervention or replacement.";
+        doc.text(doc.splitTextToSize(highDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
+
+        // ----------------------------------------------------------------------
         // PHASE 2: DEFECT ENTRIES COMPILATION GRID TABLE MODULE RENDERING
         // ----------------------------------------------------------------------
         if (state.defects && state.defects.length > 0) {
