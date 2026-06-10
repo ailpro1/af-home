@@ -1531,7 +1531,7 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(90, 90, 90);
-        const lowDesc = "Superficial flaws, minor paint touch-ups, or micro-cracks that do not jeopardize functional performance or structural stability. Typically resolved via routine cosmetic maintenance.";
+        const lowDesc = "Cosmetic issues, like small paint touch-ups or tiny cracks, that do not affect how the structure or system works. These can be fixed during regular, routine maintenance.";
         doc.text(doc.splitTextToSize(lowDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
       
         legendY += 28;
@@ -1547,7 +1547,7 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(90, 90, 90);
-        const medDesc = "Noticeable degradation, functional failure of items, or localized water tracking requiring timely remedial repair or monitoring to avert progressive deterioration or compounding damage.";
+        const medDesc = "Clear damage or equipment failures, such as minor water leaks, that need prompt repair or monitoring to stop the problem from getting worse or causing more damage.";
         doc.text(doc.splitTextToSize(medDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
       
         legendY += 28;
@@ -1563,7 +1563,7 @@
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(9);
         doc.setTextColor(90, 90, 90);
-        const highDesc = "Critical engineering anomalies, severe safety hazards, immediate structural integrity risks, or active system breaches. Demands immediate expert diagnostic intervention or replacement.";
+        const highDesc = "Severe safety hazards or major structural risks that need immediate expert inspection, urgent repair, or complete replacement.";
         doc.text(doc.splitTextToSize(highDesc, W - (margin * 2) - 10), margin + 5, legendY + 13, { lineHeightFactor: 1.3 });
 
         // ----------------------------------------------------------------------
