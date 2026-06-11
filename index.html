@@ -1169,20 +1169,10 @@
 
     function clearDefectForm() {
       currentEditingDefectId = null;
-      document.getElementById('defLocationSelect').value = 'Living Room';
-      document.getElementById('defLocation').value = '';
-      document.getElementById('defLocationContainer').style.display = 'none';
-      
-      document.getElementById('defGroupSelect').value = 'Ceiling';
-      document.getElementById('defGroup').value = '';
-      document.getElementById('defGroupContainer').style.display = 'none';
-      
-      selectDefectType('Hairline Crack');
-      
+      // Kept drop-down selections exactly as they are for rapid continuous entry
       document.getElementById('defComments').value = '';
       internalStagingPhotos = [];
       document.getElementById('defectPhotoPreviewStrip').innerHTML = '';
-      
       document.getElementById('saveDefectBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Save Defect Entry Row`;
       document.getElementById('cancelEditBtn').style.display = 'none';
     }
@@ -1571,15 +1561,19 @@
         // ----------------------------------------------------------------------
         if (state.defects && state.defects.length > 0) {
           
-          const tabularSortedDefects = [...state.defects].sort((a, b) => {
-            const locCompare = (a.location || '').localeCompare(b.location || '', undefined, {numeric: true, sensitivity: 'base'});
-            if (locCompare !== 0) return locCompare;
-
-            const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, {numeric: true, sensitivity: 'base'});
-            if (grpCompare !== 0) return grpCompare;
-
-            return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
-          });
+        const tabularSortedDefects = [...state.defects].sort((a, b) => {
+          // Define the exact walking/natural movement sequence
+          const order = ["Car Porch", "Apron / Perimeter Drain", "Driveway / Entrance Gate", "External Boundary Wall / Fencing", "Roof / Attic Space", "Foyer / Entrance Lobby", "Living Room", "Dining Area", "Hallway / Corridor", "Staircase", "Dry Kitchen", "Wet Kitchen", "Yard / Laundry Area", "Store Room", "Balcony", "Master Bedroom", "Bedroom 1", "Bedroom 2", "Bedroom 3", "Guest Room", "Master Bathroom", "Bathroom 2", "Bathroom 3", "Toilet", "Others"];
+          let idxA = order.indexOf(a.location);
+          let idxB = order.indexOf(b.location);
+          if (idxA === -1) idxA = 999;
+          if (idxB === -1) idxB = 999;
+          if (idxA !== idxB) return idxA - idxB;
+          
+          const grpCompare = (a.group || '').localeCompare(b.group || '', undefined, {numeric: true, sensitivity: 'base'});
+          if (grpCompare !== 0) return grpCompare;
+          return (a.defectType || '').localeCompare(b.defectType || '', undefined, {numeric: true, sensitivity: 'base'});
+        });
 
           doc.addPage();
           appendMasterPageFooterElement(doc, W, H, margin, state.cover.refno);
