@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <title>AF Home Inspection — Report Generator</title>
 <meta name="apple-mobile-web-app-title" content="AF Inspect">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="/AFH/icon-180.png">
-<link rel="icon" type="image/png" href="/AFH/icon-180.png"> 
-<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<link rel="apple-touch-icon" href="/AFH/icon-180.png?v=3">
+<link rel="icon" type="image/png" href="/AFH/icon-180.png?v=3"> 
+<link rel="manifest" href="manifest.json?v=3">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -20,128 +21,336 @@
 
 <style>
   :root {
-    --bg-main: #121212;
-    --bg-card: #1e1e1e;
-    --border-color: #2d2d2d;
-    --text-main: #f5f5f5;
-    --text-muted: #aaaaaa;
+    /* iOS system palette (dark) */
+    --bg-main: #000000;
+    --bg-card: rgba(28,28,30,0.92);
+    --bg-elevated: #1c1c1e;
+    --bg-input: #2c2c2e;
+    --bg-grouped: #1c1c1e;
+    --border-color: rgba(84,84,88,0.5);
+    --separator: rgba(84,84,88,0.34);
+    --text-main: #ffffff;
+    --text-muted: #98989f;
+    --text-tertiary: #6c6c70;
     --accent: #d4af37;
     --accent-hover: #f3cf55;
-    --danger: #cf6679;
-    --success: #03dac6;
+    --accent-soft: rgba(212,175,55,0.16);
+    --danger: #ff453a;
+    --danger-soft: rgba(255,69,58,0.16);
+    --success: #30d158;
+    --success-soft: rgba(48,209,88,0.16);
+    --warn: #ff9f0a;
+    --blur: saturate(180%) blur(20px);
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+    --r-xl: 28px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: 56px;
+    --ios-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', 'DM Sans', system-ui, sans-serif;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'DM Sans', sans-serif; }
-  body { background-color: var(--bg-main); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg-main: #f2f2f7;
+      --bg-card: rgba(255,255,255,0.92);
+      --bg-elevated: #ffffff;
+      --bg-input: #f0f0f5;
+      --bg-grouped: #ffffff;
+      --border-color: rgba(60,60,67,0.18);
+      --separator: rgba(60,60,67,0.16);
+      --text-main: #000000;
+      --text-muted: #6c6c70;
+      --text-tertiary: #8e8e93;
+      --accent: #a8871f;
+      --accent-hover: #8c6f14;
+      --accent-soft: rgba(168,135,31,0.12);
+      --danger: #ff3b30;
+      --danger-soft: rgba(255,59,48,0.12);
+      --success: #34c759;
+      --success-soft: rgba(52,199,89,0.12);
+    }
+  }
 
-  /* Navigation Bar Top-placement styling */
-  .sidebar { width: 100%; background-color: #0a0a0a; border-bottom: 1px solid var(--border-color); border-right: none; display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 10px 20px; shrink: 0; }
-  .brand { display: flex; align-items: center; gap: 12px; padding: 0; border-bottom: none; }
-  .brand img { width: 36px; height: 36px; border-radius: 6px; }
-  .brand span { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
-  .nav-tabs { display: flex; flex-direction: row; gap: 8px; padding: 0; flex-grow: 0; }
-  .nav-item { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px; color: var(--text-muted); cursor: pointer; transition: all 0.2s ease; font-size: 13px; font-weight: 500; white-space: nowrap; }
-  .nav-item:hover { background-color: rgba(255,255,255,0.04); color: #fff; }
-  .nav-item.active { background-color: var(--bg-card); color: var(--accent); border-left: none; border-bottom: 3px solid var(--accent); padding-left: 14px; padding-bottom: 7px; border-radius: 8px 8px 0 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--ios-font); -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; }
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+    overscroll-behavior: none;
+  }
 
-  /* Main frame styling */
-  .main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; background-color: var(--bg-main); overflow-y: auto; }
-  .tab-pane { display: none; padding: 24px; max-width: 900px; width: 100%; margin: 0 auto; }
-  .tab-pane.active { display: block; animation: fadeIn 0.25s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  /* ===== iOS Tab Bar (bottom) ===== */
+  .sidebar {
+    order: 2;
+    flex-shrink: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: color-mix(in srgb, var(--bg-main) 78%, transparent);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border-top: 0.5px solid var(--separator);
+    padding: 0 0 var(--safe-bottom) 0;
+  }
+  .brand { display: none; }
+  .nav-tabs {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: var(--tabbar-h);
+    align-items: stretch;
+  }
+  .nav-item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 2px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    white-space: nowrap;
+    border: none;
+    background: none;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .nav-item i { font-size: 21px; line-height: 1; }
+  .nav-item:active { transform: scale(0.92); }
+  .nav-item.active { color: var(--accent); background: none; border: none; padding: 6px 2px; border-radius: 0; }
 
-  h2 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #fff; }
-  .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
-  .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-  .card h3 { font-size: 16px; font-weight: 600; margin-bottom: 18px; color: var(--accent); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  /* ===== Scroll area with iOS large title ===== */
+  .main-content {
+    order: 1;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background-color: var(--bg-main);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: var(--safe-top);
+  }
+  .tab-pane { display: none; padding: 8px 16px 40px; max-width: 720px; width: 100%; margin: 0 auto; }
+  .tab-pane.active { display: block; animation: iosFade 0.28s cubic-bezier(0.32,0.72,0,1); }
+  @keyframes iosFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Form Layouts */
-  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  h2 { font-family: var(--ios-font); font-size: 34px; font-weight: 700; letter-spacing: -0.5px; margin: 16px 0 4px; color: var(--text-main); }
+  .subtitle { color: var(--text-muted); font-size: 15px; line-height: 1.4; margin-bottom: 22px; }
+
+  /* ===== Inset grouped card ===== */
+  .card {
+    background-color: var(--bg-card);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    border: 0.5px solid var(--border-color);
+    border-radius: var(--r-lg);
+    padding: 18px 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+  }
+  .card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .card h3 i { color: var(--accent); }
+
+  /* ===== Forms ===== */
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 7px; }
   .form-group.full-width { grid-column: span 2; }
-  label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
-  input, select, textarea { background-color: #121212; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; transition: border-color 0.2s; width: 100%; }
+  label { font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--text-muted); font-weight: 500; }
+  input, select, textarea {
+    background-color: var(--bg-input);
+    border: 0.5px solid var(--separator);
+    border-radius: var(--r-sm);
+    padding: 12px 14px;
+    color: var(--text-main);
+    font-size: 17px;
+    line-height: 1.3;
+    transition: border-color 0.2s, background-color 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%2398989f'><path d='M4.5 6.5L8 10l3.5-3.5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 34px;
+  }
+  input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 80px; }
+  textarea { resize: vertical; min-height: 88px; line-height: 1.45; }
+  input[type="date"] { min-height: 46px; }
 
-  /* Buttons */
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
-  .btn-primary { background-color: var(--accent); color: #000; }
+  /* ===== Buttons ===== */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 22px;
+    border-radius: 980px;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.12s ease, opacity 0.15s ease, background-color 0.15s;
+  }
+  .btn:active { transform: scale(0.96); opacity: 0.85; }
+  .btn-primary { background-color: var(--accent); color: #1a1400; }
   .btn-primary:hover { background-color: var(--accent-hover); }
-  .btn-secondary { background-color: #2d2d2d; color: #fff; }
-  .btn-secondary:hover { background-color: #3d3d3d; }
-  .btn-danger { background-color: rgba(207, 102, 121, 0.15); color: var(--danger); border: 1px solid rgba(207,102,121,0.2); }
-  .btn-danger:hover { background-color: rgba(207, 102, 121, 0.25); }
+  .btn-secondary { background-color: var(--accent-soft); color: var(--accent); }
+  .btn-secondary:hover { background-color: var(--accent-soft); }
+  .btn-danger { background-color: var(--danger-soft); color: var(--danger); border: none; }
+  .btn-danger:hover { background-color: var(--danger-soft); }
 
-  /* Defects List Grid */
-  .defects-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-  .defect-item { background-color: #161616; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
-  .defect-info h4 { font-size: 15px; color: #fff; margin-bottom: 4px; }
-  .defect-info p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-  .defect-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
-  .badge-low { background-color: rgba(3,218,198,0.15); color: var(--success); }
-  .badge-medium { background-color: rgba(212,175,55,0.15); color: var(--accent); }
-  .badge-high { background-color: rgba(207, 102, 121, 0.15); color: var(--danger); }
+  /* ===== Defect list rows ===== */
+  .defects-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .defect-item {
+    background-color: var(--bg-elevated);
+    border: 0.5px solid var(--border-color);
+    border-radius: var(--r-md);
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .defect-info h4 { font-size: 17px; font-weight: 600; color: var(--text-main); margin-bottom: 3px; letter-spacing: -0.2px; }
+  .defect-info p { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; line-height: 1.35; }
+  .defect-badge { display: inline-block; padding: 3px 9px; border-radius: 980px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-low { background-color: var(--success-soft); color: var(--success); }
+  .badge-medium { background-color: var(--accent-soft); color: var(--accent); }
+  .badge-high { background-color: var(--danger-soft); color: var(--danger); }
   .defect-photos-preview { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .defect-photos-preview img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-color); }
+  .defect-photos-preview img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 0.5px solid var(--border-color); }
 
-  /* Photo Uploader Multi-Styler */
+  /* ===== Photo uploader ===== */
   .photo-upload-container { display: flex; flex-direction: column; gap: 10px; }
-  .preview-strip { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-  .preview-thumb { position: relative; width: 80px; height: 80px; }
-  .preview-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
-  .preview-thumb .remove-img-btn { position: absolute; top: -6px; right: -6px; background: var(--danger); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
-  .preview-thumb .edit-img-btn { position: absolute; bottom: -6px; right: -6px; background: var(--accent); color: #000; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .preview-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+  .preview-thumb { position: relative; width: 84px; height: 84px; }
+  .preview-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 0.5px solid var(--border-color); }
+  .preview-thumb .remove-img-btn { position: absolute; top: -7px; right: -7px; background: var(--danger); color: #fff; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+  .preview-thumb .edit-img-btn { position: absolute; bottom: -7px; right: -7px; background: var(--accent); color: #1a1400; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
 
-  /* Loader Modal Overlay */
-  .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 10000; }
+  /* ===== Modal / loader overlay (iOS sheet) ===== */
+  .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px; z-index: 10000; }
   .loader-overlay.open { display: flex; }
-  .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+  .spinner { width: 34px; height: 34px; border: 3px solid rgba(255,255,255,0.18); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Toast notification */
-  .toast { position: fixed; bottom: 24px; right: 24px; background-color: #fff; color: #000; padding: 14px 24px; border-radius: 8px; font-weight: 500; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 99999; }
-  .toast.show { transform: translateY(0); opacity: 1; }
-
-  /* Responsive Adjustments for Mobile screen scaling */
-  @media (max-width: 768px) {
-    .sidebar { flex-direction: column; align-items: flex-start; gap: 12px; padding: 12px; }
-    .nav-tabs { width: 100%; overflow-x: auto; padding-bottom: 4px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .form-group.full-width { grid-column: span 1; }
+  /* ===== Toast ===== */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
+    transform: translate(-50%, 120%);
+    background-color: rgba(58,58,60,0.92);
+    -webkit-backdrop-filter: var(--blur);
+    backdrop-filter: var(--blur);
+    color: #fff;
+    padding: 13px 22px;
+    border-radius: 980px;
+    font-weight: 500;
+    font-size: 15px;
+    max-width: calc(100% - 32px);
+    text-align: center;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.32,0.72,0,1), opacity 0.3s ease;
+    z-index: 99999;
   }
-  /* Interactive Manual Cropper Modal Styling Layout */
-  .cropper-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; flex-direction: column; z-index: 10001; padding: 20px; }
-  .cropper-modal-overlay.open { display: flex; }
-  .cropper-container-wrapper { width: 100%; max-width: 650px; background: #1e1e1e; border-radius: 12px; padding: 24px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 16px; }
-  .cropper-box-area { max-height: 55vh; width: 100%; overflow: hidden; background: #000; border-radius: 6px; }
-  .cropper-box-area img { max-width: 100%; display: block; }
-  .cropper-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
-  /* Searchable Defect Type Select Component */
+  /* ===== Cropper sheet ===== */
+  .cropper-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); display: none; align-items: flex-end; justify-content: center; flex-direction: column; z-index: 10001; padding: 0; }
+  .cropper-modal-overlay.open { display: flex; }
+  .cropper-container-wrapper {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--bg-elevated);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: 10px 16px calc(18px + var(--safe-bottom));
+    border: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 94dvh;
+    overflow-y: auto;
+    animation: sheetUp 0.4s cubic-bezier(0.32,0.72,0,1);
+  }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .sheet-grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--text-tertiary); opacity: 0.5; margin: 0 auto 6px; flex-shrink: 0; }
+  .cropper-container-wrapper h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+  .cropper-container-wrapper h3 i { color: var(--accent); }
+  .cropper-box-area { max-height: 46vh; width: 100%; overflow: hidden; background: #000; border-radius: var(--r-md); }
+  .cropper-box-area img { max-width: 100%; display: block; }
+  .cropper-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .cropper-actions .btn { flex: 1 1 0; }
+
+  /* Segmented control (iOS) */
+  .seg-control { display: flex; background: var(--bg-input); border-radius: 9px; padding: 2px; gap: 2px; overflow-x: auto; }
+  .seg-item { flex: 1 0 auto; text-align: center; padding: 7px 12px; font-size: 13px; font-weight: 500; color: var(--text-main); border-radius: 7px; cursor: pointer; white-space: nowrap; transition: background-color 0.15s, color 0.15s; user-select: none; }
+  .seg-item.active { background: var(--accent); color: #1a1400; font-weight: 600; }
+  .tool-row { display: flex; gap: 10px; }
+  .tool-row .btn { flex: 1 1 0; padding: 10px 12px; font-size: 14px; }
+
+  /* ===== Searchable select ===== */
   .searchable-select-wrapper { position: relative; }
-  .searchable-select-display { background-color: #121212; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; transition: border-color 0.2s; user-select: none; }
+  .searchable-select-display { background-color: var(--bg-input); border: 0.5px solid transparent; border-radius: var(--r-sm); padding: 12px 14px; color: var(--text-main); font-size: 17px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; transition: border-color 0.2s; user-select: none; }
   .searchable-select-display:hover, .searchable-select-wrapper.open .searchable-select-display { border-color: var(--accent); }
   .searchable-select-display span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .searchable-select-display i { font-size: 11px; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+  .searchable-select-display i { font-size: 12px; color: var(--text-tertiary); transition: transform 0.2s; flex-shrink: 0; }
   .searchable-select-wrapper.open .searchable-select-display i { transform: rotate(180deg); }
-  .searchable-select-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1e1e1e; border: 1px solid var(--border-color); border-radius: 8px; z-index: 2000; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
-  .searchable-select-panel input { border-radius: 0; border: none; border-bottom: 1px solid var(--border-color); background: #161616; font-size: 13px; padding: 10px 14px; width: 100%; color: #fff; }
+  .searchable-select-panel { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--bg-elevated); border: 0.5px solid var(--border-color); border-radius: var(--r-md); z-index: 2000; overflow: hidden; box-shadow: 0 12px 34px rgba(0,0,0,0.5); }
+  .searchable-select-panel input { border-radius: 0; border: none; border-bottom: 0.5px solid var(--separator); background: var(--bg-input); font-size: 16px; padding: 12px 14px; width: 100%; color: var(--text-main); }
   .searchable-select-panel input:focus { border-bottom-color: var(--accent); outline: none; }
-  .searchable-select-options { max-height: 220px; overflow-y: auto; }
-  .searchable-option { padding: 9px 16px; font-size: 13px; color: var(--text-main); cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .searchable-option:hover { background: rgba(212,175,55,0.1); color: var(--accent); }
-  .searchable-option.selected { background: rgba(212,175,55,0.12); color: var(--accent); font-weight: 600; }
-  .searchable-option-group { padding: 7px 16px 5px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); background: #161616; font-weight: 700; border-top: 1px solid var(--border-color); }
+  .searchable-select-options { max-height: 240px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .searchable-option { padding: 12px 16px; font-size: 16px; color: var(--text-main); cursor: pointer; border-bottom: 0.5px solid var(--separator); }
+  .searchable-option:hover { background: var(--accent-soft); color: var(--accent); }
+  .searchable-option.selected { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .searchable-option-group { padding: 8px 16px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); background: var(--bg-input); font-weight: 700; border-top: 0.5px solid var(--separator); }
   .searchable-option-group:first-child { border-top: none; }
-  .no-options-msg { padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; font-style: italic; }
+  .no-options-msg { padding: 18px; text-align: center; color: var(--text-muted); font-size: 15px; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full-width { grid-column: span 1; }
+    h2 { font-size: 30px; }
+  }
+  @media (min-width: 769px) {
+    .cropper-modal-overlay { align-items: center; }
+    .cropper-container-wrapper { border-radius: var(--r-xl); max-height: 90vh; animation: iosFade 0.25s ease; }
+  }
 </style>
 </head>
 <body>
 
   <div class="sidebar">
     <div class="brand">
-      <img src="/AFH/icon-180.png" alt="Logo">
+      <img src="/AFH/icon-180.png?v=3" alt="Logo">
       <span>AF Inspect</span>
     </div>
     <div class="nav-tabs">
@@ -183,13 +392,13 @@
               <i class="fa-solid fa-camera"></i> Choose Cover Image
             </button>
             <div id="coverPhotoPreviewBox" style="margin-top: 16px; display: none;">
-              <img id="coverPhotoPreviewImg" src="" alt="Cover Photo Preview" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); padding: 4px; background: #222;">
+              <img id="coverPhotoPreviewImg" src="" alt="Cover Photo Preview" style="max-width: 100%; max-height: 260px; border-radius: 14px; border: 0.5px solid var(--border-color); display:block;">
               <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
                 <button class="btn btn-secondary" style="padding: 6px 14px; font-size: 12px;" onclick="reCropExistingCoverPhoto()">
-                  <i class="fa-solid fa-crop-simple"></i> Re-Crop Photo
+                  <i class="fa-solid fa-crop-simple"></i> Re-Crop
                 </button>
                 <button class="btn btn-danger" style="padding: 6px 14px; font-size: 12px;" onclick="clearCoverPhotoItem()">
-                  <i class="fa-solid fa-trash-can"></i> Remove Cover Photo
+                  <i class="fa-solid fa-trash-can"></i> Remove
                 </button>
               </div>
             </div>
@@ -346,7 +555,7 @@
             <i class="fa-solid fa-file-arrow-up"></i> Choose Checklist Scanned Image
           </button>
           <div id="checklistPreviewBox" style="margin-top: 16px; display: none;">
-            <img id="checklistPreviewImg" src="" alt="Checklist Scanned File Sheet Grid Preview Thumbnail" style="max-width: 100%; max-height: 240px; border-radius: 6px; border: 1px solid var(--border-color); padding: 4px; background: #fff;">
+            <img id="checklistPreviewImg" src="" alt="Checklist Scanned File Sheet Grid Preview Thumbnail" style="max-width: 100%; max-height: 260px; border-radius: 14px; border: 0.5px solid var(--border-color); background: #fff;">
             <button class="btn btn-danger" style="margin: 12px auto 0 auto; padding: 6px 14px; font-size: 12px; display: flex;" onclick="clearChecklistUploadItem()">
               <i class="fa-solid fa-trash-can"></i> Discard Checklist File
             </button>
@@ -422,14 +631,34 @@
 
   <div class="cropper-modal-overlay" id="cropperModal">
     <div class="cropper-container-wrapper">
-      <h3><i class="fa-solid fa-crop-simple"></i> Frame Cover Photo</h3>
-      <p style="font-size: 13px; color: var(--text-muted);">Manually position and scale the target grid frame layout box to crop your house graphic cleanly for the blueprint dashboard card slot.</p>
+      <div class="sheet-grabber"></div>
+      <h3><i class="fa-solid fa-crop-simple"></i> Crop Cover Photo</h3>
+      <p style="font-size: 14px; color: var(--text-muted); line-height:1.4;">Drag, pinch and resize the frame freely. Pick a ratio only if you want one locked.</p>
+
+      <div class="seg-control" id="cropAspectSegments">
+        <div class="seg-item active" data-ratio="free" onclick="setCropAspectRatio('free', this)">Free</div>
+        <div class="seg-item" data-ratio="original" onclick="setCropAspectRatio('original', this)">Original</div>
+        <div class="seg-item" data-ratio="2.647" onclick="setCropAspectRatio('2.647', this)">Banner</div>
+        <div class="seg-item" data-ratio="1.7778" onclick="setCropAspectRatio('1.7778', this)">16:9</div>
+        <div class="seg-item" data-ratio="1.3333" onclick="setCropAspectRatio('1.3333', this)">4:3</div>
+        <div class="seg-item" data-ratio="1" onclick="setCropAspectRatio('1', this)">1:1</div>
+      </div>
+
       <div class="cropper-box-area">
         <img id="cropperSourceImage" src="">
       </div>
+
+      <div class="tool-row">
+        <button class="btn btn-secondary" onclick="rotateCropperImage(-90)" title="Rotate left"><i class="fa-solid fa-rotate-left"></i></button>
+        <button class="btn btn-secondary" onclick="rotateCropperImage(90)" title="Rotate right"><i class="fa-solid fa-rotate-right"></i></button>
+        <button class="btn btn-secondary" onclick="flipCropperImage('x')" title="Flip horizontal"><i class="fa-solid fa-arrows-left-right"></i></button>
+        <button class="btn btn-secondary" onclick="flipCropperImage('y')" title="Flip vertical"><i class="fa-solid fa-arrows-up-down"></i></button>
+        <button class="btn btn-secondary" onclick="resetCropperFrame()" title="Reset"><i class="fa-solid fa-arrows-rotate"></i></button>
+      </div>
+
       <div class="cropper-actions">
-        <button class="btn btn-secondary" onclick="closeCropperModal()"><i class="fa-solid fa-xmark"></i> Cancel</button>
-        <button class="btn btn-primary" onclick="executeCroppingComputation()"><i class="fa-solid fa-check"></i> Frame & Save Image</button>
+        <button class="btn btn-secondary" onclick="closeCropperModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="executeCroppingComputation()"><i class="fa-solid fa-check"></i> Use Photo</button>
       </div>
     </div>
   </div>
@@ -444,7 +673,7 @@
   <script>
     // Initialize Master Runtime State Data Array Vector
     let state = {
-      cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection', coverPhoto: null },
+      cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection', coverPhoto: null, coverPhotoAspect: null },
       defects: [],
       checklistImage: null
     };
@@ -576,6 +805,7 @@
 
     function clearCoverPhotoItem() {
       state.cover.coverPhoto = null;
+      state.cover.coverPhotoAspect = null;
       document.getElementById('coverPhotoField').value = '';
       document.getElementById('coverPhotoPreviewImg').src = '';
       document.getElementById('coverPhotoPreviewBox').style.display = 'none';
@@ -589,7 +819,7 @@
 
       // 1. Reset Master Runtime State Dictionary Vector
       state = {
-        cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection' },
+        cover: { refno: '', date: '', client: '', property: '', inspector: '', company: 'AF Home Inspection', coverPhoto: null, coverPhotoAspect: null },
         defects: [],
         checklistImage: null
       };
@@ -835,36 +1065,86 @@
     }
 
     let activeCropperInstance = null;
+    let activeCropAspectMode = 'free';
+
+    // Free-form cropper: no locked aspect unless the user picks one.
+    function launchCropperOnSource(srcDataUrl) {
+      const cropperImg = document.getElementById('cropperSourceImage');
+      cropperImg.src = srcDataUrl;
+      document.getElementById('cropperModal').classList.add('open');
+
+      if (activeCropperInstance) {
+        activeCropperInstance.destroy();
+        activeCropperInstance = null;
+      }
+
+      activeCropAspectMode = 'free';
+      document.querySelectorAll('#cropAspectSegments .seg-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.ratio === 'free');
+      });
+
+      activeCropperInstance = new Cropper(cropperImg, {
+        aspectRatio: NaN,          // free crop
+        viewMode: 0,               // frame may extend beyond the image bounds
+        dragMode: 'move',
+        background: false,
+        responsive: true,
+        autoCropArea: 0.9,
+        movable: true,
+        zoomable: true,
+        zoomOnTouch: true,
+        zoomOnWheel: true,
+        rotatable: true,
+        scalable: true,
+        toggleDragModeOnDblclick: false,
+        checkOrientation: true
+      });
+    }
 
     function openCoverPhotoCropper(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const cropperImg = document.getElementById('cropperSourceImage');
-        cropperImg.src = e.target.result;
-        
-        document.getElementById('cropperModal').classList.add('open');
-        
-        if (activeCropperInstance) {
-          activeCropperInstance.destroy();
-        }
-        
-        // Locking configuration parameters to match the precise aspect footprint geometry rules (180:68)
-        activeCropperInstance = new Cropper(cropperImg, {
-          aspectRatio: 180 / 68,
-          viewMode: 1,
-          background: false,
-          responsive: true,
-          autoCropArea: 1,
-          movable: true,
-          zoomable: true,
-          rotatable: false,
-          scalable: false
-        });
-      };
+      reader.onload = function(e) { launchCropperOnSource(e.target.result); };
       reader.readAsDataURL(file);
+    }
+
+    function reCropExistingCoverPhoto() {
+      if (!state.cover.coverPhoto) return;
+      launchCropperOnSource(state.cover.coverPhoto);
+    }
+
+    function setCropAspectRatio(ratioKey, el) {
+      if (!activeCropperInstance) return;
+      activeCropAspectMode = ratioKey;
+      document.querySelectorAll('#cropAspectSegments .seg-item').forEach(n => n.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      if (ratioKey === 'free') {
+        activeCropperInstance.setAspectRatio(NaN);
+      } else if (ratioKey === 'original') {
+        const d = activeCropperInstance.getImageData();
+        activeCropperInstance.setAspectRatio(d.naturalWidth / d.naturalHeight);
+      } else {
+        activeCropperInstance.setAspectRatio(parseFloat(ratioKey));
+      }
+    }
+
+    function rotateCropperImage(deg) {
+      if (activeCropperInstance) activeCropperInstance.rotate(deg);
+    }
+
+    function flipCropperImage(axis) {
+      if (!activeCropperInstance) return;
+      const d = activeCropperInstance.getData();
+      if (axis === 'x') activeCropperInstance.scaleX((d.scaleX || 1) * -1);
+      else activeCropperInstance.scaleY((d.scaleY || 1) * -1);
+    }
+
+    function resetCropperFrame() {
+      if (!activeCropperInstance) return;
+      activeCropperInstance.reset();
+      setCropAspectRatio('free', document.querySelector('#cropAspectSegments .seg-item[data-ratio="free"]'));
     }
 
     function closeCropperModal() {
@@ -876,46 +1156,38 @@
       }
     }
 
-    function reCropExistingCoverPhoto() {
-      if (!state.cover.coverPhoto) return;
-      const cropperImg = document.getElementById('cropperSourceImage');
-      cropperImg.src = state.cover.coverPhoto;
-      document.getElementById('cropperModal').classList.add('open');
-      if (activeCropperInstance) {
-        activeCropperInstance.destroy();
-      }
-      activeCropperInstance = new Cropper(cropperImg, {
-        aspectRatio: 180 / 68,
-        viewMode: 1,
-        background: false,
-        responsive: true,
-        autoCropArea: 1,
-        movable: true,
-        zoomable: true,
-        rotatable: false,
-        scalable: false
-      });
-    }
-
     function executeCroppingComputation() {
       if (!activeCropperInstance) return;
 
-      // Output resolution dimension boundary maps (High fidelity 1440px maintains perfect layout density metrics)
+      // Keep the user's own crop geometry; only cap the long edge for file size.
+      const MAX_EDGE = 1600;
+      const box = activeCropperInstance.getData(true);
+      let outW = Math.max(1, Math.round(box.width));
+      let outH = Math.max(1, Math.round(box.height));
+      const longest = Math.max(outW, outH);
+      if (longest > MAX_EDGE) {
+        const k = MAX_EDGE / longest;
+        outW = Math.max(1, Math.round(outW * k));
+        outH = Math.max(1, Math.round(outH * k));
+      }
+
       const croppedCanvas = activeCropperInstance.getCroppedCanvas({
-        width: 1440,
-        height: 544,
+        width: outW,
+        height: outH,
         imageSmoothingEnabled: true,
-        imageSmoothingQuality: 'high'
+        imageSmoothingQuality: 'high',
+        fillColor: '#ffffff'
       });
 
       state.cover.coverPhoto = croppedCanvas.toDataURL('image/jpeg', 0.85);
-      
+      state.cover.coverPhotoAspect = outW / outH;   // used to size the PDF cover image
+
       document.getElementById('coverPhotoPreviewImg').src = state.cover.coverPhoto;
       document.getElementById('coverPhotoPreviewBox').style.display = 'block';
-      
+
       syncSaveStateToLocalStorageStore();
       closeCropperModal();
-      triggerToastAlertMessage("Cover photo framed and customized successfully.");
+      triggerToastAlertMessage("Cover photo cropped and saved.");
     }
 
     // Process Photographic File Array Selection Buffering Pipeline
@@ -1425,10 +1697,29 @@
         // Optional Cover Photo Step: Render dynamically between title rules line and details block
         if (state.cover.coverPhoto) {
           try {
-            const photoWidth = W - (margin * 2); // full 180mm content span area printable geometry bound
-            const photoHeight = 68; // Elegant architectural landscape banner proportion sizing element
-            doc.addImage(state.cover.coverPhoto, 'JPEG', margin, 80, photoWidth, photoHeight, undefined, 'FAST');
-            
+            // Honour the user's own crop ratio; fit inside the printable band.
+            const maxPhotoWidth = W - (margin * 2);   // 180mm content span
+            const maxPhotoHeight = 120;               // keep the details block on page 1
+
+            let aspect = parseFloat(state.cover.coverPhotoAspect);
+            if (!isFinite(aspect) || aspect <= 0) {
+              try {
+                const props = doc.getImageProperties(state.cover.coverPhoto);
+                aspect = props.width / props.height;
+              } catch (aspectProbeError) {
+                aspect = 180 / 68; // legacy fixed banner fallback
+              }
+            }
+
+            let photoWidth = maxPhotoWidth;
+            let photoHeight = photoWidth / aspect;
+            if (photoHeight > maxPhotoHeight) {
+              photoHeight = maxPhotoHeight;
+              photoWidth = photoHeight * aspect;
+            }
+            const photoX = margin + (maxPhotoWidth - photoWidth) / 2;  // centre it
+            doc.addImage(state.cover.coverPhoto, 'JPEG', photoX, 80, photoWidth, photoHeight, undefined, 'FAST');
+
             // Push details tracking matrix box starting coordinates cleanly down past the photo footprint boundary
             sy = 80 + photoHeight + 14; 
           } catch (coverPhotoError) {
@@ -1877,8 +2168,21 @@
       doc.text('AF Home Inspection  ·  Professional Inspection Report  ·  ' + (refno || 'N/A'), W / 2, H - 4, { align: 'center' });
     }
     // Register the service worker for offline support
+    // Bump APP_CACHE_VERSION whenever index.html changes so clients pick it up.
+    const APP_CACHE_VERSION = 'v3';
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js?v=' + APP_CACHE_VERSION).then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              triggerToastAlertMessage('Update installed. Reopen the app to apply.');
+            }
+          });
+        });
+        reg.update();
+      }).catch(() => {});
     }
   </script>
 </body>
